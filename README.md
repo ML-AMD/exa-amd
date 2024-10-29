@@ -1,1 +1,1 @@
-# exa-amd
+# exa-AMD
