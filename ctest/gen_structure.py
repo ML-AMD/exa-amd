@@ -1,0 +1,86 @@
+import os
+import csv
+import sys
+import argparse
+from multiprocessing import Pool
+from pymatgen.core import Structure
+from pymatgen.io.vasp import Poscar
+from itertools import permutations
+
+def read_elements_from_csv():
+    with open('Paul_nomix_3pair.csv', 'r') as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the first line
+        second_line = next(reader)[0].split('-')
+    return second_line  # Return the first three elements
+
+badele_vec = ['D', 'He', 'Ne', 'Ar', 'Br', 'Kr', 'Tc', 'Xe', 'At', 'Rn', 'Pm', 'Fr', 'Rf',
+              'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
+              'Ac', 'Th', 'Pa', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
+              'F', 'Cl', 'Br', 'I', 'O', 'N', 'H']
+
+def generate_structures(structure_file,dirs):
+    elements = read_elements_from_csv()
+    element_permutations = list(permutations(elements))
+    lattice_scales = [0.96, 0.98, 1.0, 1.02, 1.04]
+    
+    structures = []
+    
+    # Read the original structure
+    original_structure = Structure.from_file(os.path.join(dirs, structure_file))
+    
+    # Check if the structure contains any bad elements
+    if any(element.symbol in badele_vec for element in original_structure.composition):
+        return []  # Skip this structure
+    
+    # Identify elements to be substituted (those not in badele_vec)
+    elements_to_substitute = [element.symbol for element in original_structure.composition
+                              if element.symbol not in badele_vec]
+    
+    # If we don't have exactly three elements to substitute, skip this structure
+    if len(elements_to_substitute) != 3:
+        return []
+    
+    for perm in element_permutations:
+        for scale in lattice_scales:
+            new_structure = original_structure.copy()
+            
+            # Replace elements
+            for i, site in enumerate(new_structure):
+                if site.specie.symbol in elements_to_substitute:
+                    new_structure.replace(i, perm[elements_to_substitute.index(site.specie.symbol)])
+            
+            # Scale lattice
+            new_structure.scale_lattice(new_structure.volume * scale**3)
+            
+            structures.append(new_structure)
+    
+    return structures
+
+def process_structure(args):
+    structure_file, start_index, dirs = args
+    structures = generate_structures(structure_file, dirs)
+    for i, structure in enumerate(structures, start=start_index):
+        structure.to(f"{i}.cif")
+    return len(structures)
+
+def main(args):
+    dirs = os.path.abspath(args.input_dir)
+    num_workers=args.num_workers
+    structure_files = [f for f in os.listdir(dirs) if f.endswith('.cif')]
+    
+    args_list = [(f, i*30+1, dirs) for i, f in enumerate(structure_files)]
+    
+    with Pool(num_workers) as pool:
+        results = pool.map(process_structure, args_list)
+    
+    total_structures = sum(results)
+    print(f"Total structures generated: {total_structures}")
+
+if __name__ == "__main__":
+    #num_workers = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    parser = argparse.ArgumentParser(description="Generate structures in parallel")
+    parser.add_argument("--num_workers", type=int, default=1, help="Number of worker processes")
+    parser.add_argument("--input_dir", type=str, default="../mpstrs", help="Input directory containing MP structures")
+    args = parser.parse_args()
+    main(args)
