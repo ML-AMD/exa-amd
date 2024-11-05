@@ -76,7 +76,7 @@ def vasp_energy_calculation(config_file_name, work_dir, id, walltime=(int)):
 @join_app()
 def run_vasp_calc(config_file_name, work_dir, id):
     from parsl.app.errors import AppTimeout
-    f_relax: Future = vasp_relaxation(config_file_name, work_dir, id, walltime=36)
+    f_relax: Future = vasp_relaxation(config_file_name, work_dir, id, walltime=3600)
     try:
         f_relax.result()
     except AppTimeout as e:
@@ -86,7 +86,7 @@ def run_vasp_calc(config_file_name, work_dir, id):
     except Exception as e:
         raise e 
     
-    f_energy: Future = vasp_energy_calculation(config_file_name, work_dir, id, walltime=36)
+    f_energy: Future = vasp_energy_calculation(config_file_name, work_dir, id, walltime=3600)
     try:
         f_energy.result()
     except VaspNonReached:
