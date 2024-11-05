@@ -1,0 +1,2 @@
+class VaspNonReached(Exception):
+    pass
