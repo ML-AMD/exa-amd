@@ -1,19 +1,19 @@
 import sys
-from parsl_configs.chicoma import chicoma_config
+#from parsl_configs.chicoma import chicoma_config
+from parsl_configs.perlmutter import exec_config
 from parsl_tasks.dft_optimization import run_vasp_calc
 import parsl
 import time
 import os
 import json
     
-parsl.load(chicoma_config)
+parsl.load(exec_config)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-if __name__ == '__main__':
-    
-    config_file_name = "/users/moraru/Parsl-Project/exa-amd/configs/std_config.json"
+def vasp_calculations():
+    config_file_name = "/global/homes/m/moraru/Parsl-Project/exa-amd/configs/std_config.json"
     with open(config_file_name, "r") as file:
         config = json.load(file)
 
@@ -49,3 +49,6 @@ if __name__ == '__main__':
     
     end_dft_calc = time.time()
     print("Elapsed time : {}".format(end_dft_calc - start_dft_calc))
+    
+if __name__ == '__main__':
+    vasp_calculations()

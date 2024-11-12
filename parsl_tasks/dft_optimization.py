@@ -2,23 +2,10 @@ from parsl import python_app, bash_app, join_app
 from tools.errors import VaspNonReached
 
 @python_app
-def vasp_timeout(id):
-    return (id, "time_out")
+def const_future(id, msg):
+    return (id, msg)
 
-@python_app
-def vasp_non_reached(id):
-    return (id, "non_reached")
-
-@python_app
-def vasp_success(id):
-    return (id, "success")
-
-@python_app
-def bash_exit_failure(id):
-    return (id, "bash_exit_failure")
-
-
-@bash_app(executors=['chicoma_single_gpu_per_worker'])
+@bash_app(executors=['single_gpu_per_worker'])
 def vasp_relaxation(config_file_name, work_dir, id, walltime=(int)):
     import os 
     import shutil
@@ -41,7 +28,7 @@ def vasp_relaxation(config_file_name, work_dir, id, walltime=(int)):
     return "$PARSL_SRUN_PREFIX {} > {} ".format(vasp_std_exe, output_file)
 
 
-@bash_app(executors=['chicoma_single_gpu_per_worker'])
+@bash_app(executors=['single_gpu_per_worker'])
 def vasp_energy_calculation(config_file_name, work_dir, id, walltime=(int)):
     import os 
     import shutil
@@ -80,9 +67,9 @@ def run_vasp_calc(config_file_name, work_dir, id):
     try:
         f_relax.result()
     except AppTimeout as e:
-        return vasp_timeout(id)
+        return const_future(id, "time_out")
     except parsl.app.errors.BashExitFailure as e:
-        return bash_exit_failure(id)
+        return const_future(id, "bash_exit_failure")
     except Exception as e:
         raise e 
     
@@ -90,12 +77,12 @@ def run_vasp_calc(config_file_name, work_dir, id):
     try:
         f_energy.result()
     except VaspNonReached:
-        return vasp_non_reached(id)
+        return const_future(id, "non_reached")
     except AppTimeout as e:
-        return vasp_timeout(id)
+        return const_future(id, "time_out")
     except parsl.app.errors.BashExitFailure as e:
-        return bash_exit_failure(id)
+        return const_future(id, "bash_exit_failure")
     except Exception as e:
         raise e
     
-    return vasp_success(id)
+    return const_future(id, "success")
