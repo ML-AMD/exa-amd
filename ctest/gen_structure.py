@@ -7,8 +7,8 @@ from pymatgen.core import Structure
 from pymatgen.io.vasp import Poscar
 from itertools import permutations
 
-def read_elements_from_csv():
-    with open('Paul_nomix_3pair.csv', 'r') as f:
+def read_elements_from_csv(input_csv_file):
+    with open(input_csv_file, 'r') as f:
         reader = csv.reader(f)
         next(reader)  # Skip the first line
         second_line = next(reader)[0].split('-')
@@ -19,8 +19,8 @@ badele_vec = ['D', 'He', 'Ne', 'Ar', 'Br', 'Kr', 'Tc', 'Xe', 'At', 'Rn', 'Pm', '
               'Ac', 'Th', 'Pa', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
               'F', 'Cl', 'Br', 'I', 'O', 'N', 'H']
 
-def generate_structures(structure_file,dirs):
-    elements = read_elements_from_csv()
+def generate_structures(structure_file,dirs, input_csv_elements):
+    elements = read_elements_from_csv(input_csv_elements)
     element_permutations = list(permutations(elements))
     lattice_scales = [0.96, 0.98, 1.0, 1.02, 1.04]
     
@@ -58,8 +58,8 @@ def generate_structures(structure_file,dirs):
     return structures
 
 def process_structure(args):
-    structure_file, start_index, dirs = args
-    structures = generate_structures(structure_file, dirs)
+    structure_file, start_index, dirs, input_csv_elements = args
+    structures = generate_structures(structure_file, dirs, input_csv_elements)
     for i, structure in enumerate(structures, start=start_index):
         structure.to(f"{i}.cif")
     return len(structures)
@@ -67,9 +67,10 @@ def process_structure(args):
 def main(args):
     dirs = os.path.abspath(args.input_dir)
     num_workers=args.num_workers
+    input_csv_elements = args.input_csv_elements
     structure_files = [f for f in os.listdir(dirs) if f.endswith('.cif')]
     
-    args_list = [(f, i*30+1, dirs) for i, f in enumerate(structure_files)]
+    args_list = [(f, i*30+1, dirs, input_csv_elements) for i, f in enumerate(structure_files)]
     
     with Pool(num_workers) as pool:
         results = pool.map(process_structure, args_list)
@@ -82,5 +83,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate structures in parallel")
     parser.add_argument("--num_workers", type=int, default=1, help="Number of worker processes")
     parser.add_argument("--input_dir", type=str, default="../mpstrs", help="Input directory containing MP structures")
+    parser.add_argument("--input_csv_elements", type=str, default="Paul_nomix_3pair.csv", help="Input csv file containing the elements")
     args = parser.parse_args()
     main(args)

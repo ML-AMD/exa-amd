@@ -1,9 +1,14 @@
 {
-"vasp_std_exe": "/usr/projects/icapt/applications/vasp/vasp-6.4.2-nvidia-gpu/bin/vasp_std",
-"incar_en": "/users/moraru/Parsl-Project/CMS/ctest/INCAR.en",
-"incar_rx": "/users/moraru/Parsl-Project/CMS/ctest/INCAR.rx",
-"selected_structures_dir": "/users/moraru/Parsl-Project/data/select_structures/new",
-"potcar": "/users/moraru/Parsl-Project/data/POTCAR",
-"work_dir": "/users/moraru/Parsl-Project/exa-amd/work_dir_2",
-"output_file_name":"vasp_calc_result.csv"
+    "data_dir_path":"/pscratch/sd/m/moraru/amd_data/input_data",
+    "vasp_std_exe": "/global/common/software/nersc9/vasp/vasp/6.4.3-gpu/bin/vasp_std",
+    "work_dir": "/pscratch/sd/m/moraru/amd_data/work_dir_v2",
+    "output_file_name":"/pscratch/sd/m/moraru/amd_data/work_dir_v2/vasp_calc_result.csv",
+    "scripts" : {
+        "cgcnn_predict" : "/global/homes/m/moraru/Parsl-Project/exa-amd/ctest/predict.py",
+        "gen_structure" : "/global/homes/m/moraru/Parsl-Project/exa-amd/ctest/gen_structure.py",
+        "select_structure" : "/global/homes/m/moraru/Parsl-Project/exa-amd/ctest/select_structure.py"
+    },
+    "model" : {
+        "cgcnn_model" : "/global/homes/m/moraru/Parsl-Project/tmp/Thrust_1/ctest/form_1st.pth.tar"
+    }
 }
