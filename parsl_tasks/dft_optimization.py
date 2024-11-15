@@ -1,10 +1,10 @@
 from parsl import python_app, bash_app, join_app
-from tools.errors import VaspNonReached
 
 @bash_app(executors=['single_gpu_per_worker'])
 def vasp_relaxation(config, work_subdir, id, walltime=(int)):
     import os 
     import shutil
+
     try:
         os.chdir(work_subdir)
         output_file = os.path.join(work_subdir,"output_{}.rx".format(id))
@@ -14,7 +14,6 @@ def vasp_relaxation(config, work_subdir, id, walltime=(int)):
         incar = os.path.join(config["data_dir_path"], "INCAR.rx")
         potcar = os.path.join(config["data_dir_path"], "POTCAR")
         
-
         # relaxation
         shutil.copy(poscar, os.path.join(work_subdir, "POSCAR"))
         shutil.copy(incar, os.path.join(work_subdir, "INCAR"))
@@ -29,6 +28,7 @@ def vasp_relaxation(config, work_subdir, id, walltime=(int)):
 def vasp_energy_calculation(dependency_f, onfig, work_subdir, id, walltime=(int)):
     import os 
     import shutil
+    from tools.errors import VaspNonReached
 
     try:
         output_rx = os.path.join(work_subdir,"output_{}.rx".format(id))
@@ -62,6 +62,6 @@ def vasp_energy_calculation(dependency_f, onfig, work_subdir, id, walltime=(int)
 
 
 def run_vasp_calc(config, work_subdir, id):
-    f_relax: Future = vasp_relaxation(config, work_subdir, id, walltime=3600)
-    f_energy: Future = vasp_energy_calculation(f_relax, config, work_subdir, id, walltime=3600)
+    f_relax = vasp_relaxation(config, work_subdir, id, walltime=3600)
+    f_energy = vasp_energy_calculation(f_relax, config, work_subdir, id, walltime=3600)
     return f_energy, id

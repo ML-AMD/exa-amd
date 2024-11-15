@@ -18,7 +18,7 @@ def vasp_calculations(config):
     output_file_vasp_calc = config["output_file_name"]
     work_dir = config["work_dir"]
     work_subdir_prefix = "work_subdir"
-    nb_of_dft_calculations = 100
+    nb_of_dft_calculations = 4
     
     start_dft_calc = time.time()
     # launch the tasks (all the vasp calculations)
@@ -39,17 +39,21 @@ def vasp_calculations(config):
     # wait for all the tasks to complete
     for future, id in l_futures:
         try:
-            future.result()
+            err = future.exception()
+            if err:
+                raise err
             fp.write("{},{}\n".format(id,"success"))
         except VaspNonReached:
             fp.write("{},{}\n".format(id,"non_reached"))
-        except AppTimeout as e:
+        except AppTimeout:
             fp.write("{},{}\n".format(id,"time_out"))
-        except BashExitFailure as e:
+        except BashExitFailure:
             fp.write("{},{}\n".format(id,"bash_exit_failure"))
         except Exception as e:
             eprint("Exception: ", e)
+            fp.write("{},{}\n".format(id,"unexpected_error"))
     
+    fp.close()
     end_dft_calc = time.time()
     print("Elapsed time : {}".format(end_dft_calc - start_dft_calc))
 
@@ -86,7 +90,6 @@ if __name__ == '__main__':
     if not os.path.exists(work_dir):
         os.makedirs(work_dir)
      
-
     generate_structures(config)
     print("-- generate_structures done...")
     run_cgcnn(config)
