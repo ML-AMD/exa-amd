@@ -1,14 +1,16 @@
 {
-    "data_dir_path":"/pscratch/sd/m/moraru/amd_data/input_data",
-    "vasp_std_exe": "/global/common/software/nersc9/vasp/vasp/6.4.3-gpu/bin/vasp_std",
-    "work_dir": "/pscratch/sd/m/moraru/amd_data/work_dir_v2",
-    "output_file_name":"/pscratch/sd/m/moraru/amd_data/work_dir_v2/vasp_calc_result.csv",
-    "scripts" : {
-        "cgcnn_predict" : "/global/homes/m/moraru/Parsl-Project/exa-amd/ctest/predict.py",
-        "gen_structure" : "/global/homes/m/moraru/Parsl-Project/exa-amd/ctest/gen_structure.py",
-        "select_structure" : "/global/homes/m/moraru/Parsl-Project/exa-amd/ctest/select_structure.py"
-    },
-    "model" : {
-        "cgcnn_model" : "/global/homes/m/moraru/Parsl-Project/tmp/Thrust_1/ctest/form_1st.pth.tar"
-    }
+    "cms_dir":"/global/homes/w/weiyixia/software/cms",
+    "vasp_std_exe": "vasp_std",
+    "work_dir": "/pscratch/sd/w/weiyixia/gpu/vasp/test",
+    "pot_dir":"/global/homes/w/weiyixia/software/potpaw_PBE",
+    "output_file":"vasp_calc_result.csv",
+    "num_workers": 128,
+    "batch_size": 256,
+    "num_vasp_jobs":5,
+    "num_gpu_nodes":2,
+    "ef_thr": -0.2,
+    "force_conv": 100,
+    "walltime": 1800,
+    "num_strs":1000,
+    "elements": "Ce-Co-B"
 }

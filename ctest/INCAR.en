@@ -16,7 +16,7 @@ SYSTEM = LaSiP
  DOS Related values
     ISMEAR =   0        -1: Fermi smearing, 0: Gaussian smearing, 1..N: Methfessel-Paxton order N ...
     SIGMA  =   0.05     broadening in eV
-    NPAR   =    8
+    KPAR   =    1
     LORBIT = 11
 #    NCORE   =    8
 

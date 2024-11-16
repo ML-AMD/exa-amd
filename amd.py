@@ -7,6 +7,7 @@ import parsl
 import time
 import os
 import json
+import math
     
 parsl.load(exec_config_debug)
 
@@ -15,23 +16,33 @@ def eprint(*args, **kwargs):
 
 def vasp_calculations(config):
     from parsl_tasks.dft_optimization import run_vasp_calc
-    output_file_vasp_calc = config["output_file_name"]
     work_dir = config["work_dir"]
-    work_subdir_prefix = "work_subdir"
-    nb_of_dft_calculations = 4
-    
+    output_file_vasp_calc = os.path.join(work_dir,config["output_file"])
+    num_strs=config["num_strs"]
+    total_workers=config["num_vasp_jobs"]*config["num_gpu_nodes"]*4
+
+    # Calculate batch size and number of batches
+    batch_size = total_workers
+    num_batches = math.ceil(num_strs / batch_size)
+
     start_dft_calc = time.time()
-    # launch the tasks (all the vasp calculations)
-    l_futures = []
-    for i in range(1, nb_of_dft_calculations+1):
-        work_subdir = os.path.join(work_dir,"{}_{}".format(work_subdir_prefix,i))
-        if not os.path.exists(work_subdir):
-            os.makedirs(work_subdir)
-            l_futures.append(run_vasp_calc(config, work_subdir, i))
-        else:
-            eprint("work_dir ({}) already exists".format(work_dir))
-            sys.exit(1)
-            
+
+    # Process structures in batches
+    for batch in range(num_batches):
+        batch_start = batch * batch_size + 1
+        batch_end = min((batch + 1) * batch_size, num_strs) + 1
+
+        # Launch batch of tasks
+        l_futures = []
+        for i in range(batch_start, batch_end):
+            work_subdir = os.path.join(work_dir, "{}".format(i))
+            if not os.path.exists(work_subdir):
+                os.makedirs(work_subdir)
+                l_futures.append(run_vasp_calc(config, work_subdir, i))
+            else:
+                eprint("work_dir ({}) already exists".format(work_subdir))
+                continue
+           
     # open the output file to log the structures that failed or succeded to converge
     fp = open(output_file_vasp_calc, 'w')
     fp.write("id,result\n")
@@ -43,8 +54,8 @@ def vasp_calculations(config):
             if err:
                 raise err
             fp.write("{},{}\n".format(id,"success"))
-        except VaspNonReached:
-            fp.write("{},{}\n".format(id,"non_reached"))
+        #except VaspNonReached:
+        #    fp.write("{},{}\n".format(id,"non_reached"))
         except AppTimeout:
             fp.write("{},{}\n".format(id,"time_out"))
         except BashExitFailure:
@@ -86,14 +97,34 @@ if __name__ == '__main__':
     with open(config_file_name, "r") as file:
         config = json.load(file)
     
-    work_dir = config["work_dir"]
+    work_dir = os.path.join(config["work_dir"],config["elements"])
     if not os.path.exists(work_dir):
         os.makedirs(work_dir)
+    #Update work_dir
+    config["work_dir"]=work_dir
      
-    generate_structures(config)
+    if not os.path.exists(os.path.join(work_dir,'structures/1.cif')):
+       generate_structures(config)
     print("-- generate_structures done...")
-    run_cgcnn(config)
+
+    if not os.path.exists(os.path.join(work_dir,'test_results.csv')):
+       run_cgcnn(config)
     print("-- run_cgcnn done...")
-    select_structures(config)
+
+    if not os.path.exists(os.path.join(work_dir,'new/POSCAR_1')):
+       select_structures(config)
     print("-- select_structures done...")
+
+    # Create POTCAR file
+    POTDIR=config['pot_dir']
+    ele1,ele2,ele3=config["elements"].split('-')
+    potcar_command = f"cat {POTDIR}/{ele1}/POTCAR {POTDIR}/{ele2}/POTCAR {POTDIR}/{ele3}/POTCAR > {work_dir}/POTCAR"
+    os.system(potcar_command)
+
+    # Count Structures for VASP calculations
+
+    structure_files = [f for f in os.listdir(os.path.join(work_dir,"new")) if f.startswith("POSCAR_")]
+    num_structures = len(structure_files)
+    config["num_strs"]=num_structures
+
     vasp_calculations(config)
