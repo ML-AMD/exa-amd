@@ -31,7 +31,7 @@ def vasp_relaxation(config, id, walltime=(int)):
 
 
 @bash_app(executors=['single_gpu_per_worker'])
-def vasp_energy_calculation(config, id, walltime=(int)):
+def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
     import os 
     import shutil
     from tools.errors import VaspNonReached
@@ -71,5 +71,5 @@ def vasp_energy_calculation(config, id, walltime=(int)):
 
 def run_vasp_calc(config, id):
     f_relax = vasp_relaxation(config, id, walltime=int(config["walltime"]))
-    f_energy = vasp_energy_calculation(config, id, walltime=int(config["walltime"]))
+    f_energy = vasp_energy_calculation(f_relax, config, id, walltime=int(config["walltime"]))
     return f_energy, id
