@@ -7,6 +7,8 @@ def vasp_relaxation(config, id, walltime=(int)):
 
     try:
         work_subdir=os.path.join(config["work_dir"],str(id))
+        if not os.path.exists(work_subdir):
+                os.makedirs(work_subdir)
         os.chdir(work_subdir)
         output_file = os.path.join(work_subdir,"output.rx")
 
@@ -29,7 +31,7 @@ def vasp_relaxation(config, id, walltime=(int)):
 
 
 @bash_app(executors=['single_gpu_per_worker'])
-def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
+def vasp_energy_calculation(config, id, walltime=(int)):
     import os 
     import shutil
     from tools.errors import VaspNonReached
@@ -40,14 +42,15 @@ def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
         
         # grep "reached"
         #reached = False
-        #with open(output_rx, "r") as file:
-        #    for line in file:
-        #        if "reached" in line:
-        #            reached = True
-        #            break
-        #
-        #if not reached:
-        #    raise VaspNonReached  
+        FORCE_CONV=config["force_conv"]
+        with open(output_rx, "r") as file:
+            for line in file:
+                if "reached" in line or "{FORCE_CONV} F=" in line:
+                    reached = True
+                    break
+        
+        if not reached:
+            raise VaspNonReached  
 
         os.chdir(work_subdir)
             
@@ -66,7 +69,7 @@ def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
     return "$PARSL_SRUN_PREFIX {} > {} ".format(vasp_std_exe, output_file)
 
 
-def run_vasp_calc(config, work_subdir, id):
+def run_vasp_calc(config, id):
     f_relax = vasp_relaxation(config, id, walltime=int(config["walltime"]))
-    f_energy = vasp_energy_calculation(f_relax, config, id, walltime=int(config["walltime"]))
+    f_energy = vasp_energy_calculation(config, id, walltime=int(config["walltime"]))
     return f_energy, id

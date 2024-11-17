@@ -35,13 +35,13 @@ def vasp_calculations(config):
         # Launch batch of tasks
         l_futures = []
         for i in range(batch_start, batch_end):
-            work_subdir = os.path.join(work_dir, "{}".format(i))
-            if not os.path.exists(work_subdir):
-                os.makedirs(work_subdir)
-                l_futures.append(run_vasp_calc(config, work_subdir, i))
-            else:
-                eprint("work_dir ({}) already exists".format(work_subdir))
-                continue
+            #work_subdir = os.path.join(work_dir, "{}".format(i))
+            #if not os.path.exists(work_subdir):
+            #    os.makedirs(work_subdir)
+                l_futures.append(run_vasp_calc(config, i))
+            #else:
+            #    eprint("work_dir ({}) already exists".format(work_subdir))
+            #    continue
            
     # open the output file to log the structures that failed or succeded to converge
     fp = open(output_file_vasp_calc, 'w')
@@ -54,8 +54,8 @@ def vasp_calculations(config):
             if err:
                 raise err
             fp.write("{},{}\n".format(id,"success"))
-        #except VaspNonReached:
-        #    fp.write("{},{}\n".format(id,"non_reached"))
+        except VaspNonReached:
+            fp.write("{},{}\n".format(id,"non_reached"))
         except AppTimeout:
             fp.write("{},{}\n".format(id,"time_out"))
         except BashExitFailure:
