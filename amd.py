@@ -8,11 +8,32 @@ import time
 import os
 import json
 import math
+import re
     
 parsl.load(exec_config_debug)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
+def find_next(work_dir):
+    # Get current directory contents
+    contents = os.listdir(work_dir)
+
+    # Filter only directories and find those that match numeric pattern
+    numbered_dirs = []
+    for item in contents:
+        if os.path.isdir(os.path.join(work_dir,item)):
+            # Try to extract a number from the directory name
+            match = re.search(r'^\d+', item)
+            if match:
+                numbered_dirs.append(int(match.group()))
+
+    if not numbered_dirs:
+        return 1  # If no numbered directories exist, start with 1
+
+    # Find the highest number and add 1
+    next_number = max(numbered_dirs) + 1
+    return next_number
 
 def vasp_calculations(config):
     from parsl_tasks.dft_optimization import run_vasp_calc
@@ -20,6 +41,8 @@ def vasp_calculations(config):
     output_file_vasp_calc = os.path.join(work_dir,config["output_file"])
     num_strs=config["num_strs"]
     total_workers=config["num_vasp_jobs"]*config["num_gpu_nodes"]*4
+    nstart=find_next(work_dir)
+    eprint("Start structure: ", nstart)
 
     # Calculate batch size and number of batches
     batch_size = total_workers
@@ -29,8 +52,8 @@ def vasp_calculations(config):
 
     # Process structures in batches
     for batch in range(num_batches):
-        batch_start = batch * batch_size + 1
-        batch_end = min((batch + 1) * batch_size, num_strs) + 1
+        batch_start = batch * batch_size + nstart
+        batch_end = min((batch + 1) * batch_size, num_strs) + nstart
 
         # Launch batch of tasks
         l_futures = []

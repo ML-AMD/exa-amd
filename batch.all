@@ -1,0 +1,216 @@
+#!/bin/bash
+#SBATCH -J vasp
+##SBATCH --image=nersc/pytorch:24.06.01
+##SBATCH --module=gpu,nccl-plugin
+#SBATCH -A m4802_g
+#SBATCH -q premium
+#SBATCH -t 24:00:00
+#SBATCH -N 2
+#SBATCH -C gpu
+#SBATCH -G 8
+#SBATCH --exclusive
+#SBATCH -o %j.out
+
+log_message() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a $LOGFILE
+}
+
+# Check if elements are provided
+if [ "$#" -ne 3 ]; then
+    echo "Usage: sbatch batch.all element1 element2 element3"
+    exit 1
+fi
+
+
+# Store the elements from command line arguments
+ELE1=$1
+ELE2=$2
+ELE3=$3
+
+log_message "Elements: $ELE1 $ELE2 $ELE3"
+log_message "Initializing working environment"
+# Set environment
+
+module load pytorch
+
+ADIR="/global/homes/w/weiyixia/software"
+PDIR="$ADIR/potpaw_PBE"
+CMSDIR="$ADIR/cms"
+DIRNAME="${ELE1}${ELE2}${ELE3}"
+
+mkdir -p $DIRNAME 
+cd $DIRNAME
+WORKDIR="$PWD"
+cp $CMSDIR/INCAR.* ./
+if [ ! -d "$CMSDIR/cgcnn" ]; then
+   cp -r $CMSDIR/cgcnn ./
+fi
+
+LOGFILE="${DIRNAME}_$(date '+%Y%m%d_%H%M%S').log"
+
+EF_THRESHOLD=-0.2
+
+# CONDA environment
+# conda activate cgcnn
+
+# Set the number of threads for OpenMP
+export NUM_WORKERS=$SLURM_CPUS_ON_NODE
+echo "$NUM_WORKERS"
+
+log_message "Starting structure generation"
+# Run the structure generation script
+if [ ! -d "nomix" ]; then
+   mkdir -p nomix
+   cd nomix/
+   python $CMSDIR/gen_structure.py --num_workers $NUM_WORKERS --input_dir $CMSDIR/mpstrs --ele1 $ELE1 --ele2 $ELE2 --ele3 $ELE3
+   
+   PYTHON_EXIT_CODE=$?
+   if [ $PYTHON_EXIT_CODE -eq 0 ]; then
+       log_message "Structure generated successfully."
+   else
+       log_message "Structure generation failed, exit"
+       exit 1
+   fi
+   cp $CMSDIR/atom_init.json ./
+   cd ../
+else
+   log_message "Structure generation already done."
+fi
+
+if [ ! -f "test_results.csv" ]; then
+   log_message "Starting CGCNN prediction"
+   python $CMSDIR/predict.py $CMSDIR/form_1st.pth.tar nomix/ \
+       --workers $NUM_WORKERS \
+       --batch-size 256
+   
+   PYTHON_EXIT_CODE=$?
+   if [ $PYTHON_EXIT_CODE -eq 0 ]; then
+       log_message "CGCNN completed successfully."
+   else
+       log_message "CGCNN failed, exit"
+       exit 1
+   fi
+else
+   log_message "CGCNN prediction already done."
+fi
+
+if [ ! -d "new" ]; then
+   log_message "Starting structure selection"
+   python $CMSDIR/select_structure.py --ef_threshold $EF_THRESHOLD --num_workers $NUM_WORKERS 
+   
+   PYTHON_EXIT_CODE=$?
+   num_strs=$(ls new/POSCAR_* 2>/dev/null | wc -l)
+   
+   if [ $PYTHON_EXIT_CODE -eq 0 ]; then
+       log_message "$num_strs structures selected"
+   else
+       log_message "Structure selection failed, exit"
+       exit 1
+   fi
+else
+   log_message "Structure selection already done."
+fi
+
+# Create Potential
+cat $PDIR/$ELE1/POTCAR $PDIR/$ELE2/POTCAR $PDIR/$ELE3/POTCAR >POTCAR
+
+log_message "Starting VASP structure relaxation"
+module load vasp/6.4.3-gpu
+
+export OMP_NUM_THREADS=1
+export OMP_PLACES=threads
+export OMP_PROC_BIND=spread
+
+SRUN_OPTS="-n 1 -c 32 --cpu-bind=cores --gpu-bind=none -G 1"
+
+num_workers=$SLURM_GPUS  # Define the number of parallel workers here
+
+FORCE_CONVERGENCE_CRITERIA="100"  # Predefined parameter for convergence
+sed -i "s/NSW\s*=\s*[0-9]*/NSW = ${FORCE_CONVERGENCE_CRITERIA}/" INCAR.rx
+
+# Function to find the next available structure number
+find_next_structure() {
+    local max_num
+    max_num=$(find . -maxdepth 1 -type d -regex './[0-9]+' | sed 's|./||' | sort -n | tail -1)
+    echo $((max_num + 1))  # Return the next available structure number
+}
+
+# Function to run the relaxation and energy calculation for each structure
+run_srun() {
+    local command="$1"
+    local output_file="$2"
+    local timeout=1800  # 30 minutes timeout
+
+    timeout $timeout srun $SRUN_OPTS $command > $output_file 2>&1
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "srun failed with status $status for command: $command" >> ../error.log
+        return 1
+    fi
+    return 0
+}
+
+# Process structures sequentially, each job finding the next available structure
+process_structures() {
+    local worker_id=$1
+    
+    echo "Starting process_structures for worker $worker_id" >> "$LOGFILE"
+    
+    while true; do
+        structure_num=$(find_next_structure)  # Get the next available structure number
+        if [ -z "$structure_num" ] || [ "$structure_num" -gt $num_strs ]; then
+            echo "Worker $worker_id: All structures processed or limit reached." >> "$LOGFILE"
+            break
+        fi
+        
+        echo "Worker $worker_id: Processing structure $structure_num at $(date)" >> "$LOGFILE"
+        mkdir -p "$structure_num"
+        cd "$structure_num" || { echo "Worker $worker_id: Failed to enter directory $structure_num" >> "$LOGFILE"; continue; }
+        
+        # Copy and prepare files
+        cp "$WORKDIR/new/POSCAR_$structure_num" POSCAR || { echo "Worker $worker_id: Failed to copy POSCAR_$structure_num" >> "$LOGFILE"; cd ..; continue; }
+        cp ../INCAR.rx INCAR || { echo "Worker $worker_id: Failed to copy INCAR.rx" >> "$LOGFILE"; cd ..; continue; }
+        ln -s ../POTCAR ./
+
+        # Relaxation run
+        if run_srun "vasp_std" "output.rx"; then
+            relaxation_status=0  # Relaxation succeeded
+        else
+            relaxation_status=$?  # Capture the non-zero failure status
+        fi
+        
+        [ -f OUTCAR ] && mv OUTCAR "OUTCAR.rx"
+        
+        # Check relaxation criteria
+        if [[ $relaxation_status -eq 0 || \
+              $(grep -q "reached" "output.rx" || grep -q "${FORCE_CONVERGENCE_CRITERIA} F=" "output.rx") ]]; then
+            # Proceed to energy calculation if relaxation succeeded or criteria are met
+            cp CONTCAR "../CONTCAR_$structure_num"
+            cp CONTCAR POSCAR
+            cp ../INCAR.en INCAR || { echo "Worker $worker_id: Failed to copy INCAR.en" >> "$LOGFILE"; cd ..; continue; }
+
+            # Energy calculation run
+            if ! run_srun "vasp_std" "output.en"; then
+                echo "Worker $worker_id: Energy calculation failed for structure $structure_num" >> "$LOGFILE"
+                cd ..
+                continue
+            fi
+            [ -f OUTCAR ] && mv OUTCAR "OUTCAR.en"
+            cp output.en "../output_$structure_num.en"
+        else
+            # Log and skip energy calculation if conditions are not met
+            echo "Worker $worker_id: Relaxation did not meet criteria for structure $structure_num; skipping energy calculation" >> "$LOGFILE"
+        fi
+        
+        cd ..
+        echo "Worker $worker_id: Finished structure $structure_num at $(date)" >> "$LOGFILE"
+    done
+}
+
+# Launch multiple independent processes, each picking up the next available structure
+for ((i=1; i<=num_workers; i++)); do
+    process_structures "$i" &
+    sleep 1
+done
+
+wait  # Wait for all background processes to finish
