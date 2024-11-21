@@ -10,7 +10,7 @@ exec_config_debug = Config(
         HighThroughputExecutor(
             label='single_gpu_per_worker',
             available_accelerators=4,
-            cores_per_worker=32,
+            cores_per_worker=1,
             cpu_affinity='block',
             provider=SlurmProvider(
                 #partition="gpu",
