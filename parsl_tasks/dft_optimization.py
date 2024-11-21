@@ -37,7 +37,7 @@ def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
     from tools.errors import VaspNonReached
 
     try:
-        work_subdir=os.path.join(config["work_dir"],str(id))
+        work_subdir = os.path.join(config["work_dir"],str(id))
         output_rx = os.path.join(work_subdir,"output.rx")
         
         # grep "reached"
@@ -56,10 +56,10 @@ def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
             
         vasp_std_exe = config["vasp_std_exe"]
         incar_en = os.path.join(config["cms_dir"], "INCAR.en")
-        output_file = os.path.join(work_dir,"output_{}.en".format(id))
+        output_file = os.path.join(work_subdir,"output_{}.en".format(id))
         
         os.rename("OUTCAR", "OUTCAR_{}.rx".format(id))
-        shutil.copy("CONTCAR", os.path.join(work_dir,"CONTCAR_{}".format(id)))
+        shutil.copy("CONTCAR", os.path.join(work_subdir,"CONTCAR_{}".format(id)))
         shutil.copy("CONTCAR", "POSCAR")
         shutil.copy(incar_en, "INCAR")
         
