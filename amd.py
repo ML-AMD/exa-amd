@@ -1,5 +1,6 @@
 import sys
 from parsl_configs.perlmutter import exec_config_debug
+from parsl_configs.chicoma import chicoma_config
 from tools.errors import VaspNonReached
 from parsl.app.errors import AppTimeout
 from parsl.app.errors import BashExitFailure
@@ -10,7 +11,7 @@ import json
 import math
 import re
     
-parsl.load(exec_config_debug)
+parsl.load(chicoma_config)
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -50,18 +51,20 @@ def vasp_calculations(config):
 
     start_dft_calc = time.time()
 
+    num_batches = 1 # comment MM
     # Process structures in batches
     for batch in range(num_batches):
         batch_start = batch * batch_size + nstart
         batch_end = min((batch + 1) * batch_size, num_strs) + nstart
-
+        batch_end = batch_start + 1 # comment MM 
         # Launch batch of tasks
         l_futures = []
         for i in range(batch_start, batch_end):
+            print("run task {}".format(i))
             #work_subdir = os.path.join(work_dir, "{}".format(i))
             #if not os.path.exists(work_subdir):
             #    os.makedirs(work_subdir)
-                l_futures.append(run_vasp_calc(config, i))
+            l_futures.append(run_vasp_calc(config, i))
             #else:
             #    eprint("work_dir ({}) already exists".format(work_subdir))
             #    continue
@@ -96,7 +99,8 @@ def generate_structures(config):
     try:
         gen_structures(config).result()
     except Exception as e:
-        eprint("Exception: ", e)
+        eprint("Exception [{}]: ".format(type(e).__name__), e)
+        sys.exit(1)
     
 
 def select_structures(config):
@@ -106,6 +110,7 @@ def select_structures(config):
         f.result()
     except Exception as e:
         eprint("Exception: ", e)
+        sys.exit(1)
         
 def run_cgcnn(config):
     from parsl_tasks.cgcnn import cgcnn_prediction
@@ -114,9 +119,10 @@ def run_cgcnn(config):
         f.result()
     except Exception as e:
         eprint("Exception: ", e)
+        sys.exit(1)
 
 if __name__ == '__main__':
-    config_file_name = "configs/std_config.json"
+    config_file_name = "configs/chicoma.json"
     with open(config_file_name, "r") as file:
         config = json.load(file)
     
@@ -144,7 +150,7 @@ if __name__ == '__main__':
     potcar_command = f"cat {POTDIR}/{ele1}/POTCAR {POTDIR}/{ele2}/POTCAR {POTDIR}/{ele3}/POTCAR > {work_dir}/POTCAR"
     os.system(potcar_command)
 
-    # Count Structures for VASP calculations
+    # # Count Structures for VASP calculations
 
     structure_files = [f for f in os.listdir(os.path.join(work_dir,"new")) if f.startswith("POSCAR_")]
     num_structures = len(structure_files)

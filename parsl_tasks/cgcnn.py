@@ -12,8 +12,9 @@ def cgcnn_prediction(config):
 
         dir_structures = os.path.join(config["work_dir"], "structures") # @@@ structures
         atom_init_json = os.path.join(config["cms_dir"], "atom_init.json")
+        csv_id_prop = os.path.join(config["cms_dir"], "id_prop.csv")
         
-        #shutil.copy(csv_id_prop, dir_structures)
+        shutil.copy(csv_id_prop, dir_structures)
         shutil.copy(atom_init_json, dir_structures)
     except Exception as e:
         raise e
