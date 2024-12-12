@@ -12,6 +12,6 @@ def gen_structures(config):
            os.makedirs(dir_structures)
         os.chdir(dir_structures)
     except Exception as e:
-        raise e
+        raise
     
     return "python {} --num_workers {} --input_dir {} --elements {}".format(dir_gen_structures, config["num_workers"], dir_mp_structures, config["elements"])

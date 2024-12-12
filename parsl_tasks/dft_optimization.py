@@ -25,7 +25,7 @@ def vasp_relaxation(config, id, walltime=(int)):
         FORCE_CONV=config["force_conv"]
         os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
     except Exception as e:
-        raise e
+        raise
     
     return "$PARSL_SRUN_PREFIX {} > {} ".format(vasp_std_exe, output_file)
 
@@ -64,7 +64,7 @@ def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
         shutil.copy(incar_en, "INCAR")
         
     except Exception as e:
-        raise e
+        raise
     
     return "$PARSL_SRUN_PREFIX {} > {} ".format(vasp_std_exe, output_file)
 
@@ -133,7 +133,7 @@ def fused_vasp_calc(config, id, walltime=(int)):
         os.system(srun_cmd)
         
     except Exception as e:
-        raise e
+        raise
     
 def run_vasp_calc(config, id):
     # f_relax = vasp_relaxation(config, id, walltime=int(config["walltime"]))

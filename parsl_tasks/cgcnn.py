@@ -16,6 +16,6 @@ def cgcnn_prediction(config):
         #shutil.copy(csv_id_prop, dir_structures)
         shutil.copy(atom_init_json, dir_structures)
     except Exception as e:
-        raise e
+        raise
     
     return "python {} {} {} --batch-size {} --workers {} ".format(predict_script_path, model_path, dir_structures, config["batch_size"], config["num_workers"])
