@@ -186,8 +186,8 @@ def validate(val_loader, model, criterion, normalizer, test=False):
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'MAE {mae_errors.val:.3f} ({mae_errors.avg:.3f})'.format(
-                       i, len(val_loader), batch_time=batch_time, loss=losses,
-                       mae_errors=mae_errors))
+                          i, len(val_loader), batch_time=batch_time, loss=losses,
+                          mae_errors=mae_errors))
             else:
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
@@ -197,9 +197,9 @@ def validate(val_loader, model, criterion, normalizer, test=False):
                       'Recall {recall.val:.3f} ({recall.avg:.3f})\t'
                       'F1 {f1.val:.3f} ({f1.avg:.3f})\t'
                       'AUC {auc.val:.3f} ({auc.avg:.3f})'.format(
-                       i, len(val_loader), batch_time=batch_time, loss=losses,
-                       accu=accuracies, prec=precisions, recall=recalls,
-                       f1=fscores, auc=auc_scores))
+                          i, len(val_loader), batch_time=batch_time, loss=losses,
+                          accu=accuracies, prec=precisions, recall=recalls,
+                          f1=fscores, auc=auc_scores))
 
     if test:
         star_label = '**'
@@ -223,6 +223,7 @@ def validate(val_loader, model, criterion, normalizer, test=False):
 
 class Normalizer(object):
     """Normalize a Tensor and restore it later. """
+
     def __init__(self, tensor):
         """tensor is taken as a sample to calculate the mean and std"""
         self.mean = torch.mean(tensor)
@@ -273,6 +274,7 @@ def class_eval(prediction, target):
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self):
         self.reset()
 
