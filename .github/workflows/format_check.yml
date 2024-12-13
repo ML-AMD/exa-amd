@@ -1,3 +1,4 @@
+# CI test for checking PEP8 formating
 name: PEP8 format checking
 on:
   push:
