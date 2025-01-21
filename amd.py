@@ -44,40 +44,30 @@ def vasp_calculations(config):
     nstart=find_next(work_dir)
     eprint("Start structure: ", nstart)
 
-    # Calculate batch size and number of batches
-    batch_size = total_workers
-    num_batches = math.ceil(num_strs / batch_size)
-
-    start_dft_calc = time.time()
-
     # open the output file to log the structures that failed or succeded to converge
     fp = open(output_file_vasp_calc, 'w')
     fp.write("id,result\n")
     
-    # Process structures in batches
-    for batch in range(num_batches):
-        batch_start = batch * batch_size + nstart
-        batch_end = min((batch + 1) * batch_size, num_strs) + nstart
-        
-        # Launch batch of tasks
-        l_futures = [run_vasp_calc(config,i) for i in range(batch_start, batch_end)]
-        
-        # wait for all the tasks (in the batch) to complete
-        for future, id in l_futures:
-            try:
-                err = future.exception()
-                if err:
-                    raise err
-                fp.write("{},{}\n".format(id,"success"))
-            except VaspNonReached:
-                fp.write("{},{}\n".format(id,"non_reached"))
-            except AppTimeout:
-                fp.write("{},{}\n".format(id,"time_out"))
-            except BashExitFailure:
-                fp.write("{},{}\n".format(id,"bash_exit_failure"))
-            except Exception as e:
-                eprint("Exception: ", e)
-                fp.write("{},{}\n".format(id,"unexpected_error"))
+    # Launch all vasp calculations
+    start_dft_calc = time.time()
+    l_futures = [run_vasp_calc(config,i) for i in range(nstart, num_strs)]
+    
+    # wait for all the tasks (in the batch) to complete
+    for future, id in l_futures:
+        try:
+            err = future.exception()
+            if err:
+                raise err
+            fp.write("{},{}\n".format(id,"success"))
+        except VaspNonReached:
+            fp.write("{},{}\n".format(id,"non_reached"))
+        except AppTimeout:
+            fp.write("{},{}\n".format(id,"time_out"))
+        except BashExitFailure:
+            fp.write("{},{}\n".format(id,"bash_exit_failure"))
+        except Exception as e:
+            eprint("Exception: ", e)
+            fp.write("{},{}\n".format(id,"unexpected_error"))
     
     fp.close()
     end_dft_calc = time.time()
@@ -115,9 +105,10 @@ if __name__ == '__main__':
     work_dir = os.path.join(config["work_dir"],config["elements"])
     if not os.path.exists(work_dir):
         os.makedirs(work_dir)
-    #Update work_dir
-    config["work_dir"]=work_dir
-     
+    
+    # Update work_dir
+    config["work_dir"] = work_dir
+    
     if not os.path.exists(os.path.join(work_dir,'structures/1.cif')):
        generate_structures(config)
     print("-- generate_structures done...")
@@ -139,6 +130,6 @@ if __name__ == '__main__':
     # Count Structures for VASP calculations
     structure_files = [f for f in os.listdir(os.path.join(work_dir,"new")) if f.startswith("POSCAR_")]
     num_structures = len(structure_files)
-    config["num_strs"]=num_structures
-
+    config["num_strs"] = num_structures
+    
     vasp_calculations(config)

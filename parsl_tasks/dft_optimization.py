@@ -74,8 +74,9 @@ def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
 def fused_vasp_calc(config, id, walltime=(int)):
     import os 
     import shutil
+    import time
     from tools.errors import VaspNonReached
-
+    
     try:
         work_subdir = os.path.join(config["work_dir"],str(id))
         if not os.path.exists(work_subdir):

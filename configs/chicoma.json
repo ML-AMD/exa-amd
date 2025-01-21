@@ -1,14 +1,16 @@
 {
-    "data_dir_path":"/users/moraru/Parsl-Project/input_data",
+    "cms_dir":"/users/moraru/Parsl-Project/CMS/ctest",
     "vasp_std_exe": "/usr/projects/icapt/applications/vasp/vasp-6.4.2-nvidia-gpu/bin/vasp_std",
     "work_dir": "/users/moraru/Parsl-Project/work_dir_v1",
-    "output_file_name":"//users/moraru/Parsl-Project/work_dir_v1/vasp_calc_result.csv",
-    "scripts" : {
-        "cgcnn_predict" : "/users/moraru/Parsl-Project/exa-amd/ctest/predict.py",
-        "gen_structure" : "/users/moraru/Parsl-Project/exa-amd/ctest/gen_structure.py",
-        "select_structure" : "/users/moraru/Parsl-Project/exa-amd/ctest/select_structure.py"
-    },
-    "model" : {
-        "cgcnn_model" : "/users/moraru/Parsl-Project/CMS/ctest/form_1st.pth.tar"
-    }
+    "pot_dir":"/users/moraru/Parsl-Project/data/select_structures/potpaw",
+    "output_file":"vasp_calc_result.csv",
+    "num_workers": 128,
+    "batch_size": 256,
+    "num_vasp_jobs":1,
+    "num_gpu_nodes":2,
+    "ef_thr": -0.2,
+    "force_conv": 100,
+    "walltime": 1800,
+    "num_strs":1000,
+    "elements": "Ce-Co-B"
 }
