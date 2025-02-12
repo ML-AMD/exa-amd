@@ -7,5 +7,7 @@ and simply run python amd.py
 
 
 An example of prediction of new CeFeBi compounds using this framework
+
+
 <img width="154" alt="image" src="https://github.com/user-attachments/assets/c6b2e6c1-8190-4ba1-b009-38e8fe743a9b" />
 <img width="305" alt="image" src="https://github.com/user-attachments/assets/4e6b1e15-25da-425e-8bf5-719538237935" />
