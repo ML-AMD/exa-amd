@@ -45,7 +45,7 @@ class ConfigManager:
         "batch_size":   (256,   "Batch size for CGCNN."),
         "vasp_nnodes":  (1,     "Number of nodes used for VASP calculations."),
         "num_strs":     (-1,    "Number of structures to process (-1 means all)."),
-        "walltime":     (1800,  "Max walltime in seconds for a vasp calculation."),
+        "vasp_timeout":     (1800,  "Max walltime in seconds for a vasp calculation."),
         "force_conv":   (100,   "Force convergence threshold."),
         "output_level": ("INFO","Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"),
     }

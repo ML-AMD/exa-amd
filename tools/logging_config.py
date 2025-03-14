@@ -69,7 +69,7 @@ def configure_logging(level_name="INFO"):
     stderr_handler.setFormatter(formatter)
     root_logger.addHandler(stderr_handler)
 
-    # CRITICAL → exit
+    # CRITICAL -> exit
     critical_handler = ExitOnCriticalHandler()
     critical_handler.setLevel(logging.CRITICAL)
     critical_handler.setFormatter(formatter)

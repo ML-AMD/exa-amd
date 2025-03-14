@@ -39,7 +39,7 @@ def fused_vasp_calc(config, id, walltime=(int)):
         os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
         
         # run relaxation
-        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["walltime"], vasp_std_exe, output_file)
+        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["vasp_timeout"], vasp_std_exe, output_file)
         relaxation_status = os.system(srun_cmd)
         
         #
@@ -61,7 +61,7 @@ def fused_vasp_calc(config, id, walltime=(int)):
         shutil.copy(incar_en, "INCAR")
         
         # run relaxation
-        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["walltime"], vasp_std_exe, output_file_en)
+        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["vasp_timeout"], vasp_std_exe, output_file_en)
         os.system(srun_cmd)
         
         # clean
@@ -72,6 +72,6 @@ def fused_vasp_calc(config, id, walltime=(int)):
 
 
 def run_vasp_calc(config, id):
-    f_vasp = fused_vasp_calc(config, id, walltime=3600)
+    f_vasp = fused_vasp_calc(config, id, walltime=2*config["vasp_timeout"])
     return f_vasp, id
 

@@ -9,9 +9,9 @@
     "batch_size": 256,
     "ef_thr": -0.2,
     "force_conv": 100,
-    "walltime": 1800,
+    "vasp_timeout": 1800,
     "num_strs":10,
     "elements": "Na-B-C",
     "vasp_nnodes":1,
-    "parsl_config":"chicoma"
+    "parsl_config":"my_config"
 }

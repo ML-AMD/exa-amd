@@ -13,6 +13,22 @@ from parsl.launchers import SrunMPILauncher
 from parsl_configs.parsl_config_registry import register_parsl_config
 from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL, CPU_SINGLE_LABEL
 
+# environment to set before running a VASP calculation
+vasp_env_init='''
+                conda activate amd_env
+                export NVHPC_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cuda/12.5
+                export CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cuda/12.5
+                export CRAY_ACCEL_TARGET=nvidia80
+
+                export MPICH_GPU_SUPPORT_ENABLED=1
+                export MPICH_GPU_MANAGED_MEMORY_SUPPORT_ENABLED=1
+                
+                export LD_LIBRARY_PATH=$CRAY_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
+                export LD_LIBRARY_PATH=$NVHPC_CUDA_HOME/lib64:$LD_LIBRARY_PATH
+                module load cray-fftw
+                module load cray-hdf5
+                ulimit -c 0
+            '''
 #
 # Chicoma Config
 #
@@ -40,11 +56,12 @@ class ChicomaConfig(Config):
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='16:00:00',
-                worker_init=(
-                    "source ~/.bashrc; conda activate base; "
-                    "source ~/.bash_profile; load_vasp_env"
-                )
-            ),
+                # worker_init=(
+                #     "conda activate amd_env; "
+                #     "source ~/.bash_profile; load_vasp_env"
+                # )
+                worker_init=vasp_env_init
+            )
         )
 
         # CPU executor
@@ -60,8 +77,8 @@ class ChicomaConfig(Config):
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='01:00:00',
-                worker_init="source ~/.bashrc; conda activate base;"
-            ),
+                worker_init="conda activate amd_env;"
+            )
         )
 
         super().__init__(executors=[single_gpu_per_worker_executor, cpu_single_node_executor])

@@ -10,7 +10,7 @@ It comes with a flexible configuration system based on a global registry. You ca
 - [Examples](#examples)
 
 ## Prerequisites
-- Download the latest PAW potential file
+- Have a working VASP installation
 - Ensure you have [Conda](https://docs.conda.io/en/latest/miniconda.html) installed.
 - Install the required packages and activate the `amd_env` environment
 ```bash
