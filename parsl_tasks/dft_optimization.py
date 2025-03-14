@@ -1,84 +1,21 @@
 from parsl import python_app, bash_app, join_app
+from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL
 
-@bash_app(executors=['single_gpu_per_worker'])
-def vasp_relaxation(config, id, walltime=(int)):
-    import os 
-    import shutil
-
-    try:
-        work_subdir=os.path.join(config["work_dir"],str(id))
-        if not os.path.exists(work_subdir):
-                os.makedirs(work_subdir)
-        os.chdir(work_subdir)
-        output_file = os.path.join(work_subdir,"output.rx")
-
-        vasp_std_exe = config["vasp_std_exe"]
-        poscar = os.path.join(config["work_dir"], "new", "POSCAR_{}".format(id))
-        incar = os.path.join(config["cms_dir"], "INCAR.rx")
-        os.symlink(os.path.join(config["work_dir"], "POTCAR"), "POTCAR")
-
-        # relaxation
-        shutil.copy(poscar, os.path.join(work_subdir, "POSCAR"))
-        shutil.copy(incar, os.path.join(work_subdir, "INCAR"))
-
-        # Change NSW iterations
-        FORCE_CONV=config["force_conv"]
-        os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
-    except Exception as e:
-        raise
-    
-    return "$PARSL_SRUN_PREFIX {} > {} ".format(vasp_std_exe, output_file)
+@bash_app(executors=[SINGLE_GPU_LABEL])
+def fused_vasp_calc_init_perf():
+    return "ls"
 
 
-@bash_app(executors=['single_gpu_per_worker'])
-def vasp_energy_calculation(dependency_f, config, id, walltime=(int)):
-    import os 
-    import shutil
-    from tools.errors import VaspNonReached
-
-    try:
-        work_subdir = os.path.join(config["work_dir"],str(id))
-        output_rx = os.path.join(work_subdir,"output.rx")
-        
-        # grep "reached"
-        #reached = False
-        FORCE_CONV=config["force_conv"]
-        with open(output_rx, "r") as file:
-            for line in file:
-                if "reached" in line or "{FORCE_CONV} F=" in line:
-                    reached = True
-                    break
-        
-        if not reached:
-            raise VaspNonReached  
-
-        os.chdir(work_subdir)
-            
-        vasp_std_exe = config["vasp_std_exe"]
-        incar_en = os.path.join(config["cms_dir"], "INCAR.en")
-        output_file = os.path.join(work_subdir,"output_{}.en".format(id))
-        
-        os.rename("OUTCAR", "OUTCAR_{}.rx".format(id))
-        shutil.copy("CONTCAR", os.path.join(work_subdir,"CONTCAR_{}".format(id)))
-        shutil.copy("CONTCAR", "POSCAR")
-        shutil.copy(incar_en, "INCAR")
-        
-    except Exception as e:
-        raise
-    
-    return "$PARSL_SRUN_PREFIX {} > {} ".format(vasp_std_exe, output_file)
-
-
-
-@python_app(executors=['single_gpu_per_worker'])
+@python_app(executors=[SINGLE_GPU_LABEL])
 def fused_vasp_calc(config, id, walltime=(int)):
     import os 
     import shutil
     import time
     from tools.errors import VaspNonReached
+    clean_work_dir = "rm DOSCAR PCDAT REPORT XDATCAR CHG CHGCAR EIGENVAL PROCAR WAVECAR vasprun.xml"
     
     try:
-        work_subdir = os.path.join(config["work_dir"],str(id))
+        work_subdir = os.path.join(config["vasp_work_dir"],str(id))
         if not os.path.exists(work_subdir):
                 os.makedirs(work_subdir)
         os.chdir(work_subdir)
@@ -102,25 +39,19 @@ def fused_vasp_calc(config, id, walltime=(int)):
         os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
         
         # run relaxation
-        srun_cmd = "timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["walltime"], vasp_std_exe, output_file)
-        os.system(srun_cmd)
+        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["walltime"], vasp_std_exe, output_file)
+        relaxation_status = os.system(srun_cmd)
         
         #
         # prepare energy calculation
         #        
         output_rx = os.path.join(work_subdir,"output.rx")
+        relaxation_criteria = os.system(f"grep -q -e 'reached' -e '{config["force_conv"]} F=' output.rx")
         
-        # grep "reached"
-        reached = False
-        FORCE_CONV=config["force_conv"]
-        with open(output_rx, "r") as file:
-            for line in file:
-                if "reached" in line or "{FORCE_CONV} F=" in line:
-                    reached = True
-                    break
-        if not reached:
-            raise VaspNonReached  
-
+        # check relaxation criteria
+        if relaxation_status != 0 and relaxation_criteria != 0:
+            raise VaspNonReached
+        
         incar_en = os.path.join(config["cms_dir"], "INCAR.en")
         output_file_en = os.path.join(work_subdir,"output_{}.en".format(id))
         
@@ -130,16 +61,17 @@ def fused_vasp_calc(config, id, walltime=(int)):
         shutil.copy(incar_en, "INCAR")
         
         # run relaxation
-        srun_cmd = "timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["walltime"], vasp_std_exe, output_file_en)
+        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(config["walltime"], vasp_std_exe, output_file_en)
         os.system(srun_cmd)
         
+        # clean
+        os.system(clean_work_dir)
     except Exception as e:
+        os.system(clean_work_dir)
         raise
-    
+
+
 def run_vasp_calc(config, id):
-    # f_relax = vasp_relaxation(config, id, walltime=int(config["walltime"]))
-    # f_energy = vasp_energy_calculation(f_relax, config, id, walltime=int(config["walltime"]))
-    # return f_energy, id
-    f_vasp = fused_vasp_calc(config, id, walltime=int(config["walltime"]))
+    f_vasp = fused_vasp_calc(config, id, walltime=3600)
     return f_vasp, id
 

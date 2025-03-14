@@ -6,8 +6,6 @@
     "output_file":"vasp_calc_result.csv",
     "num_workers": 128,
     "batch_size": 256,
-    "num_vasp_jobs":5,
-    "num_gpu_nodes":2,
     "ef_thr": -0.2,
     "force_conv": 100,
     "walltime": 1800,
