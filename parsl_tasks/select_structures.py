@@ -13,8 +13,9 @@ def select_structures(config):
 
     except Exception as e:
         raise
+    return "python {} --ef_threshold {} --num_workers {} --csv_file {} --nomix_dir {}".format(dir_select_structure, str(config["ef_thr"]), config["num_workers"], tr_csv_file, dir_structures)
     
-    return "OMP_NUM_THREADS=128 python {} --ef_threshold {} --num_workers {} --csv_file {} --nomix_dir {}".format(dir_select_structure, str(config["ef_thr"]), config["num_workers"], tr_csv_file, dir_structures)
+    #return "OMP_NUM_THREADS=128 python {} --ef_threshold {} --num_workers {} --csv_file {} --nomix_dir {}".format(dir_select_structure, str(config["ef_thr"]), config["num_workers"], tr_csv_file, dir_structures)
 
 @bash_app(executors=[CPU_SINGLE_LABEL])
 def select_structures_init_perf():

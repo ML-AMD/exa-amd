@@ -15,7 +15,7 @@ def gen_structures(config):
     except Exception as e:
         raise
     
-    return "OMP_NUM_THREADS=128 python {} --num_workers {} --input_dir {} --elements {}".format(dir_gen_structures, config["num_workers"], dir_mp_structures, config["elements"])
+    return "python {} --num_workers {} --input_dir {} --elements {}".format(dir_gen_structures, config["num_workers"], dir_mp_structures, config["elements"])
 
 @bash_app(executors=[CPU_SINGLE_LABEL])
 def gen_structures_init_perf():

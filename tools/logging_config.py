@@ -79,6 +79,6 @@ def configure_logging(level_name="INFO"):
     for logger_name in list(logging.Logger.manager.loggerDict.keys()):
         if logger_name.startswith("parsl"):
             plogger = logging.getLogger(logger_name)
-            plogger.setLevel(logging.WARNING)
+            plogger.setLevel(logging.CRITICAL)
             while plogger.handlers:
                 plogger.removeHandler(plogger.handlers[0])
