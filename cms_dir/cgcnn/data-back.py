@@ -145,8 +145,8 @@ def collate_pool(dataset_list):
     return (torch.cat(batch_atom_fea, dim=0),
             torch.cat(batch_nbr_fea, dim=0),
             torch.cat(batch_nbr_fea_idx, dim=0),
-            crystal_atom_idx),\
-        torch.stack(batch_target, dim=0),\
+            crystal_atom_idx), \
+        torch.stack(batch_target, dim=0), \
         batch_cif_ids
 
 
@@ -156,6 +156,7 @@ class GaussianDistance(object):
 
     Unit: angstrom
     """
+
     def __init__(self, dmin, dmax, step, var=None):
         """
         Parameters
@@ -201,6 +202,7 @@ class AtomInitializer(object):
 
     !!! Use one AtomInitializer per dataset !!!
     """
+
     def __init__(self, atom_types):
         self.atom_types = set(atom_types)
         self._embedding = {}
@@ -237,6 +239,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
     elem_embedding_file: str
         The path to the .json file
     """
+
     def __init__(self, elem_embedding_file):
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
@@ -296,6 +299,7 @@ class CIFData(Dataset):
     target: torch.Tensor shape (1, )
     cif_id: str or int
     """
+
     def __init__(self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.8,
                  random_seed=123):
         self.root_dir = root_dir
@@ -324,15 +328,15 @@ class CIFData(Dataset):
         atom_fea = np.vstack([self.ari.get_atom_fea(crystal[i].specie.number)
                               for i in range(len(crystal))])
         atom_fea = torch.Tensor(atom_fea)
-        sitecoord=[]
+        sitecoord = []
         for site in crystal:
             sitecoord.append(list(site.coords[:]))
         all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
 
         all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
         nbr_fea_idx, nbr_fea = [], []
-        ttttt=0
-        nbrcoords=[[] for i in range(len(nbr_fea))]
+        ttttt = 0
+        nbrcoords = [[] for i in range(len(nbr_fea))]
         for nbr in all_nbrs:
             if len(nbr) < self.max_num_nbr:
                 warnings.warn('{} not find enough neighbors to build graph. '
@@ -343,21 +347,23 @@ class CIFData(Dataset):
                 nbr_fea.append(list(map(lambda x: x[1], nbr)) +
                                [self.radius + 1.] * (self.max_num_nbr -
                                                      len(nbr)))
-                nbrcoords.append(list(map(lambda x: list(x[0].coords[:]), nbr))+
-                                 [[0,0,0]]*(self.max_num_nbr-len(nbr)))
+                nbrcoords.append(list(map(lambda x: list(x[0].coords[:]), nbr)) +
+                                 [[0, 0, 0]]*(self.max_num_nbr-len(nbr)))
             else:
                 nbr_fea_idx.append(list(map(lambda x: x[2],
                                             nbr[:self.max_num_nbr])))
-                nbrcoords.append(list(map(lambda x: list(x[0].coords[:]), nbr[:self.max_num_nbr])))
+                nbrcoords.append(
+                    list(map(lambda x: list(x[0].coords[:]), nbr[:self.max_num_nbr])))
                 for i in range(self.max_num_nbr):
                     for j in range(3):
-                        nbrcoords[ttttt][i][j] = nbrcoords[ttttt][i][j] - sitecoord[ttttt][j]
+                        nbrcoords[ttttt][i][j] = nbrcoords[ttttt][i][j] - \
+                            sitecoord[ttttt][j]
                 nbr_fea.append(list(map(lambda x: x[1],
                                         nbr[:self.max_num_nbr])))
-            ttttt+=1
-        #nbr_fea2=[[] for i in range(len(nbr_fea))]
-        #nbr_fea_idx2=[[] for i in range(len(nbr_fea))]
-        #for k in range(len(nbrcoords)):
+            ttttt += 1
+        # nbr_fea2=[[] for i in range(len(nbr_fea))]
+        # nbr_fea_idx2=[[] for i in range(len(nbr_fea))]
+        # for k in range(len(nbrcoords)):
         #    for i in range(len(nbrcoords[k])):
         #        nbr_fea2[k].append(nbr_fea[k][i])
         #        for j in range(3):
@@ -366,30 +372,31 @@ class CIFData(Dataset):
         #            nbr_fea_idx2[k].append(nbr_fea_idx[k][i])
         #            #print(nbr_fea_idx[k][i])
         #        nbr_fea_idx2[k].append(nbr_fea_idx[k][i])
-        #nbr_fea=nbr_fea2
-        #nbr_fea_idx=nbr_fea_idx2
+        # nbr_fea=nbr_fea2
+        # nbr_fea_idx=nbr_fea_idx2
         nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
-        nbr_fea3=nbr_fea
+        nbr_fea3 = nbr_fea
         nbr_fea = self.gdf.expand(nbr_fea)
-        nbrcoords=np.array(nbrcoords)
-        nbrcoord1=self.gdf.expand(nbrcoords[...,0])
-        nbrcoord2=self.gdf.expand(nbrcoords[...,1])
-        nbrcoord3=self.gdf.expand(nbrcoords[...,2])
-        #print(nbr_fea.shape,nbrcoord1.shape,nbr_fea3.shape)
-        #test
-        nbr_fea2=np.concatenate((nbr_fea,nbrcoord1,nbrcoord2,nbrcoord3),axis=-1)
-        #nbr_fea2=np.concatenate((nbrcoord1,nbrcoord2,nbrcoord3),axis=-1)
-        #nbr_fea2=np.zeros((len(nbr_fea),len(nbr_fea[0]),len(nbr_fea[0][0])+3))
-        #nbr_fea2=np.zeros((len(nbr_fea),len(nbr_fea[0]),4))
-        #for i in range(len(nbr_fea)):
+        nbrcoords = np.array(nbrcoords)
+        nbrcoord1 = self.gdf.expand(nbrcoords[..., 0])
+        nbrcoord2 = self.gdf.expand(nbrcoords[..., 1])
+        nbrcoord3 = self.gdf.expand(nbrcoords[..., 2])
+        # print(nbr_fea.shape,nbrcoord1.shape,nbr_fea3.shape)
+        # test
+        nbr_fea2 = np.concatenate(
+            (nbr_fea, nbrcoord1, nbrcoord2, nbrcoord3), axis=-1)
+        # nbr_fea2=np.concatenate((nbrcoord1,nbrcoord2,nbrcoord3),axis=-1)
+        # nbr_fea2=np.zeros((len(nbr_fea),len(nbr_fea[0]),len(nbr_fea[0][0])+3))
+        # nbr_fea2=np.zeros((len(nbr_fea),len(nbr_fea[0]),4))
+        # for i in range(len(nbr_fea)):
         #    for j in range(len(nbr_fea[i])):
         #        #nbr_fea2[i][j]=np.concatenate(([nbr_fea3[i][j]],nbrcoords[i][j]))
         #        nbr_fea2[i][j]=np.concatenate((nbr_fea[i][j],nbrcoords[i][j]))
         #        #nbr_fea2[i][j]=[nbr_fea3[i][j]]#,nbrcoords[i][j]))
-        #print(cif_id,nbr_fea.shape,nbr_fea2.shape)
+        # print(cif_id,nbr_fea.shape,nbr_fea2.shape)
         atom_fea = torch.Tensor(atom_fea)
         nbr_fea = torch.Tensor(nbr_fea2)
-        #print(nbr_fea2.shape)
+        # print(nbr_fea2.shape)
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id

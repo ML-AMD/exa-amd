@@ -1,12 +1,12 @@
 name: amd_env
 channels:
-  - pytorch
-  - conda-forge
-  - defaults
+    - pytorch
+    - conda-forge
+    - defaults
 dependencies:
-  - python=3.12
-  - scikit-learn
-  - pytorch
-  - torchvision
-  - pymatgen
-  - parsl
+    - python = 3.12
+    - scikit-learn
+    - pytorch
+    - torchvision
+    - pymatgen
+    - parsl

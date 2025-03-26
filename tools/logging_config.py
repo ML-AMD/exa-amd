@@ -9,8 +9,10 @@ LEVEL_MAP = {
     "CRITICAL": logging.CRITICAL
 }
 
+
 class MaxLevelFilter(logging.Filter):
     """ Filter that only allows log records up to a specified max level. """
+
     def __init__(self, max_level):
         super().__init__()
         self.max_level = max_level
@@ -18,15 +20,18 @@ class MaxLevelFilter(logging.Filter):
     def filter(self, record):
         return record.levelno <= self.max_level
 
+
 class ExitOnCriticalHandler(logging.Handler):
     """
     Exits the program whenever a CRITICAL-level log is emitted.
     """
+
     def emit(self, record):
         msg = self.format(record)
         sys.stderr.write(msg + "\n")
         if record.levelno == logging.CRITICAL:
             sys.exit(1)
+
 
 def configure_logging(level_name="INFO"):
     """
@@ -42,12 +47,14 @@ def configure_logging(level_name="INFO"):
 
     # If invalid, default to INFO and warn
     if level_name_upper not in LEVEL_MAP:
-        logging.basicConfig(stream=sys.stdout, format="%(message)s", level=logging.INFO)
-        logging.warning(f"Unsupported log level '{level_name}'. Falling back to INFO.")
+        logging.basicConfig(stream=sys.stdout,
+                            format="%(message)s", level=logging.INFO)
+        logging.warning(
+            f"Unsupported log level '{level_name}'. Falling back to INFO.")
 
     # Remove any existing handlers from the root logger
     root_logger = logging.getLogger()
-    root_logger.name="exa-amd"
+    root_logger.name = "exa-amd"
     while root_logger.handlers:
         root_logger.removeHandler(root_logger.handlers[0])
 

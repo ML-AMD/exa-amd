@@ -2,7 +2,8 @@ import argparse
 import json
 import os
 import sys
-import re 
+import re
+
 
 def _find_next_vasp_structure(work_dir):
     """Helper: Find what should be the next VASP calculation"""
@@ -12,7 +13,7 @@ def _find_next_vasp_structure(work_dir):
     # Filter only directories and find those that match numeric pattern
     numbered_dirs = []
     for item in contents:
-        if os.path.isdir(os.path.join(work_dir,item)):
+        if os.path.isdir(os.path.join(work_dir, item)):
             # Try to extract a number from the directory name
             match = re.search(r'^\d+', item)
             if match:
@@ -24,6 +25,7 @@ def _find_next_vasp_structure(work_dir):
     # Find the highest number and add 1
     next_number = max(numbered_dirs) + 1
     return next_number
+
 
 class ConfigManager:
     # required arguments: must exist in JSON config or be provided as cmd line args
@@ -47,7 +49,7 @@ class ConfigManager:
         "num_strs":     (-1,    "Number of structures to process (-1 means all)."),
         "vasp_timeout":     (1800,  "Max walltime in seconds for a vasp calculation."),
         "force_conv":   (100,   "Force convergence threshold."),
-        "output_level": ("INFO","Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"),
+        "output_level": ("INFO", "Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"),
     }
 
     def __init__(self):
@@ -115,7 +117,8 @@ class ConfigManager:
         # 7) Ensure all required params exist post-merge
         for key in self.REQUIRED_PARAMS.keys():
             if key not in self.config:
-                print(f"Error: Missing required argument '{key}'. Must be in config or provided via CLI.")
+                print(
+                    f"Error: Missing required argument '{key}'. Must be in config or provided via CLI.")
                 sys.exit(1)
 
         # 8) Assign defaults for optional params
@@ -124,15 +127,17 @@ class ConfigManager:
                 self.config[key] = default_val
 
         # 9) Create/Update directories
-        work_dir = os.path.join(self.config["work_dir"], self.config["elements"])
+        work_dir = os.path.join(
+            self.config["work_dir"], self.config["elements"])
         if not os.path.exists(work_dir):
             os.makedirs(work_dir)
 
-        vasp_work_dir = os.path.join(self.config["vasp_work_dir"], self.config["elements"])
+        vasp_work_dir = os.path.join(
+            self.config["vasp_work_dir"], self.config["elements"])
         if not os.path.exists(vasp_work_dir):
             os.makedirs(vasp_work_dir)
 
-        self.config["work_dir"]      = work_dir
+        self.config["work_dir"] = work_dir
         self.config["vasp_work_dir"] = vasp_work_dir
 
         # 10) Create POTCAR file
@@ -164,12 +169,12 @@ class ConfigManager:
             nend = min(nstart + num_strs, nend)
 
         self.config["nstart"] = nstart
-        self.config["nend"]   = nend
+        self.config["nend"] = nend
 
     def get_json_config(self):
         """Return the JSON configuration."""
         return self.config
-    
+
     def __getitem__(self, key):
         """Allow dictionary-like access to configuration items."""
         return self.config[key]

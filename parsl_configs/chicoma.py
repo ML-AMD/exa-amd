@@ -14,7 +14,7 @@ from parsl_configs.parsl_config_registry import register_parsl_config
 from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL, CPU_SINGLE_LABEL
 
 # environment to set before running a VASP calculation
-vasp_env_init='''
+vasp_env_init = '''
                 conda activate amd_env
                 export NVHPC_CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cuda/12.5
                 export CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.7/cuda/12.5
@@ -32,6 +32,8 @@ vasp_env_init='''
 #
 # Chicoma Config
 #
+
+
 class ChicomaConfig(Config):
     def __init__(self, json_config):
         """
@@ -81,11 +83,14 @@ class ChicomaConfig(Config):
             )
         )
 
-        super().__init__(executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
+        super().__init__(
+            executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
 
 #
 # Chicoma Config
 #
+
+
 class ChicomaConfigDebug(Config):
     def __init__(self, json_config):
         """
@@ -131,8 +136,10 @@ class ChicomaConfigDebug(Config):
             )
         )
 
-        super().__init__(executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
-        
+        super().__init__(
+            executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
+
+
 # Register the configs
 register_parsl_config("chicoma", ChicomaConfig)
 register_parsl_config("chicoma_debug", ChicomaConfigDebug)

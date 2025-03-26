@@ -147,8 +147,8 @@ def collate_pool(dataset_list):
     return (torch.cat(batch_atom_fea, dim=0),
             torch.cat(batch_nbr_fea, dim=0),
             torch.cat(batch_nbr_fea_idx, dim=0),
-            crystal_atom_idx),\
-        torch.stack(batch_target, dim=0),\
+            crystal_atom_idx), \
+        torch.stack(batch_target, dim=0), \
         batch_cif_ids
 
 
@@ -158,6 +158,7 @@ class GaussianDistance(object):
 
     Unit: angstrom
     """
+
     def __init__(self, dmin, dmax, step, var=None):
         """
         Parameters
@@ -203,6 +204,7 @@ class AtomInitializer(object):
 
     !!! Use one AtomInitializer per dataset !!!
     """
+
     def __init__(self, atom_types):
         self.atom_types = set(atom_types)
         self._embedding = {}
@@ -239,6 +241,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
     elem_embedding_file: str
         The path to the .json file
     """
+
     def __init__(self, elem_embedding_file):
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
@@ -298,6 +301,7 @@ class CIFData(Dataset):
     target: torch.Tensor shape (1, )
     cif_id: str or int
     """
+
     def __init__(self, root_dir, max_num_nbr=12, radius=9, dmin=0, step=0.2,
                  random_seed=123):
         self.root_dir = root_dir
@@ -326,16 +330,16 @@ class CIFData(Dataset):
         atom_fea = np.vstack([self.ari.get_atom_fea(crystal[i].specie.number)
                               for i in range(len(crystal))])
         atom_fea = torch.Tensor(atom_fea)
-        sitecoord=[]
+        sitecoord = []
         for site in crystal:
             sitecoord.append(list(site.coords[:]))
         all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
 
         all_nbrs = [sorted(nbrs, key=lambda x: x[2]) for nbrs in all_nbrs]
         nbr_fea_idx, nbr_fea = [], []
-        ttttt=0
-        nbrcoords=[[] for i in range(len(nbr_fea))]
-        
+        ttttt = 0
+        nbrcoords = [[] for i in range(len(nbr_fea))]
+
         for nbr in all_nbrs:
             if len(nbr) < self.max_num_nbr:
                 warnings.warn('{} not find enough neighbors to build graph. '
@@ -346,59 +350,62 @@ class CIFData(Dataset):
                 nbr_fea.append(list(map(lambda x: x[1], nbr)) +
                                [self.radius + 1.] * (self.max_num_nbr -
                                                      len(nbr)))
-                nbrcoords.append(list(map(lambda x: list(x[0].coords[:]), nbr))+
-                                 [[0,0,0]]*(self.max_num_nbr-len(nbr)))
+                nbrcoords.append(list(map(lambda x: list(x[0].coords[:]), nbr)) +
+                                 [[0, 0, 0]]*(self.max_num_nbr-len(nbr)))
             else:
 
                 nbr_fea_idx.append(4*list(map(lambda x: x[2],
-                                            nbr[:self.max_num_nbr])))
-                nbrcoords.append(list(map(lambda x: list(x[0].coords[:]), nbr[:self.max_num_nbr])))
-                #nbr_fea.append(list(map(lambda x: x[1],
+                                              nbr[:self.max_num_nbr])))
+                nbrcoords.append(
+                    list(map(lambda x: list(x[0].coords[:]), nbr[:self.max_num_nbr])))
+                # nbr_fea.append(list(map(lambda x: x[1],
                 #                        nbr[:self.max_num_nbr])))
 
-                #WX: define nearest neighbor axis
-                for i in range(1,self.max_num_nbr):
+                # WX: define nearest neighbor axis
+                for i in range(1, self.max_num_nbr):
                     usrnbr1 = nbrcoords[ttttt][0]
                     usrnbr2 = nbrcoords[ttttt][i]
                     for j in range(3):
-                        usrnbr1[j]=usrnbr1[j]-sitecoord[ttttt][j]
-                        usrnbr2[j]=usrnbr2[j]-sitecoord[ttttt][j]
+                        usrnbr1[j] = usrnbr1[j]-sitecoord[ttttt][j]
+                        usrnbr2[j] = usrnbr2[j]-sitecoord[ttttt][j]
 
-                    sumtmp = math.sqrt(sum(map(lambda x:x*x,usrnbr1)))
+                    sumtmp = math.sqrt(sum(map(lambda x: x*x, usrnbr1)))
                     e1 = [aaa/sumtmp for aaa in usrnbr1]
-                    multmp = [aaa*bbb for aaa,bbb in zip(e1,usrnbr2)]
+                    multmp = [aaa*bbb for aaa, bbb in zip(e1, usrnbr2)]
                     sumtmp = sum(multmp)
                     multmp = [aaa*sumtmp for aaa in e1]
-                    e2 = [aaa - bbb for aaa,bbb in zip(usrnbr2,multmp)]
-                    sumtmp = math.sqrt(sum(map(lambda x:x*x,e2)))
+                    e2 = [aaa - bbb for aaa, bbb in zip(usrnbr2, multmp)]
+                    sumtmp = math.sqrt(sum(map(lambda x: x*x, e2)))
                     e2 = [aaa/sumtmp for aaa in e2]
-                    e3 = list(np.cross(e1,e2))
+                    e3 = list(np.cross(e1, e2))
                     if sumtmp == 0:
-                       continue
+                        continue
                     else:
-                       break
+                        break
 
-                eaxis=[e1,e2,e3]
+                eaxis = [e1, e2, e3]
 
-                #new coords with rotational matrix
+                # new coords with rotational matrix
                 for i in range(self.max_num_nbr):
                     for j in range(3):
-                        nbrcoords[ttttt][i][j] = nbrcoords[ttttt][i][j] - sitecoord[ttttt][j]
+                        nbrcoords[ttttt][i][j] = nbrcoords[ttttt][i][j] - \
+                            sitecoord[ttttt][j]
                     multmp = nbrcoords[ttttt][i][:]
                     for j in range(3):
-                        nbrcoords[ttttt][i][j] = np.dot(eaxis[j],multmp)
+                        nbrcoords[ttttt][i][j] = np.dot(eaxis[j], multmp)
 
-                aaa=[]
-                bbb=[]
-                ccc=[]
+                aaa = []
+                bbb = []
+                ccc = []
                 for i in range(self.max_num_nbr):
                     aaa.append(nbrcoords[ttttt][i][0])
                     bbb.append(nbrcoords[ttttt][i][1])
                     ccc.append(nbrcoords[ttttt][i][2])
-                
-                nbr_fea.append(list(map(lambda x: x[1], nbr[:self.max_num_nbr]))+aaa+bbb+ccc)
 
-            ttttt+=1
+                nbr_fea.append(
+                    list(map(lambda x: x[1], nbr[:self.max_num_nbr]))+aaa+bbb+ccc)
+
+            ttttt += 1
         nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
         nbr_fea = self.gdf.expand(nbr_fea)
         atom_fea = torch.Tensor(atom_fea)
@@ -406,4 +413,3 @@ class CIFData(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
-
