@@ -33,7 +33,7 @@ class ExitOnCriticalHandler(logging.Handler):
             sys.exit(1)
 
 
-def configure_logging(level_name="INFO"):
+def configure_logging(level_name="ERROR"):
     """
     Configures the root logger so that:
       - If 'level_name' is invalid, default to INFO.
@@ -82,10 +82,10 @@ def configure_logging(level_name="INFO"):
     critical_handler.setFormatter(formatter)
     root_logger.addHandler(critical_handler)
 
-    # Force all Parsl loggers and sub-loggers to WARNING,
+    #Force all Parsl loggers and sub-loggers to WARNING,
     for logger_name in list(logging.Logger.manager.loggerDict.keys()):
         if logger_name.startswith("parsl"):
             plogger = logging.getLogger(logger_name)
-            plogger.setLevel(logging.CRITICAL)
+            plogger.setLevel(logging.WARNING)
             while plogger.handlers:
                 plogger.removeHandler(plogger.handlers[0])

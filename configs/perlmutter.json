@@ -1,0 +1,17 @@
+{
+    "cms_dir":"/global/homes/m/moraru/Parsl-Project/exa-amd/cms_dir",
+    "vasp_std_exe": "vasp_std",
+    "work_dir": "/pscratch/sd/m/moraru/work_dir_v4",
+    "vasp_work_dir": "/pscratch/sd/m/moraru/vasp_work_dir_v4",
+    "pot_dir":"/global/cfs/cdirs/m4802/Thrust1/cms/potpaw_PBE",
+    "output_file":"vasp_calc_result_1.csv",
+    "num_workers": 128,
+    "batch_size": 256,
+    "ef_thr": -0.2,
+    "force_conv": 100,
+    "vasp_timeout": 1800,
+    "num_strs":4,
+    "elements": "Na-B-C",
+    "vasp_nnodes":1,
+    "parsl_config":"perlmutter_premium"
+}

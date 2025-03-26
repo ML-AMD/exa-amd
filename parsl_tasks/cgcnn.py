@@ -20,7 +20,7 @@ def cgcnn_prediction(config):
     except Exception as e:
         raise
     num_workers = config["num_workers"]
-    return "OMP_NUM_THREADS={}; python {} {} {} --batch-size {} --workers {} ".format(num_workers, predict_script_path, model_path, dir_structures, config["batch_size"], num_workers)
+    return "python {} {} {} --batch-size {} --workers {} ".format(predict_script_path, model_path, dir_structures, config["batch_size"], num_workers)
 
 
 @bash_app(executors=[SINGLE_GPU_LABEL])

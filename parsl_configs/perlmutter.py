@@ -5,62 +5,58 @@ from parsl.providers import SlurmProvider
 from parsl.launchers import SimpleLauncher
 from parsl.launchers import SrunLauncher
 
-exec_config_debug = Config(
-    executors=[
-        HighThroughputExecutor(
-            label='single_gpu_per_worker',
-            available_accelerators=4,
+from parsl_configs.parsl_config_registry import register_parsl_config
+from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL, CPU_SINGLE_LABEL
+
+class PerlmutterPremiumConfig(Config):
+    def __init__(self, json_config):
+        """
+          - json_config["vasp_nnodes"] (int): number of GPU nodes used for VASP calculations
+          - json_config["num_workers"] (int): number of CPU workers per node
+        """
+
+        nnodes_vasp = json_config["vasp_nnodes"]
+        num_workers = json_config["num_workers"]
+
+        # GPU executor
+        single_gpu_per_worker_executor = HighThroughputExecutor(
+            label=SINGLE_GPU_LABEL,
             cores_per_worker=1,
-            cpu_affinity='block',
+            available_accelerators=4,
             provider=SlurmProvider(
-                # partition="gpu",
                 account="m4802_g",
                 qos="premium",
                 constraint="gpu",
-                init_blocks=4,
-                min_blocks=4,
-                max_blocks=4,
-                nodes_per_block=1,
-                launcher=SimpleLauncher(),
-                walltime='24:00:00',
-                worker_init="export OMP_NUM_THREADS=1; module load vasp/6.4.3-gpu"
-            ),
-        ),
-        HighThroughputExecutor(
-            label='single_gpu_per_worker_cgcnn',
-            cores_per_worker=128,
-            available_accelerators=1,
-            provider=SlurmProvider(
-                # partition="gpu",
-                account="m4802_g",
-                qos="premium",
-                constraint="gpu",
-                # scheduler_options='#SBATCH --ntasks-per-node=4',
                 init_blocks=0,
-                min_blocks=0,
-                max_blocks=1,
+                min_blocks=nnodes_vasp,
+                max_blocks=nnodes_vasp,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
-                walltime='00:30:00',
-                worker_init="module load pytorch; module swap cudatoolkit/11.7",
-            ),
-        ),
-        HighThroughputExecutor(
-            label='cpu_single_node',
+                walltime='16:00:00',
+                worker_init="conda activate amd_env; module load vasp/6.4.3-gpu",
+            )
+        )
+
+        # CPU executor
+        cpu_single_node_executor = HighThroughputExecutor(
+            label=CPU_SINGLE_LABEL,
             cores_per_worker=128,
             provider=SlurmProvider(
-                # partition="gpu",
                 account="m4802",
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=0,
+                min_blocks=1,
                 max_blocks=1,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
-                walltime='00:30:00',
-                worker_init="module load pytorch; module swap cudatoolkit/11.7",
-            ),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env;"
+            )
         )
-    ],
-)
+
+        super().__init__(
+            executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
+
+# Register the perlmutter configs
+register_parsl_config("perlmutter_premium", PerlmutterPremiumConfig)

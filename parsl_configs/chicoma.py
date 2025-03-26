@@ -131,7 +131,7 @@ class ChicomaConfigDebug(Config):
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='01:00:00',
-                worker_init="source ~/.bashrc; conda activate amd_env; export OMP_NUM_THREADS=128",
+                worker_init="conda activate amd_env",
                 scheduler_options="#SBATCH --reservation=debug",
             )
         )
@@ -140,6 +140,6 @@ class ChicomaConfigDebug(Config):
             executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
 
 
-# Register the configs
+# Register the chicoma configs
 register_parsl_config("chicoma", ChicomaConfig)
 register_parsl_config("chicoma_debug", ChicomaConfigDebug)
