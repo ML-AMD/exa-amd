@@ -22,6 +22,7 @@ def vasp_calculations(config):
     fp = open(output_file_vasp_calc, 'w')
     fp.write("id,result\n")
 
+    print("# VASP calculations: ", config["nstart"], config["nend"])
     # launch all vasp calculations
     start_dft_calc = time.time()
     exec_time = -time.time()
@@ -108,7 +109,7 @@ def run_workflow(config):
     time_select_struct = -1
     if not os.path.exists(os.path.join(config["work_dir"], 'new/POSCAR_1')):
         time_select_struct = select_structures(config)
-    logging.info(f"select structures done {time_select_struct}")
+    logging.info(f"selecttt structures done {time_select_struct}")
 
     config.setup_vasp_calculations()
     time_vasp = vasp_calculations(config)

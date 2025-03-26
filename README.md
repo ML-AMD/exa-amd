@@ -11,7 +11,7 @@ It comes with a flexible configuration system based on a global registry. You ca
 
 ## Prerequisites
 - Ensure you have a working VASP installation
-- Ensure you have prepared a directory with the MP structures named `mpstrs` 
+- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put in a directory called `mpstrs` 
 ```bash
 cp -R mpstrs ./ctest 
 ```
@@ -24,7 +24,7 @@ conda activate amd_env
 ```
 
 ## Usage
-- Copy the `mpstrs` directory into the `cms_dir` (e.g. )
+- Copy the `mpstrs` directory into the `cms_dir`
 - Set up a json configuration file (similar to [configs/chicoma.json](configs/chicoma.json))
 - Run `python amd.py --config <your_config_file>`
 

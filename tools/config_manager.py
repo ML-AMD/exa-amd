@@ -157,12 +157,12 @@ class ConfigManager:
         All structures in [nstart, nend) will be run
         """
         structure_dir = os.path.join(self.config["work_dir"], "new")
-        structure_files = [
-            f for f in os.listdir(structure_dir) if f.startswith("POSCAR_")
-        ]
-        total_num_structures = len(structure_files)
+        # structure_files = [
+        #     f for f in os.listdir(structure_dir) if f.startswith("POSCAR_")
+        # ]
+        total_num_structures = 924 #len(structure_files)
         num_strs = self.config["num_strs"]
-        nstart = _find_next_vasp_structure(self.config["vasp_work_dir"])
+        nstart = 1 #_find_next_vasp_structure(self.config["vasp_work_dir"])
 
         nend = total_num_structures + 1
         if num_strs != -1:
@@ -170,6 +170,7 @@ class ConfigManager:
 
         self.config["nstart"] = nstart
         self.config["nend"] = nend
+        print(nstart, nend)
 
     def get_json_config(self):
         """Return the JSON configuration."""

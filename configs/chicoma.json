@@ -1,17 +1,17 @@
 {
     "cms_dir":"/users/moraru/Parsl-Project/exa-amd/cms_dir",
     "vasp_std_exe": "/usr/projects/icapt/applications/vasp/vasp-6.4.2-nvidia-gpu-vtst/bin/vasp_std",
-    "work_dir": "/lustre/scratch5/moraru/tmptmp2_work_dir_v2",
-    "vasp_work_dir": "/users/moraru/Parsl-Project/tmptmp2_vasp_work_dir_v2",
+    "work_dir": "/lustre/scratch5/moraru/work_dir_18",
+    "vasp_work_dir": "/users/moraru/Parsl-Project/vasp_work_dir_18",
     "pot_dir":"/users/moraru/Parsl-Project/data/select_structures/potpaw",
-    "output_file":"vasp_calc_result_1.csv",
+    "output_file":"vasp_calc_result.csv",
     "num_workers": 128,
     "batch_size": 256,
     "ef_thr": -0.2,
     "force_conv": 100,
     "vasp_timeout": 1800,
-    "num_strs":10,
+    "num_strs":-1,
     "elements": "Na-B-C",
     "vasp_nnodes":1,
-    "parsl_config":"chicoma_debug"
+    "parsl_config":"chicoma_"
 }
