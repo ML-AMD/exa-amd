@@ -142,13 +142,9 @@ class ConfigManager:
 
         # 10) Create POTCAR file
         POTDIR = self.config["pot_dir"]
-        ele1, ele2, ele3 = self.config["elements"].split("-")
-        potcar_command = (
-            f"cat {POTDIR}/{ele1}/POTCAR "
-            f"{POTDIR}/{ele2}/POTCAR "
-            f"{POTDIR}/{ele3}/POTCAR "
-            f"> {work_dir}/POTCAR"
-        )
+        elements = self.config["elements"].split("-")  # Handles any number of elements
+        potcar_files = [f"{POTDIR}/{el}/POTCAR" for el in elements]
+        potcar_command = f"cat {' '.join(potcar_files)} > {work_dir}/POTCAR"
         os.system(potcar_command)
 
     def setup_vasp_calculations(self):
