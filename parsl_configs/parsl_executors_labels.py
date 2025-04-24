@@ -1,4 +1,4 @@
-GPU_VASP_EXECUTOR_LABEL = "gpu_vasp_executor_label"
-GPU_CGCNN_EXECUTOR_LABEL = "gpu_cgcnn_executor_label"
-CPU_SELECT_EXECUTOR_LABEL = "cpu_select_executor_label"
-CPU_GENERATE_EXECUTOR_LABEL = "cpu_generate_executor_label"
+VASP_EXECUTOR_LABEL = "vasp_executor_label"
+CGCNN_EXECUTOR_LABEL = "cgcnn_executor_label"
+SELECT_EXECUTOR_LABEL = "select_executor_label"
+GENERATE_EXECUTOR_LABEL = "generate_executor_label"

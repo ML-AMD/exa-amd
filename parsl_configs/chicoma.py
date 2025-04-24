@@ -41,9 +41,9 @@ class ChicomaConfig(Config):
         nnodes_vasp = json_config["vasp_nnodes"]
         num_workers = json_config["num_workers"]
 
-        # GPU executor
-        single_gpu_per_worker_executor = HighThroughputExecutor(
-            label=GPU_VASP_EXECUTOR_LABEL,
+        # VASP executor
+        vasp_executor = HighThroughputExecutor(
+            label=VASP_EXECUTOR_LABEL,
             cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
@@ -55,18 +55,32 @@ class ChicomaConfig(Config):
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='16:00:00',
-                # worker_init=(
-                #     "conda activate amd_env; "
-                #     "source ~/.bash_profile; load_vasp_env"
-                # )
                 worker_init=vasp_env_init
             )
         )
 
-        # CPU executor
-        cpu_single_node_executor = HighThroughputExecutor(
-            label=CPU_GENERATE_EXECUTOR_LABEL,
-            cores_per_worker=128,
+        # cgcnn executor
+        cgcnn_executor = HighThroughputExecutor(
+            label=CGCNN_EXECUTOR_LABEL,
+            cores_per_worker=1,
+            available_accelerators=4,
+            provider=SlurmProvider(
+                partition="gpu",
+                account="t25_ml-amd_g",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env",
+            )
+        )
+
+        # generate executor
+        generate_structures_executor = HighThroughputExecutor(
+            label=GENERATE_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
             provider=SlurmProvider(
                 partition="standard",
                 account="t25_ml-amd",
@@ -76,12 +90,29 @@ class ChicomaConfig(Config):
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='01:00:00',
-                worker_init="source ~/.bashrc; conda activate amd_env; export OMP_NUM_THREADS=128"
+                worker_init="conda activate amd_env"
+            )
+        )
+
+        # select executor
+        select_structures_executor = HighThroughputExecutor(
+            label=GENERATE_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
+            provider=SlurmProvider(
+                partition="standard",
+                account="t25_ml-amd",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env"
             )
         )
 
         super().__init__(
-            executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
+            executors=[vasp_executor, cgcnn_executor, generate_structures_executor, select_structures_executor])
 
 
 class ChicomaConfigDebug(Config):
@@ -94,30 +125,69 @@ class ChicomaConfigDebug(Config):
         nnodes_vasp = json_config["vasp_nnodes"]
         num_workers = json_config["num_workers"]
 
-        # GPU executor
-        single_gpu_per_worker_executor = HighThroughputExecutor(
-            label=GPU_VASP_EXECUTOR_LABEL,
+        # VASP executor
+        vasp_executor = HighThroughputExecutor(
+            label=VASP_EXECUTOR_LABEL,
             cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
                 partition="gpu",
+                qos="debug",
                 init_blocks=0,
                 min_blocks=nnodes_vasp,
                 max_blocks=nnodes_vasp,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
-                walltime='01:00:00',
+                walltime='16:00:00',
                 worker_init=vasp_env_init,
                 scheduler_options="#SBATCH --reservation=gpu_debug",
             )
         )
 
-        # CPU executor
-        cpu_single_node_executor = HighThroughputExecutor(
-            label=CPU_GENERATE_EXECUTOR_LABEL,
-            cores_per_worker=128,
+        # cgcnn executor
+        cgcnn_executor = HighThroughputExecutor(
+            label=CGCNN_EXECUTOR_LABEL,
+            cores_per_worker=1,
+            available_accelerators=4,
             provider=SlurmProvider(
-                partition="cpu",
+                partition="gpu",
+                qos="debug",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env",
+                scheduler_options="#SBATCH --reservation=gpu_debug",
+            )
+        )
+
+        # generate executor
+        generate_structures_executor = HighThroughputExecutor(
+            label=GENERATE_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
+            provider=SlurmProvider(
+                partition="standard",
+                qos="debug",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env",
+                scheduler_options="#SBATCH --reservation=debug",
+            )
+        )
+
+        # select executor
+        select_structures_executor = HighThroughputExecutor(
+            label=GENERATE_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
+            provider=SlurmProvider(
+                partition="standard",
+                qos="debug",
                 init_blocks=0,
                 min_blocks=1,
                 max_blocks=1,
@@ -130,7 +200,7 @@ class ChicomaConfigDebug(Config):
         )
 
         super().__init__(
-            executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
+            executors=[vasp_executor, cgcnn_executor, generate_structures_executor, select_structures_executor])
 
 
 # Register the chicoma configs

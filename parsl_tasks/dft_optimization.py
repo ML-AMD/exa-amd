@@ -1,8 +1,8 @@
 from parsl import python_app, bash_app, join_app
-from parsl_configs.parsl_executors_labels import GPU_VASP_EXECUTOR_LABEL
+from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
 
 
-@python_app(executors=[GPU_VASP_EXECUTOR_LABEL])
+@python_app(executors=[VASP_EXECUTOR_LABEL])
 def fused_vasp_calc(config, id, walltime=(int)):
     import os
     import shutil

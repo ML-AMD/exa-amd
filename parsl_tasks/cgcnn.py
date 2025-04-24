@@ -1,8 +1,8 @@
 from parsl import python_app, bash_app
-from parsl_configs.parsl_executors_labels import GPU_CGCNN_EXECUTOR_LABEL
+from parsl_configs.parsl_executors_labels import CGCNN_EXECUTOR_LABEL
 
 
-@bash_app(executors=[GPU_CGCNN_EXECUTOR_LABEL])
+@bash_app(executors=[CGCNN_EXECUTOR_LABEL])
 def cgcnn_prediction(config):
     import os
     import shutil

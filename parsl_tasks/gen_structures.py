@@ -1,8 +1,8 @@
 from parsl import bash_app
-from parsl_configs.parsl_executors_labels import CPU_GENERATE_EXECUTOR_LABEL
+from parsl_configs.parsl_executors_labels import GENERATE_EXECUTOR_LABEL
 
 
-@bash_app(executors=[CPU_GENERATE_EXECUTOR_LABEL])
+@bash_app(executors=[GENERATE_EXECUTOR_LABEL])
 def gen_structures(config):
     import os
     try:

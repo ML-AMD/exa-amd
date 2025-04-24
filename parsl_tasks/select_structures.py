@@ -1,8 +1,8 @@
 from parsl import bash_app
-from parsl_configs.parsl_executors_labels import CPU_SELECT_EXECUTOR_LABEL
+from parsl_configs.parsl_executors_labels import SELECT_EXECUTOR_LABEL
 
 
-@bash_app(executors=[CPU_SELECT_EXECUTOR_LABEL])
+@bash_app(executors=[SELECT_EXECUTOR_LABEL])
 def select_structures(config):
     import os
     try:

@@ -21,7 +21,7 @@ class PerlmutterPremiumConfig(Config):
 
         # VASP executor
         vasp_executor = HighThroughputExecutor(
-            label=GPU_VASP_EXECUTOR_LABEL,
+            label=VASP_EXECUTOR_LABEL,
             cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
@@ -40,8 +40,8 @@ class PerlmutterPremiumConfig(Config):
 
         # cgcnn executor
         cgcnn_executor = HighThroughputExecutor(
-            label=GPU_CGCNN_EXECUTOR_LABEL,
-            cores_per_worker=num_workers,
+            label=CGCNN_EXECUTOR_LABEL,
+            cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
                 account="m4802_g",
@@ -59,8 +59,8 @@ class PerlmutterPremiumConfig(Config):
 
         # generate executor
         generate_structures_executor = HighThroughputExecutor(
-            label=CPU_GENERATE_EXECUTOR_LABEL,
-            cores_per_worker=128,
+            label=GENERATE_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
             max_workers_per_node=1,
             provider=SlurmProvider(
                 account="m4802",
@@ -78,8 +78,8 @@ class PerlmutterPremiumConfig(Config):
 
         # select executor
         select_structures_executor = HighThroughputExecutor(
-            label=CPU_SELECT_EXECUTOR_LABEL,
-            cores_per_worker=128,
+            label=SELECT_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
             max_workers_per_node=1,
             provider=SlurmProvider(
                 account="m4802",
