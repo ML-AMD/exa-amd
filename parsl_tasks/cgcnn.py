@@ -1,8 +1,8 @@
 from parsl import python_app, bash_app
-from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL
+from parsl_configs.parsl_executors_labels import GPU_CGCNN_EXECUTOR_LABEL
 
 
-@bash_app(executors=[SINGLE_GPU_LABEL])
+@bash_app(executors=[GPU_CGCNN_EXECUTOR_LABEL])
 def cgcnn_prediction(config):
     import os
     import shutil
@@ -22,8 +22,3 @@ def cgcnn_prediction(config):
     num_workers = config["num_workers"]
     return "python {} {} {} --batch-size {} --workers {} ".format(
         predict_script_path, model_path, dir_structures, config["batch_size"], num_workers)
-
-
-@bash_app(executors=[SINGLE_GPU_LABEL])
-def cgcnn_prediction_init_perf():
-    return "ls"

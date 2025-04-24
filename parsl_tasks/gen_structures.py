@@ -1,8 +1,8 @@
 from parsl import bash_app
-from parsl_configs.parsl_executors_labels import CPU_SINGLE_LABEL
+from parsl_configs.parsl_executors_labels import CPU_GENERATE_EXECUTOR_LABEL
 
 
-@bash_app(executors=[CPU_SINGLE_LABEL])
+@bash_app(executors=[CPU_GENERATE_EXECUTOR_LABEL])
 def gen_structures(config):
     import os
     try:
@@ -19,8 +19,3 @@ def gen_structures(config):
 
     return "python {} --num_workers {} --input_dir {} --elements {}".format(
         dir_gen_structures, config["num_workers"], dir_mp_structures, config["elements"])
-
-
-@bash_app(executors=[CPU_SINGLE_LABEL])
-def gen_structures_init_perf():
-    return "ls"

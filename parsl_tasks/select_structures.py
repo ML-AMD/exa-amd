@@ -1,8 +1,8 @@
 from parsl import bash_app
-from parsl_configs.parsl_executors_labels import CPU_SINGLE_LABEL
+from parsl_configs.parsl_executors_labels import CPU_SELECT_EXECUTOR_LABEL
 
 
-@bash_app(executors=[CPU_SINGLE_LABEL])
+@bash_app(executors=[CPU_SELECT_EXECUTOR_LABEL])
 def select_structures(config):
     import os
     try:
@@ -17,8 +17,3 @@ def select_structures(config):
         raise
     return "python {} --ef_threshold {} --num_workers {} --csv_file {} --nomix_dir {}".format(
         dir_select_structure, str(config["ef_thr"]), config["num_workers"], tr_csv_file, dir_structures)
-
-
-@bash_app(executors=[CPU_SINGLE_LABEL])
-def select_structures_init_perf():
-    return "ls"

@@ -6,7 +6,7 @@ from parsl.launchers import SimpleLauncher
 from parsl.launchers import SrunLauncher
 
 from parsl_configs.parsl_config_registry import register_parsl_config
-from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL, CPU_SINGLE_LABEL
+from parsl_configs.parsl_executors_labels import *
 
 
 class PerlmutterPremiumConfig(Config):
@@ -19,9 +19,9 @@ class PerlmutterPremiumConfig(Config):
         nnodes_vasp = json_config["vasp_nnodes"]
         num_workers = json_config["num_workers"]
 
-        # GPU executor
-        single_gpu_per_worker_executor = HighThroughputExecutor(
-            label=SINGLE_GPU_LABEL,
+        # VASP executor
+        vasp_executor = HighThroughputExecutor(
+            label=GPU_VASP_EXECUTOR_LABEL,
             cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
@@ -38,10 +38,49 @@ class PerlmutterPremiumConfig(Config):
             )
         )
 
-        # CPU executor
-        cpu_single_node_executor = HighThroughputExecutor(
-            label=CPU_SINGLE_LABEL,
+        # cgcnn executor
+        cgcnn_executor = HighThroughputExecutor(
+            label=GPU_CGCNN_EXECUTOR_LABEL,
+            cores_per_worker=num_workers,
+            available_accelerators=4,
+            provider=SlurmProvider(
+                account="m4802_g",
+                qos="premium",
+                constraint="gpu",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env",
+            )
+        )
+
+        # generate executor
+        generate_structures_executor = HighThroughputExecutor(
+            label=CPU_GENERATE_EXECUTOR_LABEL,
             cores_per_worker=128,
+            max_workers_per_node=1,
+            provider=SlurmProvider(
+                account="m4802",
+                qos="premium",
+                constraint="cpu",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='01:00:00',
+                worker_init="conda activate amd_env;"
+            )
+        )
+
+        # select executor
+        select_structures_executor = HighThroughputExecutor(
+            label=CPU_SELECT_EXECUTOR_LABEL,
+            cores_per_worker=128,
+            max_workers_per_node=1,
             provider=SlurmProvider(
                 account="m4802",
                 qos="premium",
@@ -57,7 +96,7 @@ class PerlmutterPremiumConfig(Config):
         )
 
         super().__init__(
-            executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
+            executors=[vasp_executor, cgcnn_executor, generate_structures_executor, select_structures_executor])
 
 
 # Register the perlmutter configs

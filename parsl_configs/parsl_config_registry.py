@@ -1,4 +1,4 @@
-import logging
+
 import pkgutil
 import importlib
 
@@ -20,7 +20,7 @@ def auto_register_configs(package_name):
     """
     spec = importlib.util.find_spec(package_name)
     if spec is None or spec.submodule_search_locations is None:
-        logging.critical(
+        amd_logger.critical(
             f"Could not find package {package_name} for auto-registration.")
 
     for loader, module_name, is_pkg in pkgutil.iter_modules(
@@ -38,7 +38,7 @@ def get_parsl_config(config):
 
     config_name = config["parsl_config"]
     if config_name not in PARSL_CONFIG_REGISTRY:
-        logging.critical(
+        amd_logger.critical(
             f"Parsl config '{config_name}' is not registered. Registered configs: {
                 list(
                     PARSL_CONFIG_REGISTRY.keys())}"

@@ -29,7 +29,6 @@ def _find_next_vasp_structure(work_dir):
 
 class ConfigManager:
     # required arguments: must exist in JSON config or be provided as cmd line
-    # args
     REQUIRED_PARAMS = {
         "cms_dir": (str, "Path to the CMS directory (required)."),
         "vasp_std_exe": (str, "Path to the VASP executable (required)."),
@@ -54,6 +53,10 @@ class ConfigManager:
     }
 
     def __init__(self):
+        """
+        Load the json config and apply the cmd line arguments.
+        Check if all the required arguments were provided.
+        """
         # Preliminary parser for -config (read only the JSON path)
         config_parser = argparse.ArgumentParser(add_help=False)
         config_parser.add_argument(
@@ -90,11 +93,8 @@ class ConfigManager:
                 help=help_text
             )
 
-        #
-        # 5b) Loop over OPTIONAL_PARAMS
-        #
+        # Loop over OPTIONAL_PARAMS
         for key, (default_val, help_text) in self.OPTIONAL_PARAMS.items():
-            # Use the default value's type for the parser.
             arg_type = type(default_val)
             parser.add_argument(
                 f"--{key}",
@@ -103,10 +103,8 @@ class ConfigManager:
                 help=f"{help_text} (default='{default_val}')."
             )
 
-        # Parse everything except -config
         args = parser.parse_args(remaining_args)
 
-        # 6) Merge CLI overrides
         for arg_name in vars(args):
             value = getattr(args, arg_name)
             if value is not None:
@@ -115,19 +113,17 @@ class ConfigManager:
                 if old_val is not None:
                     print(f"Overriding '{arg_name}': {old_val} -> {value}")
 
-        # 7) Ensure all required params exist post-merge
+        # Ensure all required params exist post-merge
         for key in self.REQUIRED_PARAMS.keys():
             if key not in self.config:
-                print(
-                    f"Error: Missing required argument '{key}'. Must be in config or provided via CLI.")
-                sys.exit(1)
+                raise ValueError(f"Error: Missing required argument '{key}'.")
 
-        # 8) Assign defaults for optional params
+        # Assign defaults for optional params
         for key, (default_val, _) in self.OPTIONAL_PARAMS.items():
             if key not in self.config:
                 self.config[key] = default_val
 
-        # 9) Create/Update directories
+        # Create/Update directories
         work_dir = os.path.join(
             self.config["work_dir"], self.config["elements"])
         if not os.path.exists(work_dir):
@@ -141,22 +137,12 @@ class ConfigManager:
         self.config["work_dir"] = work_dir
         self.config["vasp_work_dir"] = vasp_work_dir
 
-        # 10) Create POTCAR file
-        POTDIR = self.config["pot_dir"]
-        ele1, ele2, ele3 = self.config["elements"].split("-")
-        potcar_command = (
-            f"cat {POTDIR}/{ele1}/POTCAR "
-            f"{POTDIR}/{ele2}/POTCAR "
-            f"{POTDIR}/{ele3}/POTCAR "
-            f"> {work_dir}/POTCAR"
-        )
-        os.system(potcar_command)
-
     def setup_vasp_calculations(self):
         """
         Calculate nstart and nend for VASP calculations.
         All structures in [nstart, nend) will be run
         """
+        work_dir = self.config["work_dir"]
         structure_dir = os.path.join(self.config["work_dir"], "new")
         structure_files = [
             f for f in os.listdir(structure_dir) if f.startswith("POSCAR_")
@@ -171,6 +157,17 @@ class ConfigManager:
 
         self.config["nstart"] = nstart
         self.config["nend"] = nend
+
+        # create the POTCAR file
+        POTDIR = self.config["pot_dir"]
+        ele1, ele2, ele3 = self.config["elements"].split("-")
+        potcar_command = (
+            f"cat {POTDIR}/{ele1}/POTCAR "
+            f"{POTDIR}/{ele2}/POTCAR "
+            f"{POTDIR}/{ele3}/POTCAR "
+            f"> {work_dir}/POTCAR"
+        )
+        os.system(potcar_command)
 
     def get_json_config(self):
         """Return the JSON configuration."""

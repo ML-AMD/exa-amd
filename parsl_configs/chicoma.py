@@ -11,7 +11,7 @@ from parsl.providers import LocalProvider
 from parsl.launchers import SrunMPILauncher
 
 from parsl_configs.parsl_config_registry import register_parsl_config
-from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL, CPU_SINGLE_LABEL
+from parsl_configs.parsl_executors_labels import *
 
 # environment to set before running a VASP calculation
 vasp_env_init = '''
@@ -29,9 +29,6 @@ vasp_env_init = '''
                 module load cray-hdf5
                 ulimit -c 0
             '''
-#
-# Chicoma Config
-#
 
 
 class ChicomaConfig(Config):
@@ -46,7 +43,7 @@ class ChicomaConfig(Config):
 
         # GPU executor
         single_gpu_per_worker_executor = HighThroughputExecutor(
-            label=SINGLE_GPU_LABEL,
+            label=GPU_VASP_EXECUTOR_LABEL,
             cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
@@ -68,7 +65,7 @@ class ChicomaConfig(Config):
 
         # CPU executor
         cpu_single_node_executor = HighThroughputExecutor(
-            label=CPU_SINGLE_LABEL,
+            label=CPU_GENERATE_EXECUTOR_LABEL,
             cores_per_worker=128,
             provider=SlurmProvider(
                 partition="standard",
@@ -86,10 +83,6 @@ class ChicomaConfig(Config):
         super().__init__(
             executors=[single_gpu_per_worker_executor, cpu_single_node_executor])
 
-#
-# Chicoma Config
-#
-
 
 class ChicomaConfigDebug(Config):
     def __init__(self, json_config):
@@ -103,7 +96,7 @@ class ChicomaConfigDebug(Config):
 
         # GPU executor
         single_gpu_per_worker_executor = HighThroughputExecutor(
-            label=SINGLE_GPU_LABEL,
+            label=GPU_VASP_EXECUTOR_LABEL,
             cores_per_worker=1,
             available_accelerators=4,
             provider=SlurmProvider(
@@ -121,7 +114,7 @@ class ChicomaConfigDebug(Config):
 
         # CPU executor
         cpu_single_node_executor = HighThroughputExecutor(
-            label=CPU_SINGLE_LABEL,
+            label=CPU_GENERATE_EXECUTOR_LABEL,
             cores_per_worker=128,
             provider=SlurmProvider(
                 partition="cpu",

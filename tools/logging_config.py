@@ -1,91 +1,69 @@
-import logging
 import sys
 
-LEVEL_MAP = {
-    "DEBUG": logging.DEBUG,
-    "INFO": logging.INFO,
-    "WARNING": logging.WARNING,
-    "ERROR": logging.ERROR,
-    "CRITICAL": logging.CRITICAL
-}
 
+class ExaAmdLogger:
+    LEVEL_MAP = {
+        "DEBUG": 10,
+        "INFO": 20,
+        "WARNING": 30,
+        "ERROR": 40,
+        "CRITICAL": 50
+    }
 
-class MaxLevelFilter(logging.Filter):
-    """ Filter that only allows log records up to a specified max level. """
+    def __init__(self, level_name="INFO", logger_name="exa-amd"):
+        self._logger_name = logger_name
+        self.configure(level_name)
 
-    def __init__(self, max_level):
-        super().__init__()
-        self.max_level = max_level
+    def configure(self, level_name="INFO"):
+        """
+        if unsupported level, fall back to INFO
+        """
+        level_name = level_name.upper()
+        if level_name in self.LEVEL_MAP:
+            self._current_level = self.LEVEL_MAP[level_name]
+        else:
+            self._current_level = self.LEVEL_MAP["INFO"]
+            sys.stdout.write(
+                f"[WARNING] {
+                    self._logger_name}: Unsupported log level '{level_name}'. Falling back to INFO.\n"
+            )
 
-    def filter(self, record):
-        return record.levelno <= self.max_level
+    def _log(self, level_name, message):
+        """
+         - DEBUG/INFO to stdout
+         - WARNING/ERROR to stderr
+         - CRITICAL to stderr and then exits
+        """
+        numeric_level = self.LEVEL_MAP[level_name]
 
+        if numeric_level < self._current_level:
+            return
 
-class ExitOnCriticalHandler(logging.Handler):
-    """
-    Exits the program whenever a CRITICAL-level log is emitted.
-    """
+        formatted_message = f"[{level_name}] {self._logger_name}: {message}"
 
-    def emit(self, record):
-        msg = self.format(record)
-        sys.stderr.write(msg + "\n")
-        if record.levelno == logging.CRITICAL:
+        if numeric_level <= self.LEVEL_MAP["INFO"]:
+            sys.stdout.write(formatted_message + "\n")
+        elif numeric_level < self.LEVEL_MAP["CRITICAL"]:
+            sys.stderr.write(formatted_message + "\n")
+        else:
+            sys.stderr.write(formatted_message + "\n")
             sys.exit(1)
 
+    def debug(self, message):
+        self._log("DEBUG", message)
 
-def configure_logging(level_name="ERROR"):
-    """
-    Configures the root logger so that:
-      - If 'level_name' is invalid, default to INFO.
-      - DEBUG/INFO go to stdout, WARNING/ERROR to stderr, CRITICAL → exit.
-      - All Parsl loggers (and sub-loggers) are forced to WARNING
-        so they won't emit debug/info messages.
-    """
-    # Determine requested logging level
-    level_name_upper = level_name.upper()
-    level = LEVEL_MAP.get(level_name_upper, logging.INFO)
+    def info(self, message):
+        self._log("INFO", message)
 
-    # If invalid, default to INFO and warn
-    if level_name_upper not in LEVEL_MAP:
-        logging.basicConfig(stream=sys.stdout,
-                            format="%(message)s", level=logging.INFO)
-        logging.warning(
-            f"Unsupported log level '{level_name}'. Falling back to INFO.")
+    def warning(self, message):
+        self._log("WARNING", message)
 
-    # Remove any existing handlers from the root logger
-    root_logger = logging.getLogger()
-    root_logger.name = "exa-amd"
-    while root_logger.handlers:
-        root_logger.removeHandler(root_logger.handlers[0])
+    def error(self, message):
+        self._log("ERROR", message)
 
-    # Set the root logger's level
-    root_logger.setLevel(level)
+    def critical(self, message):
+        self._log("CRITICAL", message)
 
-    formatter = logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
 
-    # stdout for DEBUG/INFO
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.DEBUG)
-    stdout_handler.addFilter(MaxLevelFilter(logging.INFO))
-    stdout_handler.setFormatter(formatter)
-    root_logger.addHandler(stdout_handler)
-
-    # stderr for WARNING/ERROR
-    stderr_handler = logging.StreamHandler(sys.stderr)
-    stderr_handler.setLevel(logging.WARNING)
-    stderr_handler.setFormatter(formatter)
-    root_logger.addHandler(stderr_handler)
-
-    # CRITICAL -> exit
-    critical_handler = ExitOnCriticalHandler()
-    critical_handler.setLevel(logging.CRITICAL)
-    critical_handler.setFormatter(formatter)
-    root_logger.addHandler(critical_handler)
-
-    # Force all Parsl loggers and sub-loggers to WARNING,
-    for logger_name in list(logging.Logger.manager.loggerDict.keys()):
-        if logger_name.startswith("parsl"):
-            plogger = logging.getLogger(logger_name)
-            plogger.setLevel(logging.WARNING)
-            while plogger.handlers:
-                plogger.removeHandler(plogger.handlers[0])
+# global instance
+amd_logger = ExaAmdLogger()

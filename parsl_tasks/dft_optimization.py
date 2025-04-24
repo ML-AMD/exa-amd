@@ -1,13 +1,8 @@
 from parsl import python_app, bash_app, join_app
-from parsl_configs.parsl_executors_labels import SINGLE_GPU_LABEL
+from parsl_configs.parsl_executors_labels import GPU_VASP_EXECUTOR_LABEL
 
 
-@bash_app(executors=[SINGLE_GPU_LABEL])
-def fused_vasp_calc_init_perf():
-    return "ls"
-
-
-@python_app(executors=[SINGLE_GPU_LABEL])
+@python_app(executors=[GPU_VASP_EXECUTOR_LABEL])
 def fused_vasp_calc(config, id, walltime=(int)):
     import os
     import shutil
@@ -41,7 +36,7 @@ def fused_vasp_calc(config, id, walltime=(int)):
         os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
 
         # run relaxation
-        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(
+        srun_cmd = "timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(
             config["vasp_timeout"], vasp_std_exe, output_file)
         relaxation_status = os.system(srun_cmd)
 
@@ -66,7 +61,7 @@ def fused_vasp_calc(config, id, walltime=(int)):
         shutil.copy(incar_en, "INCAR")
 
         # run relaxation
-        srun_cmd = "OMP_NUM_THREADS=1 timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(
+        srun_cmd = "timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(
             config["vasp_timeout"], vasp_std_exe, output_file_en)
         os.system(srun_cmd)
 
@@ -78,5 +73,4 @@ def fused_vasp_calc(config, id, walltime=(int)):
 
 
 def run_vasp_calc(config, id):
-    f_vasp = fused_vasp_calc(config, id, walltime=2 * config["vasp_timeout"])
-    return f_vasp, id
+    return fused_vasp_calc(config, id, walltime=2 * config["vasp_timeout"])
