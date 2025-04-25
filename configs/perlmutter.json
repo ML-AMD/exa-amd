@@ -1,8 +1,8 @@
 {
     "cms_dir":"/global/homes/m/moraru/Parsl-Project/exa-amd/cms_dir",
     "vasp_std_exe": "vasp_std",
-    "work_dir": "/pscratch/sd/m/moraru/work_dir_v2",
-    "vasp_work_dir": "/pscratch/sd/m/moraru/vasp_work_dir_v2",
+    "work_dir": "/pscratch/sd/m/moraru/work_dir_v3",
+    "vasp_work_dir": "/pscratch/sd/m/moraru/vasp_work_dir_v3",
     "pot_dir":"/global/cfs/cdirs/m4802/Thrust1/cms/potpaw_PBE",
     "output_file":"vasp_calc_result.csv",
     "num_workers": 128,

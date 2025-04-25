@@ -7,11 +7,9 @@ from tools.config_manager import ConfigManager
 #
 # Helpers
 #
-
-
 def gen_dummy_value(value, diff=False):
     """
-    Generate a dummy value
+    generate a dummy value
     """
     if isinstance(value, type):
         val_type = value
@@ -49,7 +47,7 @@ complete_config = dict(zip(all_config_keys, all_dummy_values))
 #
 def test_valid_config(tmp_path, monkeypatch):
     """
-    Test that a valid config file is loaded correctly when provided
+    test that a valid config file is loaded correctly when provided
     """
     config_file = tmp_path / "tmp_config.json"
     config_file.write_text(json.dumps(complete_config))
@@ -73,7 +71,7 @@ def test_valid_config(tmp_path, monkeypatch):
 def test_missing_required_parameters(
         tmp_path, monkeypatch, missing_config_key):
     """
-    Test that when a required parameter is missing,
+    test that when a required parameter is missing,
     ConfigManager raises an error.
     """
     config_data = valid_config.copy()

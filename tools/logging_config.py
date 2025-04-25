@@ -11,7 +11,7 @@ class ExaAmdLogger:
     }
 
     def __init__(self, level_name="INFO", logger_name="exa-amd"):
-        self._logger_name = logger_name
+        self.logger_name = logger_name
         self.configure(level_name)
 
     def configure(self, level_name="INFO"):
@@ -25,7 +25,7 @@ class ExaAmdLogger:
             self._current_level = self.LEVEL_MAP["INFO"]
             sys.stdout.write(
                 f"[WARNING] {
-                    self._logger_name}: Unsupported log level '{level_name}'. Falling back to INFO.\n"
+                    self.logger_name}: Unsupported log level '{level_name}'. Falling back to INFO.\n"
             )
 
     def _log(self, level_name, message):
@@ -39,7 +39,7 @@ class ExaAmdLogger:
         if numeric_level < self._current_level:
             return
 
-        formatted_message = f"[{level_name}] {self._logger_name}: {message}"
+        formatted_message = f"[{level_name}] {self.logger_name}: {message}"
 
         if numeric_level <= self.LEVEL_MAP["INFO"]:
             sys.stdout.write(formatted_message + "\n")

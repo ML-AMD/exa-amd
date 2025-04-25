@@ -52,7 +52,7 @@ class PerlmutterPremiumConfig(Config):
                 max_blocks=1,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
-                walltime='01:00:00',
+                walltime='02:00:00',
                 worker_init="conda activate amd_env",
             )
         )
