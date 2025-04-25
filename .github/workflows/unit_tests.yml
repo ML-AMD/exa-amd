@@ -28,6 +28,7 @@ jobs:
           environment-file: amd_env.yml
           activate-environment: amd_env
           auto-activate-base: false
+          use-mamba: true
 
       - name: Conda sanity check
         run: |
