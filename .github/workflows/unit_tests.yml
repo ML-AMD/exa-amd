@@ -1,4 +1,4 @@
-name: CI
+name: Unit Tests
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, joss_paper ]
 
 jobs:
-  test:
+  pytest:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,19 +22,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-conda-
 
-      - name: Setup Miniconda
+      - name: Setup miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: amd_env.yml
           activate-environment: amd_env
           auto-activate-base: false
 
-      - name: conda check
+      - name: Conda sanity check
         run: |
           conda env list
           python --version
           pip list
 
-      - name: pytest
+      - name: Run pytest
         run: |
           pytest --disable-warnings -q

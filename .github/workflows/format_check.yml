@@ -1,18 +1,17 @@
-# CI test for checking PEP8 formating
-name: PEP8 format checking
+name: Check format
 on:
   push:
     branches: [ main, joss_paper ]
   pull_request:
     branches: [ main, joss_paper ]
 jobs:
-  format_check:
+  pep8_check:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
       with:
         ref: ${{ github.event.pull_request.head.sha }}
-    - name: '[PEP8] format check'
+    - name: 'PEP8 format check'
       uses: quentinguidee/pep8-action@v1
       with:
         arguments: '--max-line-length=320'
