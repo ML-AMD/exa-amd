@@ -7,6 +7,8 @@ from tools.config_manager import ConfigManager
 #
 # Helpers
 #
+
+
 def gen_dummy_value(value, diff=False):
     """
     generate a dummy value

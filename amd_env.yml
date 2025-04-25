@@ -10,3 +10,4 @@ dependencies:
     - torchvision
     - pymatgen
     - parsl
+    - pytest = 8.3.5

@@ -2,9 +2,9 @@
 name: PEP8 format checking
 on:
   push:
-    branches:
-      - main
+    branches: [ main, joss_paper ]
   pull_request:
+    branches: [ main, joss_paper ]
 jobs:
   format_check:
     runs-on: ubuntu-latest

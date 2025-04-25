@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, joss_paper ]
+  pull_request:
+    branches: [ main, joss_paper ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache conda packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.conda/pkgs
+          key: ${{ runner.os }}-conda-${{ hashFiles('amd_env.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-conda-
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: amd_env.yml
+          activate-environment: amd_env
+          auto-activate-base: false
+
+      - name: conda check
+        run: |
+          conda env list
+          python --version
+          pip list
+
+      - name: pytest
+        run: |
+          pytest --disable-warnings -q
