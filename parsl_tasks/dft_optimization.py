@@ -11,6 +11,8 @@ def fused_vasp_calc(config, id, walltime=(int)):
     clean_work_dir = "rm DOSCAR PCDAT REPORT XDATCAR CHG CHGCAR EIGENVAL PROCAR WAVECAR vasprun.xml"
 
     try:
+        exec_cmd_prefix = "" if config["vasp_ntasks_per_run"] == 1 else "srun -n {}".format(
+            config['vasp_ntasks_per_run'])
         work_subdir = os.path.join(config["vasp_work_dir"], str(id))
         if not os.path.exists(work_subdir):
             os.makedirs(work_subdir)
@@ -36,8 +38,8 @@ def fused_vasp_calc(config, id, walltime=(int)):
         os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
 
         # run relaxation
-        srun_cmd = "timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(
-            config["vasp_timeout"], vasp_std_exe, output_file)
+        srun_cmd = "timeout {} {} {} > {} ".format(
+            config["vasp_timeout"], exec_cmd_prefix, vasp_std_exe, output_file)
         relaxation_status = os.system(srun_cmd)
 
         #
@@ -61,8 +63,8 @@ def fused_vasp_calc(config, id, walltime=(int)):
         shutil.copy(incar_en, "INCAR")
 
         # run relaxation
-        srun_cmd = "timeout {} $PARSL_SRUN_PREFIX {} > {} ".format(
-            config["vasp_timeout"], vasp_std_exe, output_file_en)
+        srun_cmd = "timeout {} {} {} > {} ".format(
+            config["vasp_timeout"], exec_cmd_prefix, vasp_std_exe, output_file_en)
         os.system(srun_cmd)
 
         # clean
