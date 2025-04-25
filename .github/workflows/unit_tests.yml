@@ -29,6 +29,11 @@ jobs:
           activate-environment: amd_env
           auto-activate-base: false
           use-mamba: true
+      
+      - name: Debug conda pkg dirs
+        run: |
+          echo "Conda pkgs_dirs:"
+          conda config --show pkgs_dirs
 
       - name: Conda sanity check
         run: |
