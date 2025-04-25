@@ -17,7 +17,7 @@ jobs:
       - name: Cache conda packages
         uses: actions/cache@v3
         with:
-          path: ~/.conda/pkgs
+          path: /home/runner/conda_pkgs_dir
           key: ${{ runner.os }}-conda-${{ hashFiles('amd_env.yml') }}
           restore-keys: |
             ${{ runner.os }}-conda-
@@ -30,11 +30,6 @@ jobs:
           auto-activate-base: false
           use-mamba: true
       
-      - name: Debug conda pkg dirs
-        run: |
-          echo "Conda pkgs_dirs:"
-          conda config --show pkgs_dirs
-
       - name: Conda sanity check
         run: |
           conda env list
