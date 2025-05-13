@@ -34,7 +34,7 @@ class PerlmutterPremiumConfig(Config):
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='16:00:00',
-                worker_init="conda activate amd_env; module load vasp/6.4.3-gpu",
+                worker_init="module load vasp/6.4.3-gpu",
             )
         )
 
