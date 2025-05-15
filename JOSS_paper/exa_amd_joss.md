@@ -27,23 +27,39 @@ date: April 11, 2025
 bibliography: "exa_amd_joss.bib"
 ---
 
+
 # Summary
-<!-- (A summary describing the high-level functionality and purpose of the software for a diverse, non-specialist audience.) -->
 
-exa-AMD is a Python framework designed to accelerate the discovery and design of functional materials. The framework uses Parsl to build customizable and automated workflows that connect AI/ML tools, material databases, quantum mechanical calculations, and state-of-the-art computational methods for novel structure prediction. exa-AMD was designed to scale up on high-performance computing systems including supercomputers equipped with accelerators, such as the Nvidia and AMD GPUs.
+exa-AMD is a Python-based workflow framework designed to accelerate the discovery and design of functional materials by integrating AI/ML tools, materials databases, and quantum mechanical calculations into scalable, high-performance workflows. The exacution model of exa-AMD relies on Parsl [@babuji2019parsl], a task-parallel programming library that enables the execution of distributed and heterogeneous workflows. exa-AMD is optimized for GPU-based supercomputing environments and has been successfully deployed on large-scale HPC systems.
 
-It comes with a flexible configuration system based on a global registry. You can choose which Parsl configuration to load at runtime by setting the parsl_config key in the global configuration.It is also possible to create new configs simply by creating a new file in the parsl_configs directory and registering it.
+<div style="text-align: center;">
+  <img src="CeFeIn_prediction.png" alt="Prediction of new CeFeIn compounds" width="600px">
+  <p><em>Prediction of new CeFeIn compounds</em></p>
+</div>
 
-Prediction of new CeFeIn compounds using this framework.
-![Example](example_1.png){ width=50% }
+# Statement of Need
 
-Parsl [@babuji2019parsl]
+Materials discovery remains a time-consuming and computationally expensive process. While the community has access to high-quality simulation tools, machine learning models, and materials databases, integrating these components into a cohesive and scalable workflow remains a challenge, especially on large-scale systems. 
 
-# Statement of need
-<!-- (Section that clearly illustrates the research purpose of the software and places it in the context of related work.) -->
+exa-AMD addresses this need by providing a modular and configurable framework that connects multiple computational techniques specific to materials discovery in a unified workflow. The framework supports heterogeneous execution across multiple node types, allows high-throughput processing of structure candidates, and is optimized for deployment on GPU-powered HPC systems. By using Parsl, exa-AMD is able to decouple the workflow logic from execution configuration, and therefore it empowers researchers to scale their workflows without having to reimplement them for each system.
 
+# Workflow Overview
+
+The framework proposes a four-stage pipeline that includes structure generation, ML-based structure screening, structure selection, and density functional theory (DFT) calculations. These stages are implemented as separate Parsl tasks and executed in parallel using multiple executors across CPU and GPU resources.
+
+The proposed workflow begins with the generation of hypothetical crystal structures. In this step, target elements are substituted into existing crystal structures, creating chemically plausible candidates for further analysis. To account for all possible atomic arrangements, the code randomly shuffles the order of substituted elements. Lattice scaling is applied, typically ranging from 0.94 to 1.06, to ensure that the generated structures cover a realistic range of bond lengths. This addresses the fact that the ideal bond lengths for the new elements may differ significantly from those in the original structure. The combination of element shuffling and lattice scaling results in a large set of hypothetical structures. For example, in a ternary system, six possible element orderings and five scaling factors yield 30 variants per initial structure. For a quaternary system, there would be 24 possible element orderings.
+
+Once the hypothetical structures are generated, the next stage involves evaluating them using a Crystal Graph Convolutional Neural Network (CGCNN) model [17], which efficiently predicts their formation energies. Structures with low predicted formation energies are selected as promising candidates for further study. This step enables high-throughput screening and prioritization, reducing the computational cost of subsequent calculations.
+
+Following CGCNN screening, a filtering stage removes duplicate or near-duplicate structures , based on a structural similarity threshold. This deduplication step ensures that only non-equivalent structures are retained, typically narrowing the set to a manageable number (e.g., 1,000–5,000 structures) for detailed study.
+
+Finally, the filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT), with the VASP package [18-19] in our current GPU-enabled version of code (can be extended to other ab initio code like QUANTUM ESPRESSO [20-21], etc). Each structure undergoes full relaxation to find its lowest-energy configuration, followed by a self-consistent total energy calculation. The resulting relaxed structures and energies provide an accurate basis for subsequent thermodynamic analysis.
+
+# Input data
+exa-AMD requires an initial set of crystal structures used as starting points in the workflow. The dataset used in our previous work [1-11] contained ternary structures sourced from the Materials Project database [12]. However, the approach is general: for investigations involving any multinary systems, the input dataset can be populated with any relevant set of initial structures, including quaternary prototypes or user-defined entries, and from one or multiple database sources (including but not limited to Materials Project [12], GNoME [13], AFLOW [14], OQMD [15-16], etc). This flexibility allows the workflow to be adapted to a wide range of compositional and structural spaces.
 
 # Acknowledgements
+Parsl [@babuji2019parsl]
 
 
 # References
