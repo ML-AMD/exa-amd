@@ -1,12 +1,12 @@
 # exa-AMD: Exascale Accelerated Materials Discovery
-exa-AMD is a Python framework designed to accelerate the discovery and design of functional materials. The framework uses [Parsl](https://parsl-project.org) to build customizable and automated workflows that connect AI/ML tools, material databases, quantum mechanical calculations, and state-of-the-art computational methods for novel structure prediction. exa-AMD was designed to scale up on high-performance computing systems including supercomputers equipped with accelerators, such as the Nvidia and AMD GPUs.
+exa-AMD is a Python framework designed to accelerate the discovery and design of functional materials. The framework uses [Parsl](https://parsl-project.org) to build customizable and automated workflows that connect AI/ML tools, material databases, quantum mechanical calculations, and state-of-the-art computational methods for novel structure prediction. 
 
-It comes with a flexible configuration system based on a global registry. You can choose which Parsl configuration to load at runtime by setting the `parsl_config` key in the global configuration.It is also possible to create new configs simply by creating a new file in the `parsl_configs` directory and registering it.
+exa-AMD is designed to accommodate different workflow styles on high performance computers. It can scale up on supercomputers to use a large number of nodes equipped with accelerators, such as the Nvidia and AMD GPUs. It can also run at a small scale dynamically, coordinating with the queueing system (e.g. Slurm) to automate compute tasks and job submissions. exa-AMD comes with a global registry to support flexible job execution patterns. Users can choose a pre-defined Parsl configuration provided; it is also possible to create a customized Parsl configuration for different computing systems and workflow needs.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
-- [Register a new Parsl config](#register-parsl-config)
+- [Register a new Parsl configuration](#register-parsl-config)
 - [Examples](#examples)
 
 ## Prerequisites
@@ -19,43 +19,56 @@ This package requires:
 - parsl
 - pytest
 
-Additionally:
-- Ensure you have a working [VASP](https://www.vasp.at) installation
-- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put in a directory called `mpstrs` 
-```bash
-cp -R mpstrs ./ctest 
-```
-- Ensure you have [Conda](https://docs.conda.io/en/latest/miniconda.html) installed.
-- Install the required packages and activate the `amd_env` environment
+If you use [Conda](https://docs.conda.io/en/latest/miniconda.html) to manage Python packages, you may create a conda environment to install the required packages using the `amd_env` environment yaml file we provide:
 ```bash
 conda env create -f amd_env.yml
 conda activate amd_env
-
 ```
 
-### Required external packages 
-- This package contains a modified version of Crystal Graph Convolutional Neural Networks (CGCNN). The original source code can be found [here](https://github.com/txie-93/cgcnn).
+Additionally:
+- Ensure you have a working [VASP](https://www.vasp.at) installation
+- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put them in a directory called `initial_structures` 
+- Create a json file that specifies the running configurations for exa-AMD. See for example [configs/chicoma.json](configs/chicoma.json). The configuration file specifies general settings for running exa-AMD, CGCNN, VASP, and the Parsl configuration.
+
+
+### External packages 
+This package contains a modified version of Crystal Graph Convolutional Neural Networks (CGCNN) placed under the `cms_dir` directory. The original [CGCNN](https://github.com/txie-93/cgcnn) source code was developed by [Tian Xie](https://txie.me/) et al., distributed under the MIT License.
+
+
+## Registering a new Parsl configuration
+We currently support the automated workflows on NERSC's Perlmutter and LANL's Chicoma computers. If you would like to run on a different computing system, you must add your own Parsl configuration following these steps:
+
+1. Create a new file in the `parsl_configs` directory, similar to the one in [parsl_configs/chicoma.py](parsl_configs/chicoma.py)
+2. Add a configuration class with a unique name `<my_parsl_config_name>` 
+3. Modify Parsl's execution settings. More details can be found in [Parsl's official documentation](https://parsl.readthedocs.io/en/stable/userguide/configuration/execution.html)
+4. Register your configuration class by calling `register_parsl_config()`
+5. Modify your json configuration file accordingly by setting `parsl_config` to `<my_parsl_config_name>`
+
 
 ## Usage
-- Copy the `mpstrs` directory into the `cms_dir`
-- Set up a json configuration file (similar to [configs/chicoma.json](configs/chicoma.json))
-- Run `python amd.py --config <your_config_file>`
+- Copy the `initial_structures` directory into the `cms_dir` directory, which contains major scripts  
+    ```bash
+    cp -R initial_structures ./cms_dir 
+    ```
+- Run exa-AMD with the json file created in the prerequisite step:
+    ```bash
+    python amd.py --config <your_config_file>
+    ```
+    For running on Perlmutter for example,
+    ```bash
+    python amd.py --config perlmutter.json
+    ```
+- (Optional) The json config file can be overridden via command line arguments, for example:
+    ```bash
+    python amd.py --num_workers 256
+    ```
+    For a full list of command line arguments and their descriptions, run:
+    ```bash
+    python amd.py --help
+    ```
 
-The json config file can be overriden via command line arguments.
-
-```bash
-python amd.py --help
-```
-
-## Register a new Parsl config
-Add your own Parsl config (if we do not support your system)
-
-1. Create a new config similar to [parsl_configs/chicoma.py](parsl_configs/chicoma.py)
-2. Register you config by calling `register_parsl_config()` and choosing an unique name `<my_parsl_config_name>`
-3. Modify your json config accordingly (i.e. set `parsl_config` to `<my_parsl_config_name>`)
-
-## Examples
-Prediction of new CeFeIn compounds using this framework.
+## Highlight
+Prediction of new CeFeIn compounds using this framework by the development team.
 
 <img width="677" alt="thrust1" src="https://github.com/user-attachments/assets/b067d23f-fd43-4409-b44b-01d1457bb440" />
 
