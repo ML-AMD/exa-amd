@@ -46,10 +46,8 @@ We currently support the automated workflows on NERSC's Perlmutter and LANL's Ch
 
 
 ## Usage
-- Copy the `initial_structures` directory into the `cms_dir` directory, which contains major scripts  
-    ```bash
-    cp -R initial_structures ./cms_dir 
-    ```
+- Modify the `initial_structures_dir` field in the json configuration file to indicate the absolute path to the `initial_structures` directory
+
 - Run exa-AMD with the json file created in the prerequisite step:
     ```bash
     python amd.py --config <your_config_file>
