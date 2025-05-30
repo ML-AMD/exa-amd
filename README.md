@@ -26,8 +26,8 @@ conda activate amd_env
 ```
 
 Additionally:
-- Ensure you have a working [VASP](https://www.vasp.at) installation
-- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put them in a directory called `initial_structures` 
+- Ensure you have a working [VASP](https://www.vasp.at) installation.
+- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put them in a directory called `initial_structures`. An example of an initial data set can be downloaded [here](https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae).
 - Create a json file that specifies the running configurations for exa-AMD. See for example [configs/chicoma.json](configs/chicoma.json). The configuration file specifies general settings for running exa-AMD, CGCNN, VASP, and the Parsl configuration.
 
 
@@ -50,19 +50,19 @@ We currently support the automated workflows on NERSC's Perlmutter and LANL's Ch
 
 - Run exa-AMD with the json file created in the prerequisite step:
     ```bash
-    python amd.py --config <your_config_file>
+    python exa_amd.py --config <your_config_file>
     ```
     For running on Perlmutter for example,
     ```bash
-    python amd.py --config perlmutter.json
+    python exa_amd.py --config perlmutter.json
     ```
 - (Optional) The json config file can be overridden via command line arguments, for example:
     ```bash
-    python amd.py --num_workers 256
+    python exa_amd.py --num_workers 256
     ```
     For a full list of command line arguments and their descriptions, run:
     ```bash
-    python amd.py --help
+    python exa_amd.py --help
     ```
 
 ## Highlight

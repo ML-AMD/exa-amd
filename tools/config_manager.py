@@ -62,7 +62,7 @@ class ConfigManager:
         CK.VASP_NTASKS_PER_RUN: (1, "Number of MPI processes per VASP calculation (useful for CPU-only Parsl configurations)."),
         CK.NUM_STRS: (-1, "Number of structures to be processed with VASP. (-1 means all)."),
         CK.VASP_TIMEOUT: (1800, "Max walltime in seconds for a VASP calculation."),
-        CK.FORCE_CONV: (100, "VASP force convergence threshold."),
+        CK.VASP_NSW: (100, "VASP NSW: gives the number of steps in all molecular dynamics runs."),
         CK.CPU_ACCOUNT: ("", "The cpu account name on the current machine (forwarded to the workload manager)."),
         CK.GPU_ACCOUNT: ("", "The gpu account name on the current machine (forwarded to the workload manager)."),
         CK.OUTPUT_LEVEL: (

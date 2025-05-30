@@ -50,21 +50,27 @@ Here is an example configuration file for the Perlmutter system:
 .. code-block:: json
 
     {
-        "cms_dir": "~/exa-amd/cms_dir",
-        "vasp_std_exe": "vasp_std",
-        "work_dir": "/pscratch/sd/<user_name>/work_dir",
-        "vasp_work_dir": "/pscratch/sd/<user_name>/vasp_work_dir",
-        "pot_dir": "~/potpaw_PBE",
-        "output_file": "vasp_results.csv",
-        "num_workers": 128,
-        "batch_size": 256,
-        "ef_thr": -0.2,
-        "force_conv": 100,
-        "vasp_timeout": 1800,
-        "num_strs": 10,
+        "cms_dir": "<path_to>/exa-amd/cms_dir",
+        "work_dir": "<abs_path_to>/work_dir",
+        "cpu_account": "cpu_account",
+        "gpu_account": "gpu_account",
         "elements": "Na-B-C",
-        "vasp_nnodes": 1,
-        "parsl_config": "perlmutter"
+        "formation_energy_threshold": -0.2,
+        "num_workers": 128,
+        "initial_structures_dir":"<abs_path_to>/initial_structures",
+
+        "parsl_config": "perlmutter_premium",
+
+        "cgcnn_batch_size": 256,
+
+        "vasp_std_exe": "vasp_std",
+        "vasp_work_dir": "<abs_path_to>/vasp_work_dir",
+        "vasp_pot_dir": "<abs_path_to>/potpaw_PBE",
+        "vasp_output_file": "vasp_results.csv",
+        "vasp_nstructures": 10,
+        "vasp_nsw": 100,
+        "vasp_timeout": 1800,
+        "vasp_nnodes": 1
     }
 
 You can create multiple configuration files for different systems, workloads, or experiments.
@@ -76,11 +82,11 @@ You can override any field from the JSON configuration using command-line argume
 
 .. code-block:: bash
 
-    python amd.py --help
+    python exa_amd.py --help
 
     usage: exa_amd.py [-h] [--config CONFIG] [--cms_dir CMS_DIR] [--vasp_std_exe VASP_STD_EXE] [--work_dir WORK_DIR] [--vasp_work_dir VASP_WORK_DIR] [--vasp_pot_dir VASP_POT_DIR] [--vasp_output_file VASP_OUTPUT_FILE] [--elements ELEMENTS] [--parsl_config PARSL_CONFIG]
-                    [--formation_energy_threshold FORMATION_ENERGY_THRESHOLD] [--num_workers NUM_WORKERS] [--cgcnn_batch_size CGCNN_BATCH_SIZE] [--vasp_nnodes VASP_NNODES] [--vasp_ntasks_per_run VASP_NTASKS_PER_RUN] [--vasp_nstructures VASP_NSTRUCTURES] [--vasp_timeout VASP_TIMEOUT]
-                    [--vasp_force_conv VASP_FORCE_CONV] [--output_level OUTPUT_LEVEL]
+                  [--initial_structures_dir INITIAL_STRUCTURES_DIR] [--formation_energy_threshold FORMATION_ENERGY_THRESHOLD] [--num_workers NUM_WORKERS] [--cgcnn_batch_size CGCNN_BATCH_SIZE] [--vasp_nnodes VASP_NNODES] [--vasp_ntasks_per_run VASP_NTASKS_PER_RUN]
+                  [--vasp_nstructures VASP_NSTRUCTURES] [--vasp_timeout VASP_TIMEOUT] [--vasp_nsw VASP_NSW] [--cpu_account CPU_ACCOUNT] [--gpu_account GPU_ACCOUNT] [--output_level OUTPUT_LEVEL]
 
     Override JSON config fields with command line arguments.
 
@@ -100,6 +106,8 @@ You can override any field from the JSON configuration using command-line argume
     --elements ELEMENTS   Elements, e.g. 'Ce-Co-B' (required).
     --parsl_config PARSL_CONFIG
                             Parsl config name, previously registered (required).
+    --initial_structures_dir INITIAL_STRUCTURES_DIR
+                            Path to the directory that containts the initial crystal structures.
     --formation_energy_threshold FORMATION_ENERGY_THRESHOLD
                             A formation energy threshold used for selecting the structures, after the CGCNN prediction. (default='-0.2').
     --num_workers NUM_WORKERS
@@ -114,7 +122,10 @@ You can override any field from the JSON configuration using command-line argume
                             Number of structures to be processed with VASP. (-1 means all). (default='-1').
     --vasp_timeout VASP_TIMEOUT
                             Max walltime in seconds for a VASP calculation. (default='1800').
-    --vasp_force_conv VASP_FORCE_CONV
-                            VASP force convergence threshold. (default='100').
+    --vasp_nsw VASP_NSW   VASP NSW: gives the number of steps in all molecular dynamics runs. (default='100').
+    --cpu_account CPU_ACCOUNT
+                            The cpu account name on the current machine (forwarded to the workload manager). (default='').
+    --gpu_account GPU_ACCOUNT
+                            The gpu account name on the current machine (forwarded to the workload manager). (default='').
     --output_level OUTPUT_LEVEL
                             Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default='INFO').

@@ -26,5 +26,5 @@ class ConfigKeys:
     VASP_NTASKS_PER_RUN = "vasp_ntasks_per_run"
     NUM_STRS = "vasp_nstructures"
     VASP_TIMEOUT = "vasp_timeout"
-    FORCE_CONV = "vasp_force_conv"
+    VASP_NSW = "vasp_nsw"
     OUTPUT_LEVEL = "output_level"

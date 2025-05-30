@@ -20,7 +20,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             - cms_dir
             - vasp_std_exe
             - vasp_timeout
-            - force_conv
+            - vasp_nsw
 
             See :class:`~tools.config_manager.ConfigManager` for field descriptions.
 
@@ -67,8 +67,8 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         shutil.copy(incar, os.path.join(work_subdir, "INCAR"))
 
         # Change NSW iterations
-        FORCE_CONV = config[CK.FORCE_CONV]
-        os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {FORCE_CONV}/' INCAR")
+        VASP_NSW = config[CK.VASP_NSW]
+        os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {VASP_NSW}/' INCAR")
 
         # run relaxation
         srun_cmd = "timeout {} {} {} > {} ".format(
@@ -80,7 +80,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         #
         output_rx = os.path.join(work_subdir, "output.rx")
         relaxation_criteria = os.system(
-            f"grep -q -e 'reached' -e '{config[CK.FORCE_CONV]} F=' output.rx")
+            f"grep -q -e 'reached' -e '{config[VASP_NSW]} F=' output.rx")
 
         # check relaxation criteria
         if relaxation_status != 0 and relaxation_criteria != 0:
