@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; exa-AMD 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=e031e9a9"></script>
+      <script src="_static/doctools.js?v=888ff710"></script>
+      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference Guide" href="api.html" />
+    <link rel="prev" title="Quickstart" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            exa-AMD
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#clone-the-repository">1. Clone the Repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-dependencies">2. Install Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prepare-the-data-and-vasp-setup">3. Prepare the Data and VASP Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prepare-the-json-configuration-file">4. Prepare the JSON Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prepare-the-parsl-configuration">5. Prepare the Parsl Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-change-the-registration-name">a. Change the registration name</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#b-update-each-executor">b. Update each executor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c-update-json-configuration">c. Update JSON Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-workflow">6. Run the Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#check-the-results">7. Check the Results</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-work-directory">a. Work directory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#b-vasp-directory">b. VASP Directory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c-final-output">c. Final Output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">exa-AMD</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this heading"></a></h1>
+<p>This tutorial walks through how to set up and run exa-AMD on [NERSC’s Perlmutter supercomputer](<a class="reference external" href="https://docs.nersc.gov/systems/perlmutter/architecture/">https://docs.nersc.gov/systems/perlmutter/architecture/</a>), on the <strong>GPU partition</strong>.</p>
+<section id="clone-the-repository">
+<h2>1. Clone the Repository<a class="headerlink" href="#clone-the-repository" title="Permalink to this heading"></a></h2>
+<p>Start by cloning the <cite>exa-AMD</cite> repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ML-AMD/exa-amd.git
+<span class="nb">cd</span><span class="w"> </span>exa-amd
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="install-dependencies">
+<h2>2. Install Dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading"></a></h2>
+<p>Follow the <a class="reference internal" href="quickstart.html#installation"><span class="std std-ref">Installation</span></a> instructions to create the required environment using Conda. After installation, make sure to activate the environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>amd_env
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="prepare-the-data-and-vasp-setup">
+<h2>3. Prepare the Data and VASP Setup<a class="headerlink" href="#prepare-the-data-and-vasp-setup" title="Permalink to this heading"></a></h2>
+<p>Ensure you have a working <a class="reference external" href="https://www.vasp.at">VASP</a> installation and access to the latest PAW potentials containing kinetic energy densities for meta-GGA calculations .</p>
+<p>If you do not already have it:</p>
+<ul class="simple">
+<li><p>Log into your account on the <a class="reference external" href="https://www.vasp.at">VASP website</a></p></li>
+<li><p>Navigate to the <strong>Downloads</strong> section</p></li>
+<li><p>Download the latest archive (e.g.,``potpaw_PBE.52.tar.gz``)</p></li>
+</ul>
+<p>Once downloaded, extract the archive and place the resulting <cite>potpaw_PBE</cite> directory anywhere on your system. You will reference its location in your JSON config using the <code class="docutils literal notranslate"><span class="pre">pot_dir</span></code> parameter.</p>
+<p>Next, <a class="reference external" href="https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae">download</a> and extract the <strong>`initial_structures`</strong> dataset which contains a set of initial crystal structures used by the workflow.</p>
+</section>
+<section id="prepare-the-json-configuration-file">
+<h2>4. Prepare the JSON Configuration File<a class="headerlink" href="#prepare-the-json-configuration-file" title="Permalink to this heading"></a></h2>
+<p>Copy the default Perlmutter configuration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>configs/perlmutter.json<span class="w"> </span>configs/my_config_perlmutter.json
+</pre></div>
+</div>
+<p>Edit the following fields in <cite>my_config_perlmutter.json</cite>:</p>
+<ul class="simple">
+<li><p><cite>“cms_dir”</cite>: Absolute path to your <cite>cms_dir</cite> directory</p></li>
+<li><p><cite>“work_dir”</cite>: A scratch directory for intermediate files</p></li>
+<li><p><cite>“vasp_work_dir”</cite>: A work directory for running VASP calculations</p></li>
+<li><p><cite>“pot_dir”</cite>: Path to your <cite>potpaw_PBE</cite> directory</p></li>
+<li><p><cite>“initial_structures”</cite>: Path to the <cite>initial_structures</cite> directory (downloaded in the previous section)</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="prepare-the-parsl-configuration">
+<h2>5. Prepare the Parsl Configuration<a class="headerlink" href="#prepare-the-parsl-configuration" title="Permalink to this heading"></a></h2>
+<p>Parsl configurations must be placed inside the <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> directory so that they can be automatically discovered by exa-AMD at runtime.</p>
+<p>Start by copying the default Perlmutter configuration:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>parsl_configs/perlmutter.py<span class="w"> </span>parsl_configs/my_perlmutter.py
+</pre></div>
+</div>
+<p>Then edit <cite>my_perlmutter.py</cite>:</p>
+<section id="a-change-the-registration-name">
+<h3>a. Change the registration name<a class="headerlink" href="#a-change-the-registration-name" title="Permalink to this heading"></a></h3>
+<p>At the bottom of the file, update <cite>register_parsl_config()</cite> to reflect the new config name. This value <strong>have to match</strong> the value you will set in your JSON config file (the <cite>“parsl_config”</cite> field).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before:</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+
+<span class="c1"># After:</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;my_perlmutter&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="b-update-each-executor">
+<h3>b. Update each executor<a class="headerlink" href="#b-update-each-executor" title="Permalink to this heading"></a></h3>
+<p>The Perlmutter configuration defines <strong>four separate executors</strong>:</p>
+<ul class="simple">
+<li><p>Two that run on <strong>GPU nodes</strong> (for VASP and CGCNN tasks)</p></li>
+<li><p>Two that run on <strong>CPU nodes</strong> (for structure generation and selection)</p></li>
+</ul>
+<p>For each executor, update the following fields in the <cite>SlurmProvider</cite>:</p>
+<ul class="simple">
+<li><p><cite>account</cite>: your NERSC allocation account (e.g., <cite>“m1234”</cite>)</p></li>
+<li><p><cite>qos</cite>: the QOS for that job (e.g., <cite>“regular”</cite>, <cite>“premium”</cite>)</p></li>
+</ul>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>The account and qos values used in the Parsl configuration are exactly the same
+as the ones you would provide when running with Slurm directly on Perlmutter,
+using commands like salloc, srun, or sbatch.
+
+For example, if you normally run:
+  salloc -A m1234 -q regular -C gpu
+
+Then in your Parsl config, you should use:
+  account=&quot;m1234&quot;
+  qos=&quot;regular&quot;
+  constraint=&quot;gpu&quot;
+</pre></div>
+</div>
+<p>Here is an example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">provider</span><span class="o">=</span><span class="n">SlurmProvider</span><span class="p">(</span>
+    <span class="n">account</span><span class="o">=</span><span class="s2">&quot;your_gpu_account&quot;</span><span class="p">,</span>    <span class="c1"># ← CHANGE IF NEEDED</span>
+    <span class="n">qos</span><span class="o">=</span><span class="s2">&quot;your_gpu_qos&quot;</span><span class="p">,</span>            <span class="c1"># ← CHANGE IF NEEDED</span>
+    <span class="n">constraint</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The account can also be specified at runtime via the command-line arguments.</p>
+</div>
+<p>Make sure you update <strong>all four</strong> executors accordingly, using your appropriate account and qos for CPU and GPU resources.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>All Parsl configuration files <strong>must be placed inside the</strong> <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> <strong>directory</strong>.</p>
+</div>
+<p>For more information about possible Parsl configurations, see the official documentation <a class="footnote-reference brackets" href="#parsl-docs" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="parsl-docs" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://parsl-project.org">https://parsl-project.org</a></p>
+</aside>
+</aside>
+</section>
+<section id="c-update-json-configuration">
+<h3>c. Update JSON Configuration<a class="headerlink" href="#c-update-json-configuration" title="Permalink to this heading"></a></h3>
+<p>After registering the new Parsl configuration, update your JSON config file to reference it:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+     ...
+    &quot;parsl_config&quot;: &quot;my_perlmutter&quot;
+}
+</pre></div>
+</div>
+<p>exa-AMD will now automatically discover and use the <cite>my_perlmutter</cite> configuration at runtime.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="run-the-workflow">
+<h2>6. Run the Workflow<a class="headerlink" href="#run-the-workflow" title="Permalink to this heading"></a></h2>
+<p>Once everything is configured, run the full exa-AMD workflow from a logind node of Perlmutter:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:<span class="nv">$PYTHONPATH</span>
+python<span class="w"> </span>amd.py<span class="w"> </span>--config<span class="w"> </span>configs/my_config_perlmutter.json<span class="w"> </span>--vasp_nnodes<span class="w"> </span><span class="m">2</span>
+</pre></div>
+</div>
+<p>This will launch the four steps:</p>
+<ol class="arabic simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_structures()</span></code> — structure generation</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">run_cgcnn()</span></code> — CGCNN prediction</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">select_structures()</span></code> — structure selecton</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">vasp_calculations()</span></code> — VASP relaxation and energy calculations</p></li>
+</ol>
+<p>Progress and logs will be printed to stdout/stderr.</p>
+</section>
+<hr class="docutils" />
+<section id="check-the-results">
+<h2>7. Check the Results<a class="headerlink" href="#check-the-results" title="Permalink to this heading"></a></h2>
+<p>After the workflow completes, you should verify that all stages ran successfully by inspecting
+the contents of the work directory (<cite>work_dir</cite>) and the VASP work directory (<cite>vasp_work_dir</cite>).</p>
+<section id="a-work-directory">
+<h3>a. Work directory<a class="headerlink" href="#a-work-directory" title="Permalink to this heading"></a></h3>
+<p>Inside your specified <cite>work_dir</cite>, you should see a subdirectory named after the elements string (i.e., <cite>Na-B-C</cite>) with the following contents:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>work_dir/
+└── Na-B-C
+    ├── new/
+    ├── POTCAR
+    ├── structures/
+    └── test_results.csv
+</pre></div>
+</div>
+</section>
+<section id="b-vasp-directory">
+<h3>b. VASP Directory<a class="headerlink" href="#b-vasp-directory" title="Permalink to this heading"></a></h3>
+<p>Your <cite>vasp_work_dir</cite> will contain a subdirectory for each selected structure ID, where VASP calculations were run:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>vasp_work_dir/
+└── Na-B-C
+    ├── 1/
+    ├── 2/
+    ├── 3/
+    ├── ...
+    ├── 10/
+    └── vasp_calc_result.csv  ← Final results summary
+</pre></div>
+</div>
+<p>Each numbered folder corresponds to a VASP calculation for a selected structure.</p>
+</section>
+<section id="c-final-output">
+<h3>c. Final Output<a class="headerlink" href="#c-final-output" title="Permalink to this heading"></a></h3>
+<p>This file summarizes the outcome of each VASP calculation. A fully successful run should look like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>id,result
+1,success
+2,success
+3,success
+4,success
+5,success
+6,success
+7,success
+8,success
+9,success
+10,success
+</pre></div>
+</div>
+<p>If all lines show <cite>success</cite>, then the workflow completed as expected.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API Reference Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2025. Iowa State University &amp; © 2025. Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
