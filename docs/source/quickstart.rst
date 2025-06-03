@@ -5,13 +5,16 @@ Prerequisites
 -------------
 **exa-AMD requires:**
 
-- python = 3.12
-- scikit-learn
-- pytorch
-- torchvision
-- pymatgen
-- parsl
-- pytest
+- python >= 3.10
+- numpy < 2.0
+- scikit-learn >= 1.6.1
+- pytorch >= 2.2.2
+- torchvision >= 0.17.2
+- pymatgen >= 2025.3.10
+- parsl >= 2025.3.24
+- pytest >= 8.3.5
+- sphinx >= 7.1.2
+- sphinx_rtd_theme >= 3.0.2
 
 **Additionally:**
 

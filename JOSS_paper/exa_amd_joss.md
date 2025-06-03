@@ -6,18 +6,21 @@ tags:
   - Heterogeneity
   - HPC workflows
 authors:
+  - name: Maxim Moraru
+    affiliation: 1
   - name: Weiyi Xia
+    affiliation: 2
+  - name: Zhuo Ye
+    affiliation: 2
+  - name: Feng Zhang 
     affiliation: 2
   - name: Ying Wai Li
     affiliation: 1
-  - name: Zhuo Ye
-    affiliation: 2
   - name: Cai-Zhuang Wang 
     affiliation: 2
-  - name: Maxim Moraru
-    affiliation: 1
-  - name: Feng Zhang 
+  - name: Other co-authors to be added ...
     affiliation: 2
+  
 affiliations:
   - name: Los Alamos National Laboratory, Los Alamos, NM 87545, USA
     index: 1
