@@ -87,13 +87,16 @@
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading"></a></h2>
 <p><strong>exa-AMD requires:</strong></p>
 <ul class="simple">
-<li><p>python = 3.12</p></li>
-<li><p>scikit-learn</p></li>
-<li><p>pytorch</p></li>
-<li><p>torchvision</p></li>
-<li><p>pymatgen</p></li>
-<li><p>parsl</p></li>
-<li><p>pytest</p></li>
+<li><p>python &gt;= 3.10</p></li>
+<li><p>numpy &lt; 2.0</p></li>
+<li><p>scikit-learn &gt;= 1.6.1</p></li>
+<li><p>pytorch &gt;= 2.2.2</p></li>
+<li><p>torchvision &gt;= 0.17.2</p></li>
+<li><p>pymatgen &gt;= 2025.3.10</p></li>
+<li><p>parsl &gt;= 2025.3.24</p></li>
+<li><p>pytest &gt;= 8.3.5</p></li>
+<li><p>sphinx &gt;= 7.1.2</p></li>
+<li><p>sphinx_rtd_theme &gt;= 3.0.2</p></li>
 </ul>
 <p><strong>Additionally:</strong></p>
 <ul class="simple">
@@ -124,21 +127,27 @@ pytest
 It specifies all the required and optional parameters for running the workflow.</p>
 <p>Here is an example configuration file for the Perlmutter system:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;cms_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;~/exa-amd/cms_dir&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;vasp_std_exe&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_std&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/pscratch/sd/&lt;user_name&gt;/work_dir&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;vasp_work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/pscratch/sd/&lt;user_name&gt;/vasp_work_dir&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;pot_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;~/potpaw_PBE&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;output_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_results.csv&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;num_workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;batch_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;ef_thr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-0.2</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;force_conv&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;vasp_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1800</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;num_strs&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;cms_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;path_to&gt;/exa-amd/cms_dir&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/work_dir&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;cpu_account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cpu_account&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;gpu_account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gpu_account&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;elements&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Na-B-C&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;vasp_nnodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;parsl_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;perlmutter&quot;</span>
+<span class="w">    </span><span class="nt">&quot;formation_energy_threshold&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-0.2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;initial_structures_dir&quot;</span><span class="p">:</span><span class="s2">&quot;&lt;abs_path_to&gt;/initial_structures&quot;</span><span class="p">,</span>
+
+<span class="w">    </span><span class="nt">&quot;parsl_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span>
+
+<span class="w">    </span><span class="nt">&quot;cgcnn_batch_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span>
+
+<span class="w">    </span><span class="nt">&quot;vasp_std_exe&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_std&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/vasp_work_dir&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_pot_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/potpaw_PBE&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_output_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_results.csv&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_nstructures&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_nsw&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1800</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;vasp_nnodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -147,11 +156,11 @@ It specifies all the required and optional parameters for running the workflow.<
 <section id="command-line-usage">
 <h2>Command-line Usage<a class="headerlink" href="#command-line-usage" title="Permalink to this heading"></a></h2>
 <p>You can override any field from the JSON configuration using command-line arguments:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>amd.py<span class="w"> </span>--help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>exa_amd.py<span class="w"> </span>--help
 
 usage:<span class="w"> </span>exa_amd.py<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>--config<span class="w"> </span>CONFIG<span class="o">]</span><span class="w"> </span><span class="o">[</span>--cms_dir<span class="w"> </span>CMS_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_std_exe<span class="w"> </span>VASP_STD_EXE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--work_dir<span class="w"> </span>WORK_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_work_dir<span class="w"> </span>VASP_WORK_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_pot_dir<span class="w"> </span>VASP_POT_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_output_file<span class="w"> </span>VASP_OUTPUT_FILE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--elements<span class="w"> </span>ELEMENTS<span class="o">]</span><span class="w"> </span><span class="o">[</span>--parsl_config<span class="w"> </span>PARSL_CONFIG<span class="o">]</span>
-<span class="w">                </span><span class="o">[</span>--formation_energy_threshold<span class="w"> </span>FORMATION_ENERGY_THRESHOLD<span class="o">]</span><span class="w"> </span><span class="o">[</span>--num_workers<span class="w"> </span>NUM_WORKERS<span class="o">]</span><span class="w"> </span><span class="o">[</span>--cgcnn_batch_size<span class="w"> </span>CGCNN_BATCH_SIZE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_nnodes<span class="w"> </span>VASP_NNODES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_ntasks_per_run<span class="w"> </span>VASP_NTASKS_PER_RUN<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_nstructures<span class="w"> </span>VASP_NSTRUCTURES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_timeout<span class="w"> </span>VASP_TIMEOUT<span class="o">]</span>
-<span class="w">                </span><span class="o">[</span>--vasp_force_conv<span class="w"> </span>VASP_FORCE_CONV<span class="o">]</span><span class="w"> </span><span class="o">[</span>--output_level<span class="w"> </span>OUTPUT_LEVEL<span class="o">]</span>
+<span class="w">              </span><span class="o">[</span>--initial_structures_dir<span class="w"> </span>INITIAL_STRUCTURES_DIR<span class="o">]</span><span class="w"> </span><span class="o">[</span>--formation_energy_threshold<span class="w"> </span>FORMATION_ENERGY_THRESHOLD<span class="o">]</span><span class="w"> </span><span class="o">[</span>--num_workers<span class="w"> </span>NUM_WORKERS<span class="o">]</span><span class="w"> </span><span class="o">[</span>--cgcnn_batch_size<span class="w"> </span>CGCNN_BATCH_SIZE<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_nnodes<span class="w"> </span>VASP_NNODES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_ntasks_per_run<span class="w"> </span>VASP_NTASKS_PER_RUN<span class="o">]</span>
+<span class="w">              </span><span class="o">[</span>--vasp_nstructures<span class="w"> </span>VASP_NSTRUCTURES<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_timeout<span class="w"> </span>VASP_TIMEOUT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--vasp_nsw<span class="w"> </span>VASP_NSW<span class="o">]</span><span class="w"> </span><span class="o">[</span>--cpu_account<span class="w"> </span>CPU_ACCOUNT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--gpu_account<span class="w"> </span>GPU_ACCOUNT<span class="o">]</span><span class="w"> </span><span class="o">[</span>--output_level<span class="w"> </span>OUTPUT_LEVEL<span class="o">]</span>
 
 Override<span class="w"> </span>JSON<span class="w"> </span>config<span class="w"> </span>fields<span class="w"> </span>with<span class="w"> </span><span class="nb">command</span><span class="w"> </span>line<span class="w"> </span>arguments.
 
@@ -171,6 +180,8 @@ options:
 --elements<span class="w"> </span>ELEMENTS<span class="w">   </span>Elements,<span class="w"> </span>e.g.<span class="w"> </span><span class="s1">&#39;Ce-Co-B&#39;</span><span class="w"> </span><span class="o">(</span>required<span class="o">)</span>.
 --parsl_config<span class="w"> </span>PARSL_CONFIG
 <span class="w">                        </span>Parsl<span class="w"> </span>config<span class="w"> </span>name,<span class="w"> </span>previously<span class="w"> </span>registered<span class="w"> </span><span class="o">(</span>required<span class="o">)</span>.
+--initial_structures_dir<span class="w"> </span>INITIAL_STRUCTURES_DIR
+<span class="w">                        </span>Path<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>directory<span class="w"> </span>that<span class="w"> </span>containts<span class="w"> </span>the<span class="w"> </span>initial<span class="w"> </span>crystal<span class="w"> </span>structures.
 --formation_energy_threshold<span class="w"> </span>FORMATION_ENERGY_THRESHOLD
 <span class="w">                        </span>A<span class="w"> </span>formation<span class="w"> </span>energy<span class="w"> </span>threshold<span class="w"> </span>used<span class="w"> </span><span class="k">for</span><span class="w"> </span>selecting<span class="w"> </span>the<span class="w"> </span>structures,<span class="w"> </span>after<span class="w"> </span>the<span class="w"> </span>CGCNN<span class="w"> </span>prediction.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;-0.2&#39;</span><span class="o">)</span>.
 --num_workers<span class="w"> </span>NUM_WORKERS
@@ -185,8 +196,11 @@ options:
 <span class="w">                        </span>Number<span class="w"> </span>of<span class="w"> </span>structures<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>processed<span class="w"> </span>with<span class="w"> </span>VASP.<span class="w"> </span><span class="o">(</span>-1<span class="w"> </span>means<span class="w"> </span>all<span class="o">)</span>.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;-1&#39;</span><span class="o">)</span>.
 --vasp_timeout<span class="w"> </span>VASP_TIMEOUT
 <span class="w">                        </span>Max<span class="w"> </span>walltime<span class="w"> </span><span class="k">in</span><span class="w"> </span>seconds<span class="w"> </span><span class="k">for</span><span class="w"> </span>a<span class="w"> </span>VASP<span class="w"> </span>calculation.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;1800&#39;</span><span class="o">)</span>.
---vasp_force_conv<span class="w"> </span>VASP_FORCE_CONV
-<span class="w">                        </span>VASP<span class="w"> </span>force<span class="w"> </span>convergence<span class="w"> </span>threshold.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;100&#39;</span><span class="o">)</span>.
+--vasp_nsw<span class="w"> </span>VASP_NSW<span class="w">   </span>VASP<span class="w"> </span>NSW:<span class="w"> </span>gives<span class="w"> </span>the<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>steps<span class="w"> </span><span class="k">in</span><span class="w"> </span>all<span class="w"> </span>molecular<span class="w"> </span>dynamics<span class="w"> </span>runs.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;100&#39;</span><span class="o">)</span>.
+--cpu_account<span class="w"> </span>CPU_ACCOUNT
+<span class="w">                        </span>The<span class="w"> </span>cpu<span class="w"> </span>account<span class="w"> </span>name<span class="w"> </span>on<span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>machine<span class="w"> </span><span class="o">(</span>forwarded<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>workload<span class="w"> </span>manager<span class="o">)</span>.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="o">)</span>.
+--gpu_account<span class="w"> </span>GPU_ACCOUNT
+<span class="w">                        </span>The<span class="w"> </span>gpu<span class="w"> </span>account<span class="w"> </span>name<span class="w"> </span>on<span class="w"> </span>the<span class="w"> </span>current<span class="w"> </span>machine<span class="w"> </span><span class="o">(</span>forwarded<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>workload<span class="w"> </span>manager<span class="o">)</span>.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="o">)</span>.
 --output_level<span class="w"> </span>OUTPUT_LEVEL
 <span class="w">                        </span>Logging<span class="w"> </span>level:<span class="w"> </span>DEBUG,<span class="w"> </span>INFO,<span class="w"> </span>WARNING,<span class="w"> </span>ERROR,<span class="w"> </span>CRITICAL<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="o">)</span>.
 </pre></div>
