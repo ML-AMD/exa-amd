@@ -47,7 +47,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference Guide</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Parsl Tasks</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Parsl Tasks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.gen_structures.cmd_gen_structures"><code class="docutils literal notranslate"><span class="pre">cmd_gen_structures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction"><code class="docutils literal notranslate"><span class="pre">cmd_cgcnn_prediction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.select_structures.cmd_select_structures"><code class="docutils literal notranslate"><span class="pre">cmd_select_structures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc"><code class="docutils literal notranslate"><span class="pre">cmd_fused_vasp_calc()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
@@ -83,6 +89,133 @@
              
   <section id="parsl-tasks">
 <h1>Parsl Tasks<a class="headerlink" href="#parsl-tasks" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.gen_structures.cmd_gen_structures">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.gen_structures.</span></span><span class="sig-name descname"><span class="pre">cmd_gen_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.gen_structures.cmd_gen_structures" title="Permalink to this definition"></a></dt>
+<dd><p>Construct the shell command used to run the generation script via Parsl.</p>
+<p>Prepares the working environment and generates the command to execute
+the CGCNN <cite>cms_dir/gen_structure.py</cite> script. This task generates
+hypothetical structures based on the initial crystal structures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
+- work_dir
+- cms_dir
+- num_workers
+- elements</p>
+<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted shell command string to execute <cite>gen_structure.py</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If directory navigation or file operations fail.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.cgcnn.cmd_cgcnn_prediction">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.cgcnn.</span></span><span class="sig-name descname"><span class="pre">cmd_cgcnn_prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction" title="Permalink to this definition"></a></dt>
+<dd><p>Construct the shell command used to run a CGCNN prediction via Parsl.</p>
+<p>Prepares the working environment and generates the command to execute
+the CGCNN <cite>cms_dir/predict.py</cite> script.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
+- work_dir
+- cms_dir
+- batch_size
+- num_workers</p>
+<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for full field descriptions.</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted shell command string to execute <cite>predict.py</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If directory navigation or file copying fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.select_structures.cmd_select_structures">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.select_structures.</span></span><span class="sig-name descname"><span class="pre">cmd_select_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.select_structures.cmd_select_structures" title="Permalink to this definition"></a></dt>
+<dd><p>Construct the shell command used to run the structure selection script via Parsl.</p>
+<p>Prepares the command to execute the <cite>cms_dir/select_structure.py</cite> script.
+This task is used to identify and remove duplicate or near-duplicate structures,
+based on a structural similarity threshold</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
+- work_dir
+- cms_dir
+- ef_thr
+- num_workers</p>
+<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted shell command string to execute <cite>select_structure.py</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If directory navigation or path generation fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.dft_optimization.cmd_fused_vasp_calc">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.dft_optimization.</span></span><span class="sig-name descname"><span class="pre">cmd_fused_vasp_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walltime=&lt;class</span> <span class="pre">'int'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc" title="Permalink to this definition"></a></dt>
+<dd><p>Run a two-stage VASP calculation via a Python Parsl task.</p>
+<p>It start by running a relaxation phase trying to find
+the lowest-energy configuration. If relaxation was successful,
+it runs the energy calculaction</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a><em> or </em><em>dict</em>) – <p>Configuration object. The following fields are used:
+- vasp_ntasks_per_run
+- vasp_work_dir
+- work_dir
+- cms_dir
+- vasp_std_exe
+- vasp_timeout
+- vasp_nsw</p>
+<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
+</p></li>
+<li><p><strong>id</strong> (<em>int</em>) – Identifier for the structure being processed. Used to name files and subdirectories.</p></li>
+<li><p><strong>walltime</strong> (<em>int</em><em>, </em><em>optional</em>) – Timeout in seconds for each VASP run.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>VaspNonReached</strong> – If the relaxation step fails to reach the convergence threshold.</p></li>
+<li><p><strong>Exception</strong> – For general file I/O or execution failures.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><ul class="simple">
+<li><p>Creates and modifies files in a per-structure working directory</p></li>
+<li><p>Executes VASP via shell command (<cite>os.system</cite>)</p></li>
+<li><p>Cleans intermediate VASP output files on completion or error</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
