@@ -60,6 +60,16 @@
 <li class="toctree-l4"><a class="reference internal" href="#tools.config_manager.ConfigManager.setup_vasp_calculations"><code class="docutils literal notranslate"><span class="pre">ConfigManager.setup_vasp_calculations()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.LEVEL_MAP"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.LEVEL_MAP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.configure"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.configure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.critical"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.critical()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.debug"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.debug()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.error"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.error()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.info"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tools.logging_config.ExaAmdLogger.warning"><code class="docutils literal notranslate"><span class="pre">ExaAmdLogger.warning()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -133,6 +143,65 @@ defaults for optional settings.</p>
 <span class="sig-name descname"><span class="pre">setup_vasp_calculations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tools.config_manager.ConfigManager.setup_vasp_calculations" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate nstart and nend for VASP calculations.
 All structures in [nstart, nend) will be run.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tools.logging_config.</span></span><span class="sig-name descname"><span class="pre">ExaAmdLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'exa-amd'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Lightweight logging utility.</p>
+<p>Supports five standard logging levels, in order of increasing severity:
+DEBUG, INFO, WARNING, ERROR, and CRITICAL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Logging level name.</p></li>
+<li><p><strong>logger_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name prefix for all log messages.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.LEVEL_MAP">
+<span class="sig-name descname"><span class="pre">LEVEL_MAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'CRITICAL':</span> <span class="pre">50,</span> <span class="pre">'DEBUG':</span> <span class="pre">10,</span> <span class="pre">'ERROR':</span> <span class="pre">40,</span> <span class="pre">'INFO':</span> <span class="pre">20,</span> <span class="pre">'WARNING':</span> <span class="pre">30}</span></em><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.LEVEL_MAP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.configure">
+<span class="sig-name descname"><span class="pre">configure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.configure" title="Permalink to this definition"></a></dt>
+<dd><p>Set the logging level.
+If unsupported level, fall back to INFO.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.critical">
+<span class="sig-name descname"><span class="pre">critical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.critical" title="Permalink to this definition"></a></dt>
+<dd><p>Log a critical-level message to stderr and terminate the program.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.debug">
+<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.debug" title="Permalink to this definition"></a></dt>
+<dd><p>Log an debug-level message to stderr if permitted by current log level.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.error">
+<span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.error" title="Permalink to this definition"></a></dt>
+<dd><p>Log an error-level message to stderr if permitted by current log level.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.info" title="Permalink to this definition"></a></dt>
+<dd><p>Log an info-level message to stderr if permitted by current log level.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tools.logging_config.ExaAmdLogger.warning">
+<span class="sig-name descname"><span class="pre">warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.logging_config.ExaAmdLogger.warning" title="Permalink to this definition"></a></dt>
+<dd><p>Log an warning-level message to stderr if permitted by current log level.</p>
 </dd></dl>
 
 </dd></dl>
