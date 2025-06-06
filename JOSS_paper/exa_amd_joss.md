@@ -34,7 +34,7 @@ bibliography: "exa_amd_joss.bib"
 
 exa-AMD is a Python-based application designed to accelerate the discovery and design of functional materials by integrating AI/ML tools, materials databases, and quantum mechanical calculations into scalable, high-performance workflows. The execution model of exa-AMD relies on Parsl [@babuji2019parsl], a task-parallel programming library that enables a flexible execution of tasks on any compute resource from laptops to supercomputers. exa-AMD provides the following key-features:
 
-- **Scalability:** exa-AMD scales efficiently from a single workstation to many supercomputer nodes (internal benchmarks showed near-linear speed-up on 64 GPUs). 
+- **Scalability:** exa-AMD scales efficiently from a single workstation to many supercomputer nodes (internal benchmarks demonstrated near-linear speed-up on up to 128 GPUs or 4,096 CPUs). 
 - **Elasticity:** computing resources can be added or released at run time, allowing the workflow to exploit shared supercomputers efficiently and assign dynamically specialized accelerators (e.g., GPUs) to tasks that need them.
 - **Modularity:** exa-AMD tracks which tasks have completed, enabling a follow-on run to resume at the next unfinished step.
 - **Configurability:** exa-AMD exposes high-level parameters allowing the users to balance performance and accuracy for their scientific objectives. In particular, the workflow supports multinary systems.
