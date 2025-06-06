@@ -50,10 +50,14 @@
 <li class="toctree-l2"><a class="reference internal" href="parsl_tasks.html">Parsl Tasks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflows</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Parsl Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.perlmutter.PerlmutterConfig"><code class="docutils literal notranslate"><span class="pre">PerlmutterConfig</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_config_registry.auto_register_configs"><code class="docutils literal notranslate"><span class="pre">auto_register_configs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_config_registry.get_parsl_config"><code class="docutils literal notranslate"><span class="pre">get_parsl_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_config_registry.register_parsl_config"><code class="docutils literal notranslate"><span class="pre">register_parsl_config()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
@@ -87,9 +91,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-parsl_configs.parsl_executors_labels">
-<span id="parsl-configuration"></span><h1>Parsl Configuration<a class="headerlink" href="#module-parsl_configs.parsl_executors_labels" title="Permalink to this heading"></a></h1>
-<dl class="py data">
+  <section id="parsl-configuration">
+<h1>Parsl Configuration<a class="headerlink" href="#parsl-configuration" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="parsl_configs.perlmutter.PerlmutterConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">parsl_configs.perlmutter.</span></span><span class="sig-name descname"><span class="pre">PerlmutterConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.perlmutter.PerlmutterConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></p>
+<p>Parsl configuration for running exa-AMD on Perlmutter.</p>
+<p>This configuration defines four Parsl executors, each targeting a different part of the
+exa-AMD workflow and resource type:</p>
+<ul class="simple">
+<li><p><strong>Generate Structures Executor</strong> (<cite>generate_structures_executor</cite>): run on CPU, single-node.</p></li>
+<li><p><strong>CGCNN Executor</strong> (<cite>cgcnn_executor</cite>): run on GPU, single-node.</p></li>
+<li><p><strong>Select Structures Executor</strong> (<cite>select_structures_executor</cite>): run on CPU, single-node.</p></li>
+<li><p><strong>VASP Executor</strong> (<cite>vasp_executor</cite>): run on GPU, multi-node.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>json_config</strong> (<em>dict</em>) – <dl class="simple">
+<dt>Required keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">vasp_nnodes</span></code> (int): Number of GPU nodes to use for VASP calculations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code> (int): Number of workers to allocate per CPU node.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-parsl_configs.parsl_executors_labels"></span><dl class="py data">
 <dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL">
 <span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">CGCNN_EXECUTOR_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cgcnn_executor_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL" title="Permalink to this definition"></a></dt>
 <dd><p>Executor label used for CGCNN prediction tasks.</p>
@@ -111,6 +142,65 @@
 <dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL">
 <span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">VASP_EXECUTOR_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'vasp_executor_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL" title="Permalink to this definition"></a></dt>
 <dd><p>Executor label used for all VASP-related Parsl tasks.</p>
+</dd></dl>
+
+<span class="target" id="module-parsl_configs.parsl_config_registry"></span><dl class="py function">
+<dt class="sig sig-object py" id="parsl_configs.parsl_config_registry.auto_register_configs">
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_config_registry.</span></span><span class="sig-name descname"><span class="pre">auto_register_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.parsl_config_registry.auto_register_configs" title="Permalink to this definition"></a></dt>
+<dd><p>Automatically discover and import all modules that contains a Parsl Configuration.</p>
+<p>Scans the specified package and detects the calls to <a class="reference internal" href="#parsl_configs.parsl_config_registry.register_parsl_config" title="parsl_configs.parsl_config_registry.register_parsl_config"><code class="xref py py-func docutils literal notranslate"><span class="pre">register_parsl_config()</span></code></a>,
+so the Parsl configurations can be selected at runtime.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>package_name</strong> (<em>str</em>) – </p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>SystemExit</strong> – If the specified package cannot be found or loaded.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_configs.parsl_config_registry.get_parsl_config">
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_config_registry.</span></span><span class="sig-name descname"><span class="pre">get_parsl_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.parsl_config_registry.get_parsl_config" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve and instantiate the registered Parsl config by name.</p>
+<p>If the registry is empty, it auto-imports all modules
+from the default <cite>parsl_configs</cite> package using <a class="reference internal" href="#parsl_configs.parsl_config_registry.auto_register_configs" title="parsl_configs.parsl_config_registry.auto_register_configs"><code class="xref py py-func docutils literal notranslate"><span class="pre">auto_register_configs()</span></code></a>.</p>
+<p>The configuration is provided via the <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> field in
+<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – Must contain the key <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the selected Parsl configuration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>parsl.config.Config</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>SystemExit</strong> – If the specified config name is not registered.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_configs.parsl_config_registry.register_parsl_config">
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_config_registry.</span></span><span class="sig-name descname"><span class="pre">register_parsl_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_class</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.parsl_config_registry.register_parsl_config" title="Permalink to this definition"></a></dt>
+<dd><p>Register a Parsl config class under a string name.</p>
+<p>Can be called inside any module to make the defined configuration
+discoverable at runtime.</p>
+<p>Once a configuration is registered, it can be selected dynamically at runtime
+using the <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a>, by setting the
+<code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> parameter to the corresponding name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_name</strong> (<em>str</em>) – The unique name that identifies the configuration.</p></li>
+<li><p><strong>config_class</strong> (<em>type</em>) – A callable or class that returns a Parsl <cite>Config</cite> object.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
