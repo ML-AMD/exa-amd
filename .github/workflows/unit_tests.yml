@@ -2,9 +2,9 @@ name: Unit Tests
 
 on:
   push:
-    branches: [ main, joss_paper ]
+    branches: ["**"]
   pull_request:
-    branches: [ main, joss_paper ]
+    branches: [ main ]
 
 jobs:
   pytest:

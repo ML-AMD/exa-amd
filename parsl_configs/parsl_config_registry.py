@@ -74,9 +74,5 @@ def get_parsl_config(config):
 
     config_name = config[CK.PARSL_CONFIG]
     if config_name not in PARSL_CONFIG_REGISTRY:
-        amd_logger.critical(
-            f"Parsl config '{config_name}' is not registered. Registered configs: {
-                list(
-                    PARSL_CONFIG_REGISTRY.keys())}"
-        )
+        amd_logger.critical(f"Parsl config '{config_name}' is not registered.")
     return PARSL_CONFIG_REGISTRY[config_name](config)
