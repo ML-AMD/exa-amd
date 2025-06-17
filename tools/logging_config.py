@@ -35,7 +35,8 @@ class ExaAmdLogger:
             self._current_level = self.LEVEL_MAP[level_name]
         else:
             self._current_level = self.LEVEL_MAP["INFO"]
-            sys.stdout.write(f"Unsupported log level '{level_name}'. Falling back to INFO.\n")
+            sys.stdout.write(
+                f"Unsupported log level '{level_name}'. Falling back to INFO.\n")
 
     def _log(self, level_name, message):
         """

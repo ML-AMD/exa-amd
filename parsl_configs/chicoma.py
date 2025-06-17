@@ -23,7 +23,6 @@ vasp_env_init = '''
 
                 export MPICH_GPU_SUPPORT_ENABLED=1
                 export MPICH_GPU_MANAGED_MEMORY_SUPPORT_ENABLED=1
-
                 export LD_LIBRARY_PATH=$CRAY_LD_LIBRARY_PATH:$LD_LIBRARY_PATH
                 export LD_LIBRARY_PATH=$NVHPC_CUDA_HOME/lib64:$LD_LIBRARY_PATH
                 module load cray-fftw

@@ -1,0 +1,22 @@
+#incar
+SYSTEM = LaSiP
+
+ Startparameter for this Run:
+   ISTART =    0        job   : 0-new  1-cont  2-same basic set
+   LCHARG =    .FALSE.  Write down charge densities or not
+   LWAVE  =    .FALSE.  Write down wavefunctions or not! to restart copy CONTCAR to POSCAR
+
+ Electronic Relaxation
+   ENCUT  =    520      kinetic energy cutoff, default is taken from POTCAR file
+   NELM   =    200      maxmum step number of SCF, default 60
+   EDIFF  =    1E-04    stopping-criterion for ELM, default is 1E-04
+   #ISPIN = 2
+   LREAL  =    A
+
+ DOS Related values
+    ISMEAR =   0        -1: Fermi smearing, 0: Gaussian smearing, 1..N: Methfessel-Paxton order N ...
+    SIGMA  =   0.05     broadening in eV
+    KPAR   =    1
+    LORBIT = 11
+#    NCORE   =    8
+

@@ -8,12 +8,7 @@ from pymatgen.io.vasp import Poscar
 from itertools import permutations
 import warnings
 
-badele_vec = ['D', 'He', 'Ne', 'Ar', 'Br', 'Kr', 'Tc', 'Xe', 'At', 'Rn', 'Pm', 'Fr', 'Rf',
-              'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
-              'Ac', 'Th', 'Pa', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr',
-              'F', 'Cl', 'Br', 'I', 'O']
-
-# badele_vec = []
+badele_vec = []
 
 lattice_scales = None
 
@@ -31,7 +26,6 @@ def generate_structures(structure_file, elements, dirs):
     if any(element.symbol in badele_vec for element in original_structure.composition):
         return []  # Skip this structure
 
-    # Identify elements to be substituted (those not in badele_vec)
     elements_to_substitute = [
         element.symbol for element in original_structure.composition]
 
@@ -62,20 +56,30 @@ def process_structure(args):
 
 
 def main(args):
-    # Suppress UserWarnings
     warnings.filterwarnings("ignore")
-
     dirs = os.path.abspath(args.input_dir)
     num_workers = args.num_workers
     structure_files = [f for f in os.listdir(dirs) if f.endswith('.cif')]
     elements = [ele for ele in args.elements.split('-')]
     global lattice_scales
-    lattice_scales = [0.96, 0.98, 1.0, 1.02, 1.04]
+    lattice_scales = [
+        0.80,
+        0.84,
+        0.88,
+        0.92,
+        0.96,
+        1.0,
+        1.04,
+        1.08,
+        1.12,
+        1.16,
+        1.20]
     element_permutations = list(permutations(elements))
     numall = len(element_permutations) * len(lattice_scales)
 
     args_list = [(f, i * numall + 1, dirs, elements)
                  for i, f in enumerate(structure_files)]
+    print(numall, len(args_list))
 
     with Pool(num_workers) as pool:
         results = pool.map(process_structure, args_list)
