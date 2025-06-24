@@ -9,6 +9,9 @@ from tools.config_manager import ConfigManager
 from tools.config_labels import ConfigKeys as CK
 
 
+from tools.post_processing import get_vasp_hull
+
+
 def vasp_calculations(config):
     from parsl_tasks.dft_optimization import run_vasp_calc
     work_dir = config[CK.WORK_DIR]
@@ -68,6 +71,40 @@ def run_cgcnn(config):
         amd_logger.critical(f"An exception occurred: {e}")
 
 
+def post_processing(config):
+    from parsl_tasks.hull import calculate_ehul
+    from parsl_tasks.hull import convex_hull_color
+
+    if config[CK.POST_PROCESSING_OUT_DIR]:
+
+        elements = config[CK.ELEMENTS]
+        nb_of_elements = len(elements.split('-'))
+
+        if nb_of_elements < 3 or nb_of_elements > 4:
+            amd_logger.critical(
+                f"The post-processing is only supported with 3 or 4 elements")
+
+        os.makedirs(config[CK.POST_PROCESSING_OUT_DIR], exist_ok=True)
+
+        get_vasp_hull(config)
+
+        err = calculate_ehul(config).exception()
+        if err:
+            amd_logger.critical(err)
+
+        err = convex_hull_color(config).exception()
+        if err:
+            amd_logger.critical(err)
+
+        out_hull = os.path.join(
+            config[CK.POST_PROCESSING_OUT_DIR], CK.POST_PROCESSING_FINAL_OUT)
+        amd_logger.info(f"Convex hull plot saved to '{out_hull}'")
+
+        out_selected = os.path.join(
+            config[CK.POST_PROCESSING_OUT_DIR], "selected")
+        amd_logger.info(f"Selected candidates saved to '{out_selected}'")
+
+
 def run_workflow(config):
     """
     Run the full VASP-based materials discovery workflow.
@@ -116,3 +153,6 @@ def run_workflow(config):
     config.setup_vasp_calculations()
     vasp_calculations(config)
     amd_logger.info(f"vasp calculations done")
+
+    post_processing(config)
+    amd_logger.info(f"post_processing done")

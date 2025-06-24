@@ -55,8 +55,10 @@ Edit the following fields in `my_config_perlmutter.json`:
 - `"cms_dir"`: Absolute path to your `cms_dir` directory
 - `"work_dir"`: A scratch directory for intermediate files
 - `"vasp_work_dir"`: A work directory for running VASP calculations
-- `"pot_dir"`: Path to your `potpaw_PBE` directory
+- `"vasp_pot_dir"`: Path to your `potpaw_PBE` directory
 - `"initial_structures"`: Path to the `initial_structures` directory (downloaded in the previous section)
+- `"post_processing_output_dir"`:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.
+- `"mp_rester_api_key"`: our Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir`` is provided.
 
 ----
 
@@ -89,9 +91,9 @@ At the bottom of the file, update `register_parsl_config()` to reflect the new c
 b. Update each executor
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The Perlmutter configuration defines **four separate executors**:
+The Perlmutter configuration defines **five separate executors**:
 
-- Two that run on **GPU nodes** (for VASP and CGCNN tasks)
+- Three that run on **GPU nodes** (for VASP and CGCNN tasks)
 - Two that run on **CPU nodes** (for structure generation and selection)
 
 For each executor, update the following fields in the `SlurmProvider`:
@@ -118,8 +120,8 @@ Here is an example:
 .. code-block:: python
 
    provider=SlurmProvider(
-       account="your_gpu_account",    # ← CHANGE IF NEEDED
-       qos="your_gpu_qos",            # ← CHANGE IF NEEDED
+       account="your_gpu_account",    # ← CHANGE ACCORDINGLY
+       qos="your_gpu_qos",            # ← CHANGE ACCORDINGLY
        constraint="gpu",
        ...
    )
@@ -158,7 +160,7 @@ exa-AMD will now automatically discover and use the `my_perlmutter` configuratio
 6. Run the Workflow
 ---------------------
 
-Once everything is configured, run the full exa-AMD workflow from a logind node of Perlmutter:
+Once everything is configured, run the full exa-AMD workflow from a login node of Perlmutter:
 
 .. code-block:: bash
 
@@ -168,11 +170,33 @@ Once everything is configured, run the full exa-AMD workflow from a logind node 
 This will launch the four steps:
 
 1. :func:`~parsl_tasks.gen_structures.generate_structures` — structure generation
-2. :func:`~parsl_tasks.cgcnn.run_cgcnn` — CGCNN prediction
-3. :func:`~parsl_tasks.cgcnn.select_structures` — structure selecton
-4. :func:`~parsl_tasks.vasp.vasp_calculations` — VASP relaxation and energy calculations
+2. :func:`~parsl_tasks.cgcnn.run_cgcnn` — formation energy prediction
+3. :func:`~parsl_tasks.cgcnn.select_structures` — structure selection
+4. :func:`~parsl_tasks.vasp.vasp_calculations` — first-principles calculations
+5. :func:`~parsl_tasks.hull.cmd_convex_hull_color` — post-processing
 
 Progress and logs will be printed to stdout/stderr.
+
+.. admonition:: Post-processing workflow
+   :class: info
+
+   The post-processing step involves multiple substeps:
+
+   #. **Collection of results:** Gather relaxed crystal structures and total
+      energies from each VASP directory. For magnetic systems, the magnetic
+      moments are also parsed and stored.
+
+   #. **Formation-energy evaluation & convex-hull construction:** Compute the
+      formation energy of every structure relative to reference elemental
+      phases, then build (or update) the convex hull for the chemical system.
+      Structures on or near the hull are considered potentially stable; those
+      far above the hull are deemed metastable or unstable.
+
+   #. **Selection of promising structures:** Identify and copy the candidate structures
+      to a dedicated folder for deeper analysis or experimental follow-up.
+
+   #. **Visualization:** Generate an updated phase diagram that plots the
+      convex hull and highlights all computed structures.
 
 ----
 
@@ -180,7 +204,7 @@ Progress and logs will be printed to stdout/stderr.
 ---------------------
 
 After the workflow completes, you should verify that all stages ran successfully by inspecting
-the contents of the work directory (`work_dir`) and the VASP work directory (`vasp_work_dir`).
+the contents of the work directory (`work_dir`), the VASP work directory (`vasp_work_dir`) and the post-processing directory (`post_processing_output_dir`).
 
 a. Work directory
 ~~~~~~~~~~~~~~~~~
@@ -199,7 +223,7 @@ Inside your specified `work_dir`, you should see a subdirectory named after the 
 b. VASP Directory
 ~~~~~~~~~~~~~~~~~~
 
-Your `vasp_work_dir` will contain a subdirectory for each selected structure ID, where VASP calculations were run:
+Your `vasp_work_dir` should contain subfolders for VASP calculation outputs and a temporary workspace used during post-processing.
 
 .. code-block:: text
 
@@ -210,27 +234,23 @@ Your `vasp_work_dir` will contain a subdirectory for each selected structure ID,
        ├── 3/
        ├── ...
        ├── 10/
-       └── vasp_calc_result.csv  ← Final results summary
+       ├── energy.dat
+       ├── mp_int_stable.dat
+       ├── stable_phases_work_dir
+       └── vasp_calc_result.csv
 
 Each numbered folder corresponds to a VASP calculation for a selected structure.
 
 c. Final Output
 ~~~~~~~~~~~~~~~
 
-This file summarizes the outcome of each VASP calculation. A fully successful run should look like this:
+The post-processing output directory should look like the following:
 
-.. code-block:: text
+.. code:: text
 
-   id,result
-   1,success
-   2,success
-   3,success
-   4,success
-   5,success
-   6,success
-   7,success
-   8,success
-   9,success
-   10,success
-
-If all lines show `success`, then the workflow completed as expected.
+   ternary/
+   ├── hull.dat
+   ├── hull_plot.png         # convex-hull phase diagram
+   ├── mp_int_stable.dat
+   ├── NaBC.csv
+   └── selected/             # candidate structures

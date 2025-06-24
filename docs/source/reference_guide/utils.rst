@@ -10,3 +10,5 @@ Utils
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. autofunction:: tools.post_processing.get_vasp_hull

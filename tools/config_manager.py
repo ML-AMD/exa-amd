@@ -65,8 +65,12 @@ class ConfigManager:
         CK.VASP_NSW: (100, "VASP NSW: gives the number of steps in all molecular dynamics runs."),
         CK.CPU_ACCOUNT: ("", "The cpu account name on the current machine (forwarded to the workload manager)."),
         CK.GPU_ACCOUNT: ("", "The gpu account name on the current machine (forwarded to the workload manager)."),
-        CK.OUTPUT_LEVEL: (
-            "INFO", "Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL")
+        CK.OUTPUT_LEVEL: ("INFO", "Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"),
+        CK.POST_PROCESSING_OUT_DIR: ("", "A full path to a directory that will contain all the post-processing results. If not set, the post-processing step will be skipped."),
+        CK.MPRester_API_KEY: ("", f"An API key for accessing the MP data (https://docs.materialsproject.org). Required if --{CK.POST_PROCESSING_OUT_DIR} is set. "),
+        CK.HULL_ENERGY_THR: (
+            0.1, "Maximum Ehull (eV/atom) to display for metastable phases")
+
     }
 
     CONFIG_HELP_MSG = "Path to the JSON configuration file (required)."
@@ -149,6 +153,11 @@ class ConfigManager:
             if key not in self.config:
                 self.config[key] = default_val
 
+        if self.config[CK.POST_PROCESSING_OUT_DIR] and not self.config[CK.MPRester_API_KEY]:
+            raise ValueError(
+                f"Error: Missing required argument '{
+                    self.config[MPRester_API_KEY]}'.")
+
         # Create/Update directories
         work_dir = os.path.join(
             self.config[CK.WORK_DIR], self.config[CK.ELEMENTS])
@@ -218,6 +227,28 @@ class ConfigManager:
         self.config["nend"] = nend
 
         # create the POTCAR file
+        elements = self.config[CK.ELEMENTS].split('-')
+        nb_of_elements = len(elements)
+
+        if nb_of_elements < 3 or nb_of_elements > 4:
+            amd_logger.critical(
+                f"exa-AMD only supports ternary and quaternary systems")
+
+        POTDIR = self.config[CK.POT_DIR]
+
+        potcar_paths = [f"{POTDIR}/{el}/POTCAR" for el in elements]
+        potcar_command = f"cat {' '.join(potcar_paths)} > {work_dir}/POTCAR"
+        os.system(potcar_command)
+
+        # ele1, ele2, ele3 = elements.split("-")
+        # potcar_command = (
+        #     f"cat {POTDIR}/{ele1}/POTCAR "
+        #     f"{POTDIR}/{ele2}/POTCAR "
+        #     f"{POTDIR}/{ele3}/POTCAR "
+        #     f"> {work_dir}/POTCAR"
+        # )
+
+    def _create_potcar(self):
         POTDIR = self.config[CK.POT_DIR]
         ele1, ele2, ele3 = self.config[CK.ELEMENTS].split("-")
         potcar_command = (

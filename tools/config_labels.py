@@ -28,3 +28,12 @@ class ConfigKeys:
     VASP_TIMEOUT = "vasp_timeout"
     VASP_NSW = "vasp_nsw"
     OUTPUT_LEVEL = "output_level"
+    POST_PROCESSING_OUT_DIR = "post_processing_output_dir"
+    MPRester_API_KEY = "mp_rester_api_key"
+    HULL_ENERGY_THR = "hull_energy_threshold"
+
+    # hardcoded keys
+    SUBDIR_STABLE_PHASES = "stable_phases_work_dir"
+    MP_STABLE_OUT = "mp_int_stable.dat"
+    ENERGY_DAT_OUT = "energy.dat"
+    POST_PROCESSING_FINAL_OUT = "hull_plot.png"

@@ -19,5 +19,9 @@
     "vasp_nstructures": 10,
     "vasp_nsw": 100,
     "vasp_timeout": 1800,
-    "vasp_nnodes": 1
+    "vasp_nnodes": 1,
+
+    "hull_energy_threshold": 0.1,
+    "post_processing_output_dir": "<abs_path_to>/post_processing_out_dir",
+    "mp_rester_api_key": "<<MP_RESTER_API_KEY>>"
 }

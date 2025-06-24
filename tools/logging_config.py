@@ -1,4 +1,5 @@
 import sys
+import parsl
 
 
 class ExaAmdLogger:
@@ -57,6 +58,7 @@ class ExaAmdLogger:
             sys.stderr.write(formatted_message + "\n")
         else:
             sys.stderr.write(formatted_message + "\n")
+            parsl.dfk().cleanup()
             sys.exit(1)
 
     def debug(self, message):

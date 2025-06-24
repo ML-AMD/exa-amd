@@ -14,3 +14,5 @@ dependencies:
     - pytest >= 8.3.5
     - sphinx >= 7.1.2
     - sphinx_rtd_theme >= 3.0.2
+    - mp-api >= 0.45.7
+    - python-ternary >= 1.0.8

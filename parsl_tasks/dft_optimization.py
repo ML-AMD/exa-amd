@@ -80,7 +80,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         #
         output_rx = os.path.join(work_subdir, "output.rx")
         relaxation_criteria = os.system(
-            f"grep -q -e 'reached' -e '{config[VASP_NSW]} F=' output.rx")
+            f"grep -q -e 'reached' -e '{VASP_NSW} F=' output.rx")
 
         # check relaxation criteria
         if relaxation_status != 0 and relaxation_criteria != 0:

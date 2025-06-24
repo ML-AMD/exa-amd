@@ -116,8 +116,27 @@ class PerlmutterConfig(Config):
             )
         )
 
+        # Post-processing executor
+        post_processing_executor = HighThroughputExecutor(
+            label=POSTPROCESSING_LABEL,
+            cores_per_worker=1,
+            available_accelerators=4,
+            provider=SlurmProvider(
+                account=gpu_account,
+                qos="premium",
+                constraint="gpu",
+                init_blocks=0,
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=1,
+                launcher=SimpleLauncher(),
+                walltime='5:00:00',
+                worker_init="module load vasp/6.4.3-gpu",
+            )
+        )
+
         super().__init__(
-            executors=[vasp_executor, cgcnn_executor, generate_structures_executor, select_structures_executor])
+            executors=[vasp_executor, cgcnn_executor, generate_structures_executor, select_structures_executor, post_processing_executor])
 
 
 # Register the perlmutter configs

@@ -7,14 +7,17 @@ from workflows.vasp_based import run_workflow
 from tools.config_labels import ConfigKeys as CK
 
 if __name__ == '__main__':
-    # load global config
-    config = ConfigManager()
+    try:
+        # load global config
+        config = ConfigManager()
 
-    # load parsl config
-    parsl.load(get_parsl_config(config))
+        # load parsl config
+        parsl.load(get_parsl_config(config))
 
-    # configure logging
-    amd_logger.configure(config[CK.OUTPUT_LEVEL])
+        # configure logging
+        amd_logger.configure(config[CK.OUTPUT_LEVEL])
+    except Exception as e:
+        amd_logger.critical(e)
 
     # run the workflow
     run_workflow(config)

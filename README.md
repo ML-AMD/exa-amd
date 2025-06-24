@@ -11,13 +11,18 @@ exa-AMD is designed to accommodate different workflow styles on high performance
 
 ## Prerequisites
 This package requires:
-- python = 3.12
-- scikit-learn
-- pytorch
-- torchvision
-- pymatgen
-- parsl
-- pytest
+- python >= 3.10
+- numpy < 2.0
+- scikit-learn >= 1.6.1
+- pytorch >= 2.2.2
+- torchvision >= 0.17.2
+- pymatgen >= 2025.3.10
+- parsl >= 2025.3.24
+- pytest >= 8.3.5
+- sphinx >= 7.1.2
+- sphinx_rtd_theme >= 3.0.2
+- mp-api >= 0.45.7
+- python-ternary >= 1.0.8
 
 If you use [Conda](https://docs.conda.io/en/latest/miniconda.html) to manage Python packages, you may create a conda environment to install the required packages using the `amd_env` environment yaml file we provide:
 ```bash
@@ -54,11 +59,11 @@ We currently support the automated workflows on NERSC's Perlmutter and LANL's Ch
     ```
     For running on Perlmutter for example,
     ```bash
-    python exa_amd.py --config perlmutter.json
+    python exa_amd.py --config configs/perlmutter.json
     ```
 - (Optional) The json config file can be overridden via command line arguments, for example:
     ```bash
-    python exa_amd.py --num_workers 256
+    python exa_amd.py --config configs/perlmutter.json --num_workers 256
     ```
     For a full list of command line arguments and their descriptions, run:
     ```bash
