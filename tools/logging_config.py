@@ -58,7 +58,10 @@ class ExaAmdLogger:
             sys.stderr.write(formatted_message + "\n")
         else:
             sys.stderr.write(formatted_message + "\n")
-            parsl.dfk().cleanup()
+            try:
+                parsl.dfk().cleanup()
+            except NoDataFlowKernelError:
+                pass
             sys.exit(1)
 
     def debug(self, message):
