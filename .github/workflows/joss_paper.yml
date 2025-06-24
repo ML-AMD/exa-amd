@@ -1,6 +1,9 @@
 name: Compile JOSS Paper
-on: [push]
-
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
 jobs:
   paper:
     runs-on: ubuntu-latest

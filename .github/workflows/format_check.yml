@@ -1,9 +1,9 @@
 name: Check format
 on:
-  push:
-    branches: ["**"]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  push:
+    branches: [main]
 jobs:
   pep8_check:
     runs-on: ubuntu-latest
