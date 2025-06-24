@@ -48,7 +48,7 @@ Copy the default Perlmutter configuration:
 
 .. code-block:: bash
 
-   cp configs/perlmutter.json configs/my_config_perlmutter.json
+   cp configs/perlmutter_quaternary.json configs/my_config_perlmutter.json
 
 Edit the following fields in `my_config_perlmutter.json`:
 
@@ -58,7 +58,7 @@ Edit the following fields in `my_config_perlmutter.json`:
 - `"vasp_pot_dir"`: Path to your `potpaw_PBE` directory
 - `"initial_structures"`: Path to the `initial_structures` directory (downloaded in the previous section)
 - `"post_processing_output_dir"`:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.
-- `"mp_rester_api_key"`: our Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir`` is provided.
+- `"mp_rester_api_key"`: your Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir`` is provided.
 
 ----
 
@@ -214,7 +214,7 @@ Inside your specified `work_dir`, you should see a subdirectory named after the 
 .. code-block:: text
 
    work_dir/
-   └── Na-B-C
+   └── Na-B-H-C
        ├── new/ 
        ├── POTCAR 
        ├── structures/ 
@@ -228,7 +228,7 @@ Your `vasp_work_dir` should contain subfolders for VASP calculation outputs and 
 .. code-block:: text
 
    vasp_work_dir/
-   └── Na-B-C
+   └── Na-B-H-C
        ├── 1/
        ├── 2/
        ├── 3/
@@ -236,7 +236,7 @@ Your `vasp_work_dir` should contain subfolders for VASP calculation outputs and 
        ├── 10/
        ├── energy.dat
        ├── mp_int_stable.dat
-       ├── stable_phases_work_dir
+       ├── stable_phases_work_dir/
        └── vasp_calc_result.csv
 
 Each numbered folder corresponds to a VASP calculation for a selected structure.
@@ -248,9 +248,19 @@ The post-processing output directory should look like the following:
 
 .. code:: text
 
-   ternary/
+   post_processing_out_dir/
    ├── hull.dat
    ├── hull_plot.png         # convex-hull phase diagram
    ├── mp_int_stable.dat
-   ├── NaBC.csv
+   ├── NaBHC_quaternary.csv
    └── selected/             # candidate structures
+
+.. figure:: images/hull_plot.png
+   :alt: Convex-hull phase diagram (example)
+   :width: 70%
+   :align: center
+
+   **Figure –** The *hull_plot.png* file listed above, showing the
+   convex-hull phase diagram generated in this final step.
+
+Your run have to produce this same **hull_plot.png**.
