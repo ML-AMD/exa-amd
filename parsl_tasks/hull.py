@@ -70,7 +70,7 @@ def cmd_calculate_ehul(config):
             descriptions.
 
     Returns:
-        str: A formatted shell command string to execute ehull.py or ehull4.py
+        str: A formatted shell command string to execute select_final_structures_ternary.py or select_final_structures_quaternary.py
 
     Raises:
         Exception: If directory navigation, file operations, or command
@@ -81,7 +81,7 @@ def cmd_calculate_ehul(config):
         elements = config[CK.ELEMENTS]
         nb_of_elements = len(elements.split('-'))
 
-        script = "ehull.py" if nb_of_elements == 3 else "ehull4.py"
+        script = "select_final_structures_ternary.py" if nb_of_elements == 3 else "select_final_structures_quaternary.py"
         ehull_script = os.path.join(config[CK.CMS_DIR], script)
 
         input_file = os.path.join(config[CK.VASP_WORK_DIR], CK.ENERGY_DAT_OUT)
@@ -117,8 +117,8 @@ def cmd_convex_hull_color(config):
             See :class:`~tools.config_manager.ConfigManager` for field descriptions.
 
     Returns:
-        A formatted shell command string to execute `convex_hull_color.py`
-        or `convex_hull_color_4.py`.
+        A formatted shell command string to execute `plot_convex_hull_ternary.py`
+        or `plot_convex_hull_quaternary.py`.
 
     Raises:
         Exception: If directory navigation or file operations fail.
@@ -128,7 +128,7 @@ def cmd_convex_hull_color(config):
         elements = config[CK.ELEMENTS]
         l_elements = elements.split('-')
         nb_of_elements = len(l_elements)
-        script = "convex_hull_color.py" if nb_of_elements == 3 else "convex_hull_color_4.py"
+        script = "plot_convex_hull_ternary.py" if nb_of_elements == 3 else "plot_convex_hull_quaternary.py"
 
         convex_hull_color_script = os.path.join(config[CK.CMS_DIR], script)
         stable_dat = os.path.join(

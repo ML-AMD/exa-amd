@@ -150,8 +150,8 @@ def run_workflow(config):
         select_structures(config)
     amd_logger.info(f"select structures done")
 
-    config.setup_vasp_calculations()
-    vasp_calculations(config)
+    # config.setup_vasp_calculations()
+    # vasp_calculations(config)
     amd_logger.info(f"vasp calculations done")
 
     post_processing(config)
