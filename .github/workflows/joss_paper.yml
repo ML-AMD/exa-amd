@@ -2,8 +2,9 @@ name: Compile JOSS Paper
 on:
   push:
     branches:
-      - main
-  workflow_dispatch: {}
+    - main
+    - joss_paper_draft_v1
+
 jobs:
   paper:
     runs-on: ubuntu-latest
