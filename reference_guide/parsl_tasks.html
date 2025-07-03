@@ -52,6 +52,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction"><code class="docutils literal notranslate"><span class="pre">cmd_cgcnn_prediction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.select_structures.cmd_select_structures"><code class="docutils literal notranslate"><span class="pre">cmd_select_structures()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc"><code class="docutils literal notranslate"><span class="pre">cmd_fused_vasp_calc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.hull.cmd_vasp_hull"><code class="docutils literal notranslate"><span class="pre">cmd_vasp_hull()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.hull.cmd_calculate_ehul"><code class="docutils literal notranslate"><span class="pre">cmd_calculate_ehul()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.hull.cmd_convex_hull_color"><code class="docutils literal notranslate"><span class="pre">cmd_convex_hull_color()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflows</a></li>
@@ -103,7 +106,7 @@ hypothetical structures based on the initial crystal structures.</p>
 - cms_dir
 - num_workers
 - elements</p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for field descriptions.</p>
 </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -131,7 +134,7 @@ the CGCNN <cite>cms_dir/predict.py</cite> script.</p>
 - cms_dir
 - batch_size
 - num_workers</p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for full field descriptions.</p>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for full field descriptions.</p>
 </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -160,7 +163,7 @@ based on a structural similarity threshold</p>
 - cms_dir
 - ef_thr
 - num_workers</p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for field descriptions.</p>
 </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -185,7 +188,7 @@ it runs the energy calculaction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a><em> or </em><em>dict</em>) – <p>Configuration object. The following fields are used:
+<li><p><strong>config</strong> (<em>ConfigManager</em><em> or </em><em>dict</em>) – <p>Configuration object. The following fields are used:
 - vasp_ntasks_per_run
 - vasp_work_dir
 - work_dir
@@ -193,7 +196,7 @@ it runs the energy calculaction</p>
 - vasp_std_exe
 - vasp_timeout
 - vasp_nsw</p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for field descriptions.</p>
 </p></li>
 <li><p><strong>id</strong> (<em>int</em>) – Identifier for the structure being processed. Used to name files and subdirectories.</p></li>
 <li><p><strong>walltime</strong> (<em>int</em><em>, </em><em>optional</em>) – Timeout in seconds for each VASP run.</p></li>
@@ -212,6 +215,91 @@ it runs the energy calculaction</p>
 <li><p>Executes VASP via shell command (<cite>os.system</cite>)</p></li>
 <li><p>Cleans intermediate VASP output files on completion or error</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.hull.cmd_vasp_hull">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_vasp_hull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_subdir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_vasp_hull" title="Permalink to this definition"></a></dt>
+<dd><p>Using the total energies computes the formation energies of each structure relative to reference elemental phases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
+* <code class="docutils literal notranslate"><span class="pre">CK.VASP_NTASKS_PER_RUN</span></code> – <em>int</em>, number of MPI ranks.</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">1</span></code> triggers a run with a single process, any other value results in
+<code class="docutils literal notranslate"><span class="pre">srun</span> <span class="pre">-n</span> <span class="pre">&lt;N&gt;</span></code>.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CK.VASP_STD_EXE</span></code></p></li>
+</ul>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for field descriptions.</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted shell command string to execute <cite>run_single_vasp_hull_calculation.py</cite>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If directory navigation or file operations fail.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.hull.cmd_calculate_ehul">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_calculate_ehul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_calculate_ehul" title="Permalink to this definition"></a></dt>
+<dd><p>Select promising structures: Structures with low energy above the hull (Ehull) are identified as promising candidates. These are automatically copied to a dedicated folder for further analysis, such as evaluation of additional physical properties or preparation for experimental validation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
+* <code class="docutils literal notranslate"><span class="pre">CK.ELEMENTS</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.CMS_DIR</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.VASP_WORK_DIR</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.ENERGY_DAT_OUT</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.POST_PROCESSING_OUT_DIR</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.MP_STABLE_OUT</span></code></p>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for field
+descriptions.</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted shell command string to execute select_final_structures_ternary.py or select_final_structures_quaternary.py</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>Exception</strong> – If directory navigation, file operations, or command</p></li>
+<li><p><strong>composition fail.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.hull.cmd_convex_hull_color">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_convex_hull_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_convex_hull_color" title="Permalink to this definition"></a></dt>
+<dd><p>Generate updated phase diagrams by plotting the convex hull and
+highlighting the positions of all computed structures and compositions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
+* <code class="docutils literal notranslate"><span class="pre">CK.ELEMENTS</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.CMS_DIR</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.POST_PROCESSING_OUT_DIR</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.MP_STABLE_OUT</span></code>
+* <code class="docutils literal notranslate"><span class="pre">CK.POST_PROCESSING_FINAL_OUT</span></code></p>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code> for field descriptions.</p>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A formatted shell command string to execute <cite>plot_convex_hull_ternary.py</cite>
+or <cite>plot_convex_hull_quaternary.py</cite>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If directory navigation or file operations fail.</p>
 </dd>
 </dl>
 </dd></dl>

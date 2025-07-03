@@ -53,6 +53,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.perlmutter.PerlmutterConfig"><code class="docutils literal notranslate"><span class="pre">PerlmutterConfig</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.POSTPROCESSING_LABEL"><code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_config_registry.auto_register_configs"><code class="docutils literal notranslate"><span class="pre">auto_register_configs()</span></code></a></li>
@@ -133,6 +134,12 @@ exa-AMD workflow and resource type:</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.POSTPROCESSING_LABEL">
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">POSTPROCESSING_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'post_processing_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.POSTPROCESSING_LABEL" title="Permalink to this definition"></a></dt>
+<dd><p>Executor label for all calculcations and scripts involved in the post-processing</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL">
 <span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">SELECT_EXECUTOR_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'select_executor_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL" title="Permalink to this definition"></a></dt>
 <dd><p>Executor label used for structure selection tasks.</p>
@@ -167,7 +174,7 @@ so the Parsl configurations can be selected at runtime.</p>
 <p>If the registry is empty, it auto-imports all modules
 from the default <cite>parsl_configs</cite> package using <a class="reference internal" href="#parsl_configs.parsl_config_registry.auto_register_configs" title="parsl_configs.parsl_config_registry.auto_register_configs"><code class="xref py py-func docutils literal notranslate"><span class="pre">auto_register_configs()</span></code></a>.</p>
 <p>The configuration is provided via the <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> field in
-<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a>.</p>
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – Must contain the key <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code></p>
@@ -191,7 +198,7 @@ from the default <cite>parsl_configs</cite> package using <a class="reference in
 <p>Can be called inside any module to make the defined configuration
 discoverable at runtime.</p>
 <p>Once a configuration is registered, it can be selected dynamically at runtime
-using the <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a>, by setting the
+using the <code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code>, by setting the
 <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> parameter to the corresponding name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

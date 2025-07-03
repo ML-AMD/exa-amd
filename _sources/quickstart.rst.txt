@@ -15,6 +15,8 @@ Prerequisites
 - pytest >= 8.3.5
 - sphinx >= 7.1.2
 - sphinx_rtd_theme >= 3.0.2
+- mp-api >= 0.45.7
+- python-ternary >= 1.0.8
 
 **Additionally:**
 
@@ -73,7 +75,11 @@ Here is an example configuration file for the Perlmutter system:
         "vasp_nstructures": 10,
         "vasp_nsw": 100,
         "vasp_timeout": 1800,
-        "vasp_nnodes": 1
+        "vasp_nnodes": 1,
+
+        "hull_energy_threshold": 0.1,
+        "post_processing_output_dir": "<abs_path_to>/post_processing_out_dir",
+        "mp_rester_api_key": "<MP_RESTER_API_KEY>"
     }
 
 You can create multiple configuration files for different systems, workloads, or experiments.
@@ -99,14 +105,16 @@ You can override any field from the JSON configuration using command-line argume
     --cms_dir CMS_DIR     Path to the CMS directory (required).
     --vasp_std_exe VASP_STD_EXE
                             VASP executable (required).
-    --work_dir WORK_DIR   Path to a work directory used for generating and selecting all the structures (required).
+    --work_dir WORK_DIR
+                            Path to a work directory used for generating and selecting all the structures (required).
     --vasp_work_dir VASP_WORK_DIR
                             Path to a work directory for VASP-specific operations (required).
     --vasp_pot_dir VASP_POT_DIR
                             Path to the PAW potentials directory containing kinetic energy densities for meta-GGA calculations (required).
     --vasp_output_file VASP_OUTPUT_FILE
                             Output file name for storing the result of the VASP calculations (required).
-    --elements ELEMENTS   Elements, e.g. 'Ce-Co-B' (required).
+    --elements ELEMENTS
+                            Elements, e.g. 'Ce-Co-B' (required).
     --parsl_config PARSL_CONFIG
                             Parsl config name, previously registered (required).
     --initial_structures_dir INITIAL_STRUCTURES_DIR
@@ -125,10 +133,17 @@ You can override any field from the JSON configuration using command-line argume
                             Number of structures to be processed with VASP. (-1 means all). (default='-1').
     --vasp_timeout VASP_TIMEOUT
                             Max walltime in seconds for a VASP calculation. (default='1800').
-    --vasp_nsw VASP_NSW   VASP NSW: gives the number of steps in all molecular dynamics runs. (default='100').
+    --vasp_nsw VASP_NSW
+                            VASP NSW: gives the number of steps in all molecular dynamics runs. (default='100').
     --cpu_account CPU_ACCOUNT
                             The cpu account name on the current machine (forwarded to the workload manager). (default='').
     --gpu_account GPU_ACCOUNT
                             The gpu account name on the current machine (forwarded to the workload manager). (default='').
     --output_level OUTPUT_LEVEL
                             Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default='INFO').
+    --post_processing_output_dir POST_PROCESSING_OUTPUT_DIR
+                            A full path to a directory that will contain all the post-processing results. If not set, the post-processing step will be skipped. (default='').
+    --mp_rester_api_key MP_RESTER_API_KEY
+                            An API key for accessing the MP data (https://docs.materialsproject.org). Required if `post_processing_output_dir` is set. (default='').
+    --hull_energy_threshold HULL_ENERGY_THRESHOLD
+                            Maximum Ehull (eV/atom) to display for metastable phases (default='0.1').
