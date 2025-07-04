@@ -5,23 +5,33 @@ from parsl_configs.parsl_executors_labels import POSTPROCESSING_LABEL
 
 def cmd_vasp_hull(config, work_subdir):
     """
-    Using the total energies computes the formation energies of each structure relative to reference elemental phases.
+    Using the total energies, computes the formation energies of each structure
+    relative to reference elemental phases.
 
-    Args:
-        config (dict): ConfigManager. The following fields are used:
-            * ``CK.VASP_NTASKS_PER_RUN`` – *int*, number of MPI ranks.
-              ``1`` triggers a run with a single process, any other value results in
-              ``srun -n <N>``.
-            * ``CK.VASP_STD_EXE``
+    Parameters
+    ----------
+    config : dict
+        ConfigManager instance. The following fields are used:
 
-            See :class:`~tools.config_manager.ConfigManager` for field descriptions.
+        - ``CK.VASP_NTASKS_PER_RUN`` (*int*): Number of MPI ranks.
+          ``1`` triggers a run with a single process; any other value results in
+          ``srun -n <N>``.
+        - ``CK.VASP_STD_EXE``: Path to the VASP executable.
 
+        See :class:`~tools.config_manager.ConfigManager` for field descriptions.
 
-    Returns:
+    work_subdir : str
+        Name of the working subdirectory where the hull calculation is run.
+
+    Returns
+    -------
+    str
         A formatted shell command string to execute `run_single_vasp_hull_calculation.py`.
 
-    Raises:
-       Exception: If directory navigation or file operations fail.
+    Raises
+    ------
+    Exception
+        If directory navigation or file operations fail.
     """
     import os
     try:
@@ -59,12 +69,12 @@ def cmd_calculate_ehul(config):
 
     Args:
         config (dict): ConfigManager. The following fields are used:
-            * ``CK.ELEMENTS``
-            * ``CK.CMS_DIR``
-            * ``CK.VASP_WORK_DIR``
-            * ``CK.ENERGY_DAT_OUT``
-            * ``CK.POST_PROCESSING_OUT_DIR``
-            * ``CK.MP_STABLE_OUT``
+            - ``CK.ELEMENTS``
+            - ``CK.CMS_DIR``
+            - ``CK.VASP_WORK_DIR``
+            - ``CK.ENERGY_DAT_OUT``
+            - ``CK.POST_PROCESSING_OUT_DIR``
+            - ``CK.MP_STABLE_OUT``
 
             See :class:`~tools.config_manager.ConfigManager` for field
             descriptions.
@@ -108,11 +118,11 @@ def cmd_convex_hull_color(config):
 
     Args:
         config (dict): ConfigManager. The following fields are used:
-            * ``CK.ELEMENTS``
-            * ``CK.CMS_DIR``
-            * ``CK.POST_PROCESSING_OUT_DIR``
-            * ``CK.MP_STABLE_OUT``
-            * ``CK.POST_PROCESSING_FINAL_OUT``
+            - ``CK.ELEMENTS``
+            - ``CK.CMS_DIR``
+            - ``CK.POST_PROCESSING_OUT_DIR``
+            - ``CK.MP_STABLE_OUT``
+            - ``CK.POST_PROCESSING_FINAL_OUT``
 
             See :class:`~tools.config_manager.ConfigManager` for field descriptions.
 
