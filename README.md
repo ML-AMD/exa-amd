@@ -73,6 +73,9 @@ We currently support the automated workflows on NERSC's Perlmutter and LANL's Ch
 ## Documentation
 Documentation for exa-AMD is at [https://ml-amd.github.io/exa-amd](https://ml-amd.github.io/exa-amd/).
 
+## Example
+Follow the step-by-step tutorial: [exa-AMD Tutorial](https://ml-amd.github.io/exa-amd/tutorial.html).
+
 ## Highlight
 Prediction of new CeFeIn compounds using this framework by the development team.
 
