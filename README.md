@@ -78,6 +78,11 @@ Prediction of new CeFeIn compounds using this framework by the development team.
 
 <img width="677" alt="thrust1" src="https://github.com/user-attachments/assets/b067d23f-fd43-4409-b44b-01d1457bb440" />
 
+## Contribute
+- **Propose changes** — [open a pull request](https://github.com/ML-AMD/exa-amd/pulls)
+- **Report issues** — [open an issue](https://github.com/ML-AMD/exa-amd/issues)
+- **Ask questions / get help** — [start a discussion](https://github.com/ML-AMD/exa-amd/discussions)
+
 ## Copyright
 Copyright 2025. Iowa State University. All rights reserved. This software was produced under U.S. Government contract DE-AC02-07CH11358 for the Ames National Laboratory, which is operated by Iowa State University for the U.S. Department of Energy. The U.S. Government has rights to use, reproduce, and distribute this software. NEITHER THE GOVERNMENT NOR IOWA STATE UNIVERSITY MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE. If software is modified to produce derivative works, such modified software should be clearly marked, so as not to confuse it with the version available from the Ames National Laboratory.
 
