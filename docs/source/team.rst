@@ -30,7 +30,7 @@ Cai-Zhuang Wang
 
 |clearboth|
 
-Ying-Wai Li
+Ying Wai Li
 ^^^^^^^^^^^^^^^
 
 .. container:: twocol
