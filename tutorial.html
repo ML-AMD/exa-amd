@@ -95,7 +95,7 @@
              
   <section id="tutorial">
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this heading"></a></h1>
-<p>This tutorial walks through how to set up and run exa-AMD on [NERSC’s Perlmutter supercomputer](<a class="reference external" href="https://docs.nersc.gov/systems/perlmutter/architecture/">https://docs.nersc.gov/systems/perlmutter/architecture/</a>), on the <strong>GPU partition</strong>.</p>
+<p>This tutorial demonstrates how to build and run <strong>exa-AMD</strong> on the GPU partition of the <a class="reference external" href="https://docs.nersc.gov/systems/perlmutter/architecture/">Perlmutter supercomputer</a> to predict novel <code class="docutils literal notranslate"><span class="pre">Na–B–H–C</span></code> quaternary compounds.</p>
 <section id="clone-the-repository">
 <h2>1. Clone the Repository<a class="headerlink" href="#clone-the-repository" title="Permalink to this heading"></a></h2>
 <p>Start by cloning the <cite>exa-AMD</cite> repository:</p>
@@ -119,11 +119,11 @@
 <p>If you do not already have it:</p>
 <ul class="simple">
 <li><p>Log into your account on the <a class="reference external" href="https://www.vasp.at">VASP website</a></p></li>
-<li><p>Navigate to the <strong>Downloads</strong> section</p></li>
-<li><p>Download the latest archive (e.g.,``potpaw_PBE.52.tar.gz``)</p></li>
+<li><p>Navigate to the “Downloads” section</p></li>
+<li><p>Download the latest archive (e.g., potpaw_PBE.52.tar.gz)</p></li>
 </ul>
-<p>Once downloaded, extract the archive and place the resulting <cite>potpaw_PBE</cite> directory anywhere on your system. You will reference its location in your JSON config using the <code class="docutils literal notranslate"><span class="pre">pot_dir</span></code> parameter.</p>
-<p>Next, <a class="reference external" href="https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae">download</a> and extract the <strong>`initial_structures`</strong> dataset which contains a set of initial crystal structures used by the workflow.</p>
+<p>Once downloaded, extract the archive and place the resulting <cite>potpaw_PBE</cite> directory anywhere on your system. You will reference its location in your JSON config using the <code class="docutils literal notranslate"><span class="pre">vasp_pot_dir</span></code> parameter.</p>
+<p>Next, <a class="reference external" href="https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae">download</a> and extract the <strong>initial_structures</strong> dataset which contains a set of initial crystal structures used by the workflow.</p>
 </section>
 <section id="prepare-the-json-configuration-file">
 <h2>4. Prepare the JSON Configuration File<a class="headerlink" href="#prepare-the-json-configuration-file" title="Permalink to this heading"></a></h2>
@@ -133,13 +133,13 @@
 </div>
 <p>Edit the following fields in <cite>my_config_perlmutter.json</cite>:</p>
 <ul class="simple">
-<li><p><cite>“cms_dir”</cite>: Absolute path to your <cite>cms_dir</cite> directory</p></li>
-<li><p><cite>“work_dir”</cite>: A scratch directory for intermediate files</p></li>
-<li><p><cite>“vasp_work_dir”</cite>: A work directory for running VASP calculations</p></li>
-<li><p><cite>“vasp_pot_dir”</cite>: Path to your <cite>potpaw_PBE</cite> directory</p></li>
-<li><p><cite>“initial_structures”</cite>: Path to the <cite>initial_structures</cite> directory (downloaded in the previous section)</p></li>
-<li><p><cite>“post_processing_output_dir”</cite>:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.</p></li>
-<li><p><cite>“mp_rester_api_key”</cite>: your Materials Project API key (see <a class="reference external" href="https://docs.materialsproject.org">https://docs.materialsproject.org</a>). This key is mandatory whenever <cite>post_processing_output_dir`</cite> is provided.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cms_dir:</span></code> Absolute path to your <cite>cms_dir</cite> directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir</span></code>: A scratch directory for intermediate files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vasp_work_dir</span></code>: A work directory for running VASP calculations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vasp_pot_dir</span></code>: Path to your <cite>potpaw_PBE</cite> directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_structures</span></code>: Path to the <cite>initial_structures</cite> directory (downloaded in the previous section)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">post_processing_output_dir</span></code>:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mp_rester_api_key</span></code>: your Materials Project API key (see <a class="reference external" href="https://docs.materialsproject.org">https://docs.materialsproject.org</a>). This key is mandatory whenever <cite>post_processing_output_dir`</cite> is provided.</p></li>
 </ul>
 </section>
 <hr class="docutils" />
@@ -153,7 +153,7 @@
 <p>Then edit <cite>my_perlmutter.py</cite>:</p>
 <section id="a-change-the-registration-name">
 <h3>a. Change the registration name<a class="headerlink" href="#a-change-the-registration-name" title="Permalink to this heading"></a></h3>
-<p>At the bottom of the file, update <cite>register_parsl_config()</cite> to reflect the new config name. This value <strong>have to match</strong> the value you will set in your JSON config file (the <cite>“parsl_config”</cite> field).</p>
+<p>At the bottom of the file, update <cite>register_parsl_config()</cite> to reflect the new config name. This value <strong>have to match</strong> the value you will set in your JSON config file (the <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> field).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before:</span>
 <span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
 
@@ -171,8 +171,8 @@
 </ul>
 <p>For each executor, update the following fields in the <cite>SlurmProvider</cite>:</p>
 <ul class="simple">
-<li><p><cite>account</cite>: your NERSC allocation account (e.g., <cite>“m1234”</cite>)</p></li>
-<li><p><cite>qos</cite>: the QOS for that job (e.g., <cite>“regular”</cite>, <cite>“premium”</cite>)</p></li>
+<li><p><cite>account</cite>: your NERSC allocation account (e.g., <strong>m1234</strong>)</p></li>
+<li><p><cite>qos</cite>: the QOS for that job (e.g., <strong>regular</strong>, <strong>premium</strong>)</p></li>
 </ul>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>The account and qos values used in the Parsl configuration are exactly the same
 as the ones you would provide when running with Slurm directly on Perlmutter,
@@ -200,18 +200,12 @@ Then in your Parsl config, you should use:
 <p class="admonition-title">Note</p>
 <p>The account can also be specified at runtime via the command-line arguments.</p>
 </div>
-<p>Make sure you update <strong>all four</strong> executors accordingly, using your appropriate account and qos for CPU and GPU resources.</p>
+<p>Make sure you update <strong>all five</strong> executors accordingly, using your appropriate account and qos for CPU and GPU resources.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>All Parsl configuration files <strong>must be placed inside the</strong> <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> <strong>directory</strong>.</p>
 </div>
-<p>For more information about possible Parsl configurations, see the official documentation <a class="footnote-reference brackets" href="#parsl-docs" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="parsl-docs" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p><a class="reference external" href="https://parsl-project.org">https://parsl-project.org</a></p>
-</aside>
-</aside>
+<p>For details on Parsl configuration options, see the <a class="reference external" href="https://parsl-project.org">official documentation</a>.</p>
 </section>
 <section id="c-update-json-configuration">
 <h3>c. Update JSON Configuration<a class="headerlink" href="#c-update-json-configuration" title="Permalink to this heading"></a></h3>
@@ -307,11 +301,11 @@ the contents of the work directory (<cite>work_dir</cite>), the VASP work direct
 └── selected/             # candidate structures
 </pre></div>
 </div>
-<figure class="align-center" id="id2">
+<figure class="align-center" id="id1">
 <a class="reference internal image-reference" href="_images/hull_plot.png"><img alt="Convex-hull phase diagram (example)" src="_images/hull_plot.png" style="width: 70%;" /></a>
 <figcaption>
 <p><span class="caption-text"><strong>Figure –</strong> The <em>hull_plot.png</em> file listed above, showing the
-convex-hull phase diagram generated in this final step.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+convex-hull phase diagram generated in this final step.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <p>Your run have to produce this same <strong>hull_plot.png</strong>.</p>

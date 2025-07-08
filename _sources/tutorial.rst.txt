@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-This tutorial walks through how to set up and run exa-AMD on [NERSC’s Perlmutter supercomputer](https://docs.nersc.gov/systems/perlmutter/architecture/), on the **GPU partition**. 
+This tutorial demonstrates how to build and run **exa-AMD** on the GPU partition of the `Perlmutter supercomputer <https://docs.nersc.gov/systems/perlmutter/architecture/>`_ to predict novel ``Na–B–H–C`` quaternary compounds.
 
 1. Clone the Repository
 ------------------------
@@ -34,12 +34,12 @@ Ensure you have a working `VASP <https://www.vasp.at>`_ installation and access 
 If you do not already have it:
 
 - Log into your account on the `VASP website <https://www.vasp.at>`_
-- Navigate to the **Downloads** section
-- Download the latest archive (e.g.,``potpaw_PBE.52.tar.gz``)
+- Navigate to the "Downloads" section
+- Download the latest archive (e.g., potpaw_PBE.52.tar.gz)
 
-Once downloaded, extract the archive and place the resulting `potpaw_PBE` directory anywhere on your system. You will reference its location in your JSON config using the ``pot_dir`` parameter.
+Once downloaded, extract the archive and place the resulting `potpaw_PBE` directory anywhere on your system. You will reference its location in your JSON config using the ``vasp_pot_dir`` parameter.
 
-Next, `download <https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae>`_ and extract the **`initial_structures`** dataset which contains a set of initial crystal structures used by the workflow.
+Next, `download <https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae>`_ and extract the **initial_structures** dataset which contains a set of initial crystal structures used by the workflow.
 
 4. Prepare the JSON Configuration File
 ---------------------------------------
@@ -52,13 +52,13 @@ Copy the default Perlmutter configuration:
 
 Edit the following fields in `my_config_perlmutter.json`:
 
-- `"cms_dir"`: Absolute path to your `cms_dir` directory
-- `"work_dir"`: A scratch directory for intermediate files
-- `"vasp_work_dir"`: A work directory for running VASP calculations
-- `"vasp_pot_dir"`: Path to your `potpaw_PBE` directory
-- `"initial_structures"`: Path to the `initial_structures` directory (downloaded in the previous section)
-- `"post_processing_output_dir"`:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.
-- `"mp_rester_api_key"`: your Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir`` is provided.
+- ``cms_dir:`` Absolute path to your `cms_dir` directory
+- ``work_dir``: A scratch directory for intermediate files
+- ``vasp_work_dir``: A work directory for running VASP calculations
+- ``vasp_pot_dir``: Path to your `potpaw_PBE` directory
+- ``initial_structures``: Path to the `initial_structures` directory (downloaded in the previous section)
+- ``post_processing_output_dir``:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.
+- ``mp_rester_api_key``: your Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir`` is provided.
 
 ----
 
@@ -78,7 +78,7 @@ Then edit `my_perlmutter.py`:
 a. Change the registration name
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-At the bottom of the file, update `register_parsl_config()` to reflect the new config name. This value **have to match** the value you will set in your JSON config file (the `"parsl_config"` field).
+At the bottom of the file, update `register_parsl_config()` to reflect the new config name. This value **have to match** the value you will set in your JSON config file (the ``parsl_config`` field).
 
 .. code-block:: python
 
@@ -98,8 +98,8 @@ The Perlmutter configuration defines **five separate executors**:
 
 For each executor, update the following fields in the `SlurmProvider`:
 
-- `account`: your NERSC allocation account (e.g., `"m1234"`)
-- `qos`: the QOS for that job (e.g., `"regular"`, `"premium"`)
+- `account`: your NERSC allocation account (e.g., **m1234**)
+- `qos`: the QOS for that job (e.g., **regular**, **premium**)
 
 .. code-block:: text
 
@@ -130,16 +130,14 @@ Here is an example:
 
    The account can also be specified at runtime via the command-line arguments.
 
-Make sure you update **all four** executors accordingly, using your appropriate account and qos for CPU and GPU resources.
+Make sure you update **all five** executors accordingly, using your appropriate account and qos for CPU and GPU resources.
 
 .. important::
 
    All Parsl configuration files **must be placed inside the** ``parsl_configs/`` **directory**.
 
 
-For more information about possible Parsl configurations, see the official documentation [#parsl_docs]_.
-
-.. [#parsl_docs] https://parsl-project.org
+For details on Parsl configuration options, see the `official documentation <https://parsl-project.org>`_.
 
 c. Update JSON Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
