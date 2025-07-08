@@ -154,9 +154,7 @@ class ConfigManager:
                 self.config[key] = default_val
 
         if self.config[CK.POST_PROCESSING_OUT_DIR] and not self.config[CK.MPRester_API_KEY]:
-            raise ValueError(
-                f"Error: Missing required argument '{
-                    self.config[MPRester_API_KEY]}'.")
+            raise ValueError(f"Error: Missing required argument '{self.config[MPRester_API_KEY]}'.")
 
         # Create/Update directories
         work_dir = os.path.join(
