@@ -12,10 +12,7 @@ jobs:
       with:
         persist-credentials: false
     - name: Build HTML
-      uses: ammaraskar/sphinx-action@
-      with:
-        docs-folder: "docs/"
-        build-command: "sphinx-build -b html ./source build -W --keep-going -n"
+      uses: ammaraskar/sphinx-action@master
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
