@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -13,14 +13,14 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=e031e9a9"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Parsl Configuration" href="parsl_config.html" />
-    <link rel="prev" title="Workflows" href="workflows.html" /> 
+    <link rel="next" title="Utils" href="utils.html" />
+    <link rel="prev" title="Parsl Configuration" href="parsl_config.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Parsl Tasks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.gen_structures.cmd_gen_structures"><code class="docutils literal notranslate"><span class="pre">cmd_gen_structures()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction"><code class="docutils literal notranslate"><span class="pre">cmd_cgcnn_prediction()</span></code></a></li>
@@ -58,7 +59,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.hull.cmd_convex_hull_color"><code class="docutils literal notranslate"><span class="pre">cmd_convex_hull_color()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
 </ul>
 </li>
@@ -91,10 +91,10 @@
            <div itemprop="articleBody">
              
   <section id="parsl-tasks">
-<h1>Parsl Tasks<a class="headerlink" href="#parsl-tasks" title="Permalink to this heading"></a></h1>
+<h1>Parsl Tasks<a class="headerlink" href="#parsl-tasks" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.gen_structures.cmd_gen_structures">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.gen_structures.</span></span><span class="sig-name descname"><span class="pre">cmd_gen_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.gen_structures.cmd_gen_structures" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.gen_structures.</span></span><span class="sig-name descname"><span class="pre">cmd_gen_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.gen_structures.cmd_gen_structures" title="Link to this definition"></a></dt>
 <dd><p>Construct the shell command used to run the generation script via Parsl.</p>
 <p>Prepares the working environment and generates the command to execute
 the CGCNN <cite>cms_dir/gen_structure.py</cite> script. This task generates
@@ -123,7 +123,7 @@ hypothetical structures based on the initial crystal structures.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.cgcnn.cmd_cgcnn_prediction">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.cgcnn.</span></span><span class="sig-name descname"><span class="pre">cmd_cgcnn_prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.cgcnn.</span></span><span class="sig-name descname"><span class="pre">cmd_cgcnn_prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction" title="Link to this definition"></a></dt>
 <dd><p>Construct the shell command used to run a CGCNN prediction via Parsl.</p>
 <p>Prepares the working environment and generates the command to execute
 the CGCNN <cite>cms_dir/predict.py</cite> script.</p>
@@ -151,7 +151,7 @@ the CGCNN <cite>cms_dir/predict.py</cite> script.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.select_structures.cmd_select_structures">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.select_structures.</span></span><span class="sig-name descname"><span class="pre">cmd_select_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.select_structures.cmd_select_structures" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.select_structures.</span></span><span class="sig-name descname"><span class="pre">cmd_select_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.select_structures.cmd_select_structures" title="Link to this definition"></a></dt>
 <dd><p>Construct the shell command used to run the structure selection script via Parsl.</p>
 <p>Prepares the command to execute the <cite>cms_dir/select_structure.py</cite> script.
 This task is used to identify and remove duplicate or near-duplicate structures,
@@ -180,7 +180,7 @@ based on a structural similarity threshold</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.dft_optimization.cmd_fused_vasp_calc">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.dft_optimization.</span></span><span class="sig-name descname"><span class="pre">cmd_fused_vasp_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walltime=&lt;class</span> <span class="pre">'int'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.dft_optimization.</span></span><span class="sig-name descname"><span class="pre">cmd_fused_vasp_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walltime=&lt;class</span> <span class="pre">'int'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc" title="Link to this definition"></a></dt>
 <dd><p>Run a two-stage VASP calculation via a Python Parsl task.</p>
 <p>It start by running a relaxation phase trying to find
 the lowest-energy configuration. If relaxation was successful,
@@ -221,7 +221,7 @@ it runs the energy calculaction</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.hull.cmd_vasp_hull">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_vasp_hull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_subdir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_vasp_hull" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_vasp_hull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_subdir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_vasp_hull" title="Link to this definition"></a></dt>
 <dd><p>Using the total energies, computes the formation energies of each structure
 relative to reference elemental phases.</p>
 <dl class="field-list simple">
@@ -253,7 +253,7 @@ relative to reference elemental phases.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.hull.cmd_calculate_ehul">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_calculate_ehul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_calculate_ehul" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_calculate_ehul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_calculate_ehul" title="Link to this definition"></a></dt>
 <dd><p>Select promising structures: Structures with low energy above the hull (Ehull) are identified as promising candidates. These are automatically copied to a dedicated folder for further analysis, such as evaluation of additional physical properties or preparation for experimental validation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -285,7 +285,7 @@ descriptions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.hull.cmd_convex_hull_color">
-<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_convex_hull_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_convex_hull_color" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.hull.</span></span><span class="sig-name descname"><span class="pre">cmd_convex_hull_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.hull.cmd_convex_hull_color" title="Link to this definition"></a></dt>
 <dd><p>Generate updated phase diagrams by plotting the convex hull and
 highlighting the positions of all computed structures and compositions.</p>
 <dl class="field-list simple">
@@ -315,8 +315,8 @@ or <cite>plot_convex_hull_quaternary.py</cite>.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="workflows.html" class="btn btn-neutral float-left" title="Workflows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="parsl_config.html" class="btn btn-neutral float-right" title="Parsl Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="parsl_config.html" class="btn btn-neutral float-left" title="Parsl Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="Utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -13,9 +13,9 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=e031e9a9"></script>
-      <script src="_static/doctools.js?v=888ff710"></script>
-      <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -94,10 +94,10 @@
            <div itemprop="articleBody">
              
   <section id="tutorial">
-<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this heading"></a></h1>
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
 <p>This tutorial demonstrates how to build and run <strong>exa-AMD</strong> on the GPU partition of the <a class="reference external" href="https://docs.nersc.gov/systems/perlmutter/architecture/">Perlmutter supercomputer</a> to predict novel <code class="docutils literal notranslate"><span class="pre">Na–B–H–C</span></code> quaternary compounds.</p>
 <section id="clone-the-repository">
-<h2>1. Clone the Repository<a class="headerlink" href="#clone-the-repository" title="Permalink to this heading"></a></h2>
+<h2>1. Clone the Repository<a class="headerlink" href="#clone-the-repository" title="Link to this heading"></a></h2>
 <p>Start by cloning the <cite>exa-AMD</cite> repository:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ML-AMD/exa-amd.git
 <span class="nb">cd</span><span class="w"> </span>exa-amd
@@ -106,7 +106,7 @@
 </section>
 <hr class="docutils" />
 <section id="install-dependencies">
-<h2>2. Install Dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading"></a></h2>
+<h2>2. Install Dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading"></a></h2>
 <p>Follow the <a class="reference internal" href="quickstart.html#installation"><span class="std std-ref">Installation</span></a> instructions to create the required environment using Conda. After installation, make sure to activate the environment:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>amd_env
 </pre></div>
@@ -114,7 +114,7 @@
 </section>
 <hr class="docutils" />
 <section id="prepare-the-data-and-vasp-setup">
-<h2>3. Prepare the Data and VASP Setup<a class="headerlink" href="#prepare-the-data-and-vasp-setup" title="Permalink to this heading"></a></h2>
+<h2>3. Prepare the Data and VASP Setup<a class="headerlink" href="#prepare-the-data-and-vasp-setup" title="Link to this heading"></a></h2>
 <p>Ensure you have a working <a class="reference external" href="https://www.vasp.at">VASP</a> installation and access to the latest PAW potentials containing kinetic energy densities for meta-GGA calculations .</p>
 <p>If you do not already have it:</p>
 <ul class="simple">
@@ -126,7 +126,7 @@
 <p>Next, <a class="reference external" href="https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae">download</a> and extract the <strong>initial_structures</strong> dataset which contains a set of initial crystal structures used by the workflow.</p>
 </section>
 <section id="prepare-the-json-configuration-file">
-<h2>4. Prepare the JSON Configuration File<a class="headerlink" href="#prepare-the-json-configuration-file" title="Permalink to this heading"></a></h2>
+<h2>4. Prepare the JSON Configuration File<a class="headerlink" href="#prepare-the-json-configuration-file" title="Link to this heading"></a></h2>
 <p>Copy the default Perlmutter configuration:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>configs/perlmutter_quaternary.json<span class="w"> </span>configs/my_config_perlmutter.json
 </pre></div>
@@ -144,7 +144,7 @@
 </section>
 <hr class="docutils" />
 <section id="prepare-the-parsl-configuration">
-<h2>5. Prepare the Parsl Configuration<a class="headerlink" href="#prepare-the-parsl-configuration" title="Permalink to this heading"></a></h2>
+<h2>5. Prepare the Parsl Configuration<a class="headerlink" href="#prepare-the-parsl-configuration" title="Link to this heading"></a></h2>
 <p>Parsl configurations must be placed inside the <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> directory so that they can be automatically discovered by exa-AMD at runtime.</p>
 <p>Start by copying the default Perlmutter configuration:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>parsl_configs/perlmutter.py<span class="w"> </span>parsl_configs/my_perlmutter.py
@@ -152,7 +152,7 @@
 </div>
 <p>Then edit <cite>my_perlmutter.py</cite>:</p>
 <section id="a-change-the-registration-name">
-<h3>a. Change the registration name<a class="headerlink" href="#a-change-the-registration-name" title="Permalink to this heading"></a></h3>
+<h3>a. Change the registration name<a class="headerlink" href="#a-change-the-registration-name" title="Link to this heading"></a></h3>
 <p>At the bottom of the file, update <cite>register_parsl_config()</cite> to reflect the new config name. This value <strong>have to match</strong> the value you will set in your JSON config file (the <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> field).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before:</span>
 <span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
@@ -163,7 +163,7 @@
 </div>
 </section>
 <section id="b-update-each-executor">
-<h3>b. Update each executor<a class="headerlink" href="#b-update-each-executor" title="Permalink to this heading"></a></h3>
+<h3>b. Update each executor<a class="headerlink" href="#b-update-each-executor" title="Link to this heading"></a></h3>
 <p>The Perlmutter configuration defines <strong>five separate executors</strong>:</p>
 <ul class="simple">
 <li><p>Three that run on <strong>GPU nodes</strong> (for VASP and CGCNN tasks)</p></li>
@@ -208,7 +208,7 @@ Then in your Parsl config, you should use:
 <p>For details on Parsl configuration options, see the <a class="reference external" href="https://parsl-project.org">official documentation</a>.</p>
 </section>
 <section id="c-update-json-configuration">
-<h3>c. Update JSON Configuration<a class="headerlink" href="#c-update-json-configuration" title="Permalink to this heading"></a></h3>
+<h3>c. Update JSON Configuration<a class="headerlink" href="#c-update-json-configuration" title="Link to this heading"></a></h3>
 <p>After registering the new Parsl configuration, update your JSON config file to reference it:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
      ...
@@ -221,7 +221,7 @@ Then in your Parsl config, you should use:
 </section>
 <hr class="docutils" />
 <section id="run-the-workflow">
-<h2>6. Run the Workflow<a class="headerlink" href="#run-the-workflow" title="Permalink to this heading"></a></h2>
+<h2>6. Run the Workflow<a class="headerlink" href="#run-the-workflow" title="Link to this heading"></a></h2>
 <p>Once everything is configured, run the full exa-AMD workflow from a login node of Perlmutter:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:<span class="nv">$PYTHONPATH</span>
 python<span class="w"> </span>amd.py<span class="w"> </span>--config<span class="w"> </span>configs/my_config_perlmutter.json<span class="w"> </span>--vasp_nnodes<span class="w"> </span><span class="m">2</span>
@@ -257,11 +257,11 @@ convex hull and highlights all computed structures.</p></li>
 </section>
 <hr class="docutils" />
 <section id="check-the-results">
-<h2>7. Check the Results<a class="headerlink" href="#check-the-results" title="Permalink to this heading"></a></h2>
+<h2>7. Check the Results<a class="headerlink" href="#check-the-results" title="Link to this heading"></a></h2>
 <p>After the workflow completes, you should verify that all stages ran successfully by inspecting
 the contents of the work directory (<cite>work_dir</cite>), the VASP work directory (<cite>vasp_work_dir</cite>) and the post-processing directory (<cite>post_processing_output_dir</cite>).</p>
 <section id="a-work-directory">
-<h3>a. Work directory<a class="headerlink" href="#a-work-directory" title="Permalink to this heading"></a></h3>
+<h3>a. Work directory<a class="headerlink" href="#a-work-directory" title="Link to this heading"></a></h3>
 <p>Inside your specified <cite>work_dir</cite>, you should see a subdirectory named after the elements string (i.e., <cite>Na-B-C</cite>) with the following contents:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>work_dir/
 └── Na-B-H-C
@@ -273,7 +273,7 @@ the contents of the work directory (<cite>work_dir</cite>), the VASP work direct
 </div>
 </section>
 <section id="b-vasp-directory">
-<h3>b. VASP Directory<a class="headerlink" href="#b-vasp-directory" title="Permalink to this heading"></a></h3>
+<h3>b. VASP Directory<a class="headerlink" href="#b-vasp-directory" title="Link to this heading"></a></h3>
 <p>Your <cite>vasp_work_dir</cite> should contain subfolders for VASP calculation outputs and a temporary workspace used during post-processing.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>vasp_work_dir/
 └── Na-B-H-C
@@ -291,7 +291,7 @@ the contents of the work directory (<cite>work_dir</cite>), the VASP work direct
 <p>Each numbered folder corresponds to a VASP calculation for a selected structure.</p>
 </section>
 <section id="c-final-output">
-<h3>c. Final Output<a class="headerlink" href="#c-final-output" title="Permalink to this heading"></a></h3>
+<h3>c. Final Output<a class="headerlink" href="#c-final-output" title="Link to this heading"></a></h3>
 <p>The post-processing output directory should look like the following:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>post_processing_out_dir/
 ├── hull.dat
@@ -302,10 +302,11 @@ the contents of the work directory (<cite>work_dir</cite>), the VASP work direct
 </pre></div>
 </div>
 <figure class="align-center" id="id1">
-<a class="reference internal image-reference" href="_images/hull_plot.png"><img alt="Convex-hull phase diagram (example)" src="_images/hull_plot.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/hull_plot.png"><img alt="Convex-hull phase diagram (example)" src="_images/hull_plot.png" style="width: 70%;" />
+</a>
 <figcaption>
 <p><span class="caption-text"><strong>Figure –</strong> The <em>hull_plot.png</em> file listed above, showing the
-convex-hull phase diagram generated in this final step.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+convex-hull phase diagram generated in this final step.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Your run have to produce this same <strong>hull_plot.png</strong>.</p>

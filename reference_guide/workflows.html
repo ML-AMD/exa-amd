@@ -1,7 +1,7 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en">
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -13,13 +13,13 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=e031e9a9"></script>
-      <script src="../_static/doctools.js?v=888ff710"></script>
-      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Parsl Tasks" href="parsl_tasks.html" />
+    <link rel="next" title="Parsl Configuration" href="parsl_config.html" />
     <link rel="prev" title="API Reference Guide" href="../api.html" /> 
 </head>
 
@@ -47,9 +47,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference Guide</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Workflows</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parsl_tasks.html">Parsl Tasks</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.run_workflow"><code class="docutils literal notranslate"><span class="pre">run_workflow()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsl_tasks.html">Parsl Tasks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
 </ul>
 </li>
@@ -82,7 +85,42 @@
            <div itemprop="articleBody">
              
   <section id="workflows">
-<h1>Workflows<a class="headerlink" href="#workflows" title="Permalink to this heading"></a></h1>
+<h1>Workflows<a class="headerlink" href="#workflows" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="workflows.vasp_based.run_workflow">
+<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">run_workflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.run_workflow" title="Link to this definition"></a></dt>
+<dd><p>Run the full VASP-based materials discovery workflow.</p>
+<p>Consists of the following task-based steps (with a dependency between each step):</p>
+<ol class="arabic simple">
+<li><p><strong>Structure Generation</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">generate_structures()</span></code></p></li>
+<li><p><strong>CGCNN Prediction</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">run_cgcnn()</span></code>.</p></li>
+<li><p><strong>Structure Selection</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">select_structures()</span></code>.</p></li>
+<li><p><strong>VASP Calculations</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – The configuration manager that provides runtime parameters,
+paths, and thresholds for each stage of the workflow.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><ul class="simple">
+<li><p>Creates directories and files under <cite>config[CK.WORK_DIR]</cite></p></li>
+<li><p>Executes multiple shell commands and external applications</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If any sub-stage raises an error that is not internally handled.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -90,7 +128,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../api.html" class="btn btn-neutral float-left" title="API Reference Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="parsl_tasks.html" class="btn btn-neutral float-right" title="Parsl Tasks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="parsl_config.html" class="btn btn-neutral float-right" title="Parsl Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
