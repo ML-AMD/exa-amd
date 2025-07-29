@@ -1,5 +1,7 @@
 import os
 import time
+import pandas as pd
+import glob
 
 from tools.errors import VaspNonReached
 from parsl.app.errors import AppTimeout
@@ -50,7 +52,18 @@ def vasp_calculations(config):
 def generate_structures(config):
     from parsl_tasks.gen_structures import gen_structures
     try:
-        gen_structures(config.get_json_config()).result()
+        n_chunks = config[CK.GEN_STRUCTURES_NNODES]
+        l_futures = [gen_structures(config.get_json_config(), n_chunks, i) for i in range(1, n_chunks + 1)]
+
+        for future in l_futures:
+            future.result()
+
+        os.chdir(os.path.join(config[CK.WORK_DIR], "structures"))
+        cmd = "cat id_prop_chunk_*.csv | sort -t, -k1,1n > id_prop.csv"
+        ret = os.system(cmd)
+        if ret != 0:
+            raise RuntimeError(f"shell exited with status {ret >> 8}")
+
     except Exception as e:
         amd_logger.critical(f"An exception occurred: {e}")
 
@@ -66,7 +79,28 @@ def select_structures(config):
 def run_cgcnn(config):
     from parsl_tasks.cgcnn import cgcnn_prediction
     try:
-        cgcnn_prediction(config.get_json_config()).result()
+        n_chunks = config[CK.GEN_STRUCTURES_NNODES]
+        l_futures = [cgcnn_prediction(config.get_json_config(), n_chunks, i) for i in range(1, n_chunks + 1)]
+
+        for future in l_futures:
+            future.result()
+
+        # merge results
+        pattern = os.path.join(config[CK.WORK_DIR], "test_results_*.csv")
+        files_to_merge = list(glob.iglob(pattern))
+        if not files_to_merge:
+            return
+
+        dataframes = pd.concat(
+            (pd.read_csv(file, header=None) for file in files_to_merge),
+            ignore_index=True
+        )
+        dataframes.to_csv(os.path.join(config[CK.WORK_DIR], "test_results.csv"), index=False)
+
+        # cleanup
+        for file in files_to_merge:
+            os.remove(file)
+
     except Exception as e:
         amd_logger.critical(f"An exception occurred: {e}")
 
@@ -123,6 +157,8 @@ def run_workflow(config):
     4. **VASP Calculations**
        :func:`~parsl_tasks.vasp.vasp_calculations`
 
+    5. **Post Processing**
+
     Args:
         config (ConfigManager): The configuration manager that provides runtime parameters,
             paths, and thresholds for each stage of the workflow.
@@ -137,7 +173,7 @@ def run_workflow(config):
     amd_logger.info("Start the 'vasp_based' workflow'")
 
     if not os.path.exists(os.path.join(
-            config[CK.WORK_DIR], 'structures/1.cif')):
+            config[CK.WORK_DIR], 'structures/1')):
         generate_structures(config)
     amd_logger.info(f"generate_structures done")
 
@@ -150,8 +186,8 @@ def run_workflow(config):
         select_structures(config)
     amd_logger.info(f"select structures done")
 
-    # config.setup_vasp_calculations()
-    # vasp_calculations(config)
+    config.setup_vasp_calculations()
+    vasp_calculations(config)
     amd_logger.info(f"vasp calculations done")
 
     post_processing(config)

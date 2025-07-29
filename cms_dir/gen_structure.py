@@ -1,6 +1,7 @@
 import os
 import csv
 import sys
+import math
 import argparse
 from multiprocessing import Pool
 from pymatgen.core import Structure
@@ -54,14 +55,21 @@ def generate_structures(structure_file, elements, dirs):
 
 
 def process_structure(args):
-    structure_file, start_index, dirs, elements = args
+    structure_file, start_index, dirs, elements, chunk_id = args
     structures = generate_structures(structure_file, elements, dirs)
     for i, structure in enumerate(structures, start=start_index):
-        structure.to(filename=f"{i}.cif")
+        structure.to(filename=f"{chunk_id}_{i}.cif")
     return len(structures)
 
 
 def main(args):
+    n_chunks = args.n_chunks
+    chunk_id = args.chunk_id
+
+    # sanity check
+    if chunk_id < 1 or chunk_id > n_chunks:
+        sys.exit("chunk_id must be between 1 and n_chunks.")
+
     # Suppress UserWarnings
     warnings.filterwarnings("ignore")
 
@@ -71,20 +79,34 @@ def main(args):
     elements = [ele for ele in args.elements.split('-')]
     global lattice_scales
     lattice_scales = [0.96, 0.98, 1.0, 1.02, 1.04]
+
+    # calculate the index of the first and last files to process
+    chunk_size = math.ceil(len(structure_files) / n_chunks)
+    start_file = (chunk_id - 1) * chunk_size
+    end_file = min(start_file + chunk_size, len(structure_files))
+    sel_files = structure_files[start_file:end_file]
+
     element_permutations = list(permutations(elements))
     numall = len(element_permutations) * len(lattice_scales)
 
-    args_list = [(f, i * numall + 1, dirs, elements)
-                 for i, f in enumerate(structure_files)]
+    args_list = []
+    for i, f in enumerate(structure_files):
+        if f not in sel_files:
+            continue
+        args_list.append((f, i * numall + 1, dirs, elements, chunk_id))
 
     with Pool(num_workers) as pool:
         results = pool.map(process_structure, args_list)
 
-    total_structures = sum(results)
-    print(f"Total structures generated: {total_structures}")
-    with open('id_prop.csv', 'w+') as f:
-        for i in range(1, total_structures + 1):
-            f.write(str(i) + ',0.5' + '\n')
+    generated_ids = []
+    for (f, start_idx, _, _, _), n in zip(args_list, results):
+        generated_ids.extend(range(start_idx, start_idx + n))
+
+    # out_csv = f"id_prop_chunk_{chunk_id}.csv"
+    out_csv = f"id_prop.csv"
+    with open(out_csv, 'w', newline='') as f:
+        for idx in generated_ids:
+            f.write(f"{chunk_id}_{idx},0.5\n")
 
 
 if __name__ == "__main__":
@@ -102,5 +124,7 @@ if __name__ == "__main__":
         required=True,
         help="Input directory containing MP structures")
     parser.add_argument("--elements", type=str, required=True, help="Elements")
+    parser.add_argument("--n_chunks", type=int, default=1, help="Total number of chunks")
+    parser.add_argument("--chunk_id", type=int, default=1, help="Chunk index (1-based)")
     args = parser.parse_args()
     main(args)

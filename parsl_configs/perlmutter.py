@@ -36,6 +36,7 @@ class PerlmutterConfig(Config):
         """
 
         nnodes_vasp = json_config[CK.VASP_NNODES]
+        nnodes_gen_struct = json_config[CK.GEN_STRUCTURES_NNODES]
         num_workers = json_config[CK.NUM_WORKERS]
         cpu_account = json_config[CK.CPU_ACCOUNT]
         gpu_account = json_config[CK.GPU_ACCOUNT]
@@ -69,8 +70,8 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="gpu",
                 init_blocks=0,
-                min_blocks=1,
-                max_blocks=1,
+                min_blocks=nnodes_gen_struct,
+                max_blocks=nnodes_gen_struct,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='02:00:00',
@@ -88,8 +89,8 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
-                max_blocks=1,
+                min_blocks=nnodes_gen_struct,
+                max_blocks=nnodes_gen_struct,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
                 walltime='01:00:00',

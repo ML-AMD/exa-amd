@@ -69,8 +69,8 @@ class ConfigManager:
         CK.POST_PROCESSING_OUT_DIR: ("", "A full path to a directory that will contain all the post-processing results. If not set, the post-processing step will be skipped."),
         CK.MPRester_API_KEY: ("", f"An API key for accessing the MP data (https://docs.materialsproject.org). Required if --{CK.POST_PROCESSING_OUT_DIR} is set. "),
         CK.HULL_ENERGY_THR: (
-            0.1, "Maximum Ehull (eV/atom) to display for metastable phases")
-
+            0.1, "Maximum Ehull (eV/atom) to display for metastable phases"),
+        CK.GEN_STRUCTURES_NNODES: (1, "Number of nodes used for the generate structures phase")
     }
 
     CONFIG_HELP_MSG = "Path to the JSON configuration file (required)."

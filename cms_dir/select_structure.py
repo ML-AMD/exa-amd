@@ -57,8 +57,9 @@ def process_structures(task_queue, result_queue, nomix_dir,
         if task is None:
             break
         index, ef = task
+        prefix_chunk_dir = index.split("_")[0]
         structure = Structure.from_file(
-            os.path.join(nomix_dir, f"{index}.cif"))
+            os.path.join(nomix_dir, prefix_chunk_dir, f"{index}.cif"))
         composition = structure.composition
         reduced_formula = composition.reduced_formula
         flag = 0

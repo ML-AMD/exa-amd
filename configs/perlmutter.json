@@ -10,6 +10,8 @@
 
     "parsl_config": "perlmutter_premium",
 
+    "gen_structure_nnodes":4,
+
     "cgcnn_batch_size": 256,
 
     "vasp_std_exe": "vasp_std",

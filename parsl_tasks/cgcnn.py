@@ -4,7 +4,7 @@ from parsl_configs.parsl_executors_labels import CGCNN_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
 
 
-def cmd_cgcnn_prediction(config):
+def cmd_cgcnn_prediction(config, n_chunks, id):
     """
     Construct the shell command used to run a CGCNN prediction via Parsl.
 
@@ -35,17 +35,17 @@ def cmd_cgcnn_prediction(config):
         model_path = os.path.join(config[CK.CMS_DIR], "form_1st.pth.tar")
 
         dir_structures = os.path.join(
-            config[CK.WORK_DIR], "structures")
+            config[CK.WORK_DIR], "structures", str(id))
         atom_init_json = os.path.join(config[CK.CMS_DIR], "atom_init.json")
 
         shutil.copy(atom_init_json, dir_structures)
     except Exception as e:
         raise
     num_workers = config[CK.NUM_WORKERS]
-    return "python {} {} {} --batch-size {} --workers {} ".format(
-        predict_script_path, model_path, dir_structures, config[CK.BATCH_SIZE], num_workers)
+    return "python {} {} {} --batch-size {} --workers {} --chunk_id {}".format(
+        predict_script_path, model_path, dir_structures, config[CK.BATCH_SIZE], num_workers, id)
 
 
 @bash_app(executors=[CGCNN_EXECUTOR_LABEL])
-def cgcnn_prediction(config):
-    return cmd_cgcnn_prediction(config)
+def cgcnn_prediction(config, n_chunks, id):
+    return cmd_cgcnn_prediction(config, n_chunks, id)

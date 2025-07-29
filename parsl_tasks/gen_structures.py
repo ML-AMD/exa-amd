@@ -4,7 +4,7 @@ from parsl_configs.parsl_executors_labels import GENERATE_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
 
 
-def cmd_gen_structures(config):
+def cmd_gen_structures(config, n_chunks, id):
     """
     Construct the shell command used to run the generation script via Parsl.
 
@@ -29,7 +29,7 @@ def cmd_gen_structures(config):
     """
     import os
     try:
-        dir_structures = os.path.join(config[CK.WORK_DIR], "structures")
+        dir_structures = os.path.join(config[CK.WORK_DIR], "structures", str(id))
         dir_mp_structures = config[CK.INITIAL_STRS]
         dir_gen_structures = os.path.join(
             config[CK.CMS_DIR], "gen_structure.py")
@@ -40,10 +40,10 @@ def cmd_gen_structures(config):
     except Exception as e:
         raise
 
-    return "python {} --num_workers {} --input_dir {} --elements {}".format(
-        dir_gen_structures, config[CK.NUM_WORKERS], dir_mp_structures, config[CK.ELEMENTS])
+    return "python {} --num_workers {} --input_dir {} --elements {} --n_chunks {} --chunk_id {}".format(
+        dir_gen_structures, config[CK.NUM_WORKERS], dir_mp_structures, config[CK.ELEMENTS], n_chunks, id)
 
 
 @bash_app(executors=[GENERATE_EXECUTOR_LABEL])
-def gen_structures(config):
-    return cmd_gen_structures(config)
+def gen_structures(config, n_chunks, id):
+    return cmd_gen_structures(config, n_chunks, id)

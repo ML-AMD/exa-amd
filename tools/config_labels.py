@@ -31,6 +31,7 @@ class ConfigKeys:
     POST_PROCESSING_OUT_DIR = "post_processing_output_dir"
     MPRester_API_KEY = "mp_rester_api_key"
     HULL_ENERGY_THR = "hull_energy_threshold"
+    GEN_STRUCTURES_NNODES = "gen_structure_nnodes"
 
     # hardcoded keys
     SUBDIR_STABLE_PHASES = "stable_phases_work_dir"
