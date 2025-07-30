@@ -139,12 +139,6 @@ def select_structures(nomix_dir, output_dir, csv_file, ef_threshold,
             composition_groups[composition].append((index, ef, structure))
             processed_count += 1
 
-    # Collect results
-    # composition_groups = defaultdict(list)
-    # for _ in range(len(structures_data)):
-    #    index, ef, composition, structure = result_queue.get()
-    #    composition_groups[composition].append((index, ef, structure))
-
     # Wait for all processes to complete
     for p in processes:
         p.join()

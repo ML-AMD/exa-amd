@@ -58,12 +58,6 @@ def generate_structures(config):
         for future in l_futures:
             future.result()
 
-        os.chdir(os.path.join(config[CK.WORK_DIR], "structures"))
-        cmd = "cat id_prop_chunk_*.csv | sort -t, -k1,1n > id_prop.csv"
-        ret = os.system(cmd)
-        if ret != 0:
-            raise RuntimeError(f"shell exited with status {ret >> 8}")
-
     except Exception as e:
         amd_logger.critical(f"An exception occurred: {e}")
 

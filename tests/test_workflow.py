@@ -15,7 +15,7 @@ def cgcnn_output(tmp_path_factory):
     test_structures_dir = tmp_path / "test_structures"
     model_path = Path(__file__).parent.parent / "cms_dir/form_1st.pth.tar"
     predict_script_path = Path(__file__).parent.parent / "cms_dir/predict.py"
-    cgcnn_output_csv = tmp_path / "test_results.csv"
+    cgcnn_output_csv = tmp_path / "test_results_1.csv"
 
     # extract test_structures.tar
     with tarfile.open(archive_path) as tar:
@@ -28,7 +28,7 @@ def cgcnn_output(tmp_path_factory):
         [
             "python", str(predict_script_path),
             str(model_path),
-            str(test_structures_dir),
+            os.path.join(str(test_structures_dir), "1"),
             "--batch-size", "256"
         ],
         cwd=tmp_path,

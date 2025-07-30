@@ -1,4 +1,5 @@
 import parsl
+import math
 from parsl.config import Config
 from parsl.executors import HighThroughputExecutor
 from parsl.providers import SlurmProvider
@@ -37,6 +38,7 @@ class PerlmutterConfig(Config):
 
         nnodes_vasp = json_config[CK.VASP_NNODES]
         nnodes_gen_struct = json_config[CK.GEN_STRUCTURES_NNODES]
+        nnodes_cgcnn = nnodes_gen_struct
         num_workers = json_config[CK.NUM_WORKERS]
         cpu_account = json_config[CK.CPU_ACCOUNT]
         gpu_account = json_config[CK.GPU_ACCOUNT]
@@ -63,19 +65,18 @@ class PerlmutterConfig(Config):
         # cgcnn executor
         cgcnn_executor = HighThroughputExecutor(
             label=CGCNN_EXECUTOR_LABEL,
-            cores_per_worker=1,
-            available_accelerators=4,
+            cores_per_worker=num_workers,
             provider=SlurmProvider(
                 account=gpu_account,
                 qos="premium",
                 constraint="gpu",
                 init_blocks=0,
-                min_blocks=nnodes_gen_struct,
-                max_blocks=nnodes_gen_struct,
-                nodes_per_block=1,
-                launcher=SimpleLauncher(),
-                walltime='02:00:00',
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=nnodes_cgcnn,
+                walltime='01:00:00',
                 worker_init="conda activate amd_env",
+                scheduler_options="#SBATCH --exclusive",
             )
         )
 
@@ -89,12 +90,13 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=nnodes_gen_struct,
-                max_blocks=nnodes_gen_struct,
-                nodes_per_block=1,
-                launcher=SimpleLauncher(),
+                min_blocks=1,
+                max_blocks=1,
+                nodes_per_block=nnodes_gen_struct,
+                launcher=SrunLauncher(),
                 walltime='01:00:00',
-                worker_init="conda activate amd_env;"
+                worker_init="conda activate amd_env;",
+                scheduler_options="#SBATCH --exclusive",
             )
         )
 
