@@ -66,6 +66,8 @@ Here is an example configuration file for the Perlmutter system:
 
         "parsl_config": "perlmutter_premium",
 
+        "pre_processing_nnodes": 1,
+
         "cgcnn_batch_size": 256,
 
         "vasp_std_exe": "vasp_std",
@@ -147,3 +149,5 @@ You can override any field from the JSON configuration using command-line argume
                             An API key for accessing the MP data (https://docs.materialsproject.org). Required if `post_processing_output_dir` is set. (default='').
     --hull_energy_threshold HULL_ENERGY_THRESHOLD
                             Maximum Ehull (eV/atom) to display for metastable phases (default='0.1').
+    --pre_processing_nnodes PRE_PROCESSING_NNODES
+                            Number of nodes used for the pre-processing phases (default='1').

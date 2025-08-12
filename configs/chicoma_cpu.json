@@ -9,6 +9,8 @@
 
     "parsl_config": "chicoma_debug_cpu",
 
+    "pre_processing_nnodes":4,
+
     "cgcnn_batch_size": 256,
 
     "vasp_std_exe": "/usr/projects/icapt/applications/vasp/vasp-6.4.2-aocc-mkl-vtst/bin/vasp_std",
@@ -19,5 +21,9 @@
     "vasp_nsw": 100,
     "vasp_timeout": 1800,
     "vasp_nnodes": 1,
-    "vasp_ntasks_per_run": 128
+    "vasp_ntasks_per_run": 128,
+
+    "hull_energy_threshold": 0.1,
+    "post_processing_output_dir": "<abs_path_to>/post_processing_out_dir",
+    "mp_rester_api_key": "<MP_RESTER_API_KEY>"
 }

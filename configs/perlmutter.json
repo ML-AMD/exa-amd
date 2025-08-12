@@ -10,7 +10,7 @@
 
     "parsl_config": "perlmutter_premium",
 
-    "gen_structure_nnodes":4,
+    "pre_processing_nnodes":4,
 
     "cgcnn_batch_size": 256,
 
@@ -25,5 +25,5 @@
 
     "hull_energy_threshold": 0.1,
     "post_processing_output_dir": "<abs_path_to>/post_processing_out_dir",
-    "mp_rester_api_key": "<<MP_RESTER_API_KEY>>"
+    "mp_rester_api_key": "<MP_RESTER_API_KEY>"
 }
