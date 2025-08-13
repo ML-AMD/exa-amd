@@ -140,6 +140,8 @@ It specifies all the required and optional parameters for running the workflow.<
 
 <span class="w">    </span><span class="nt">&quot;parsl_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span>
 
+<span class="w">    </span><span class="nt">&quot;pre_processing_nnodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+
 <span class="w">    </span><span class="nt">&quot;cgcnn_batch_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span>
 
 <span class="w">    </span><span class="nt">&quot;vasp_std_exe&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_std&quot;</span><span class="p">,</span>
@@ -218,6 +220,8 @@ options:
 <span class="w">                        </span>An<span class="w"> </span>API<span class="w"> </span>key<span class="w"> </span><span class="k">for</span><span class="w"> </span>accessing<span class="w"> </span>the<span class="w"> </span>MP<span class="w"> </span>data<span class="w"> </span><span class="o">(</span>https://docs.materialsproject.org<span class="o">)</span>.<span class="w"> </span>Required<span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="sb">`</span>post_processing_output_dir<span class="sb">`</span><span class="w"> </span>is<span class="w"> </span>set.<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="o">)</span>.
 --hull_energy_threshold<span class="w"> </span>HULL_ENERGY_THRESHOLD
 <span class="w">                        </span>Maximum<span class="w"> </span>Ehull<span class="w"> </span><span class="o">(</span>eV/atom<span class="o">)</span><span class="w"> </span>to<span class="w"> </span>display<span class="w"> </span><span class="k">for</span><span class="w"> </span>metastable<span class="w"> </span>phases<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;0.1&#39;</span><span class="o">)</span>.
+--pre_processing_nnodes<span class="w"> </span>PRE_PROCESSING_NNODES
+<span class="w">                        </span>Number<span class="w"> </span>of<span class="w"> </span>nodes<span class="w"> </span>used<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>pre-processing<span class="w"> </span>phases<span class="w"> </span><span class="o">(</span><span class="nv">default</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="o">)</span>.
 </pre></div>
 </div>
 </section>
