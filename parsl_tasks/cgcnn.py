@@ -42,9 +42,11 @@ def cmd_cgcnn_prediction(config, n_chunks, id):
     except Exception as e:
         raise
     num_workers = config[CK.NUM_WORKERS]
-    return "srun -N 1 -n 1 --exclusive -c {} --gpus=1 python {} {} {} --batch-size {} --workers {} --chunk_id {}".format(
-        num_workers, predict_script_path, model_path, dir_structures, config[CK.BATCH_SIZE], num_workers, id)
-
+    return (
+        f"srun -N 1 -n 1 --exclusive -c {num_workers} --gpus=1 "
+        f"python {predict_script_path} {model_path} {dir_structures} "
+        f"--batch-size {config[CK.BATCH_SIZE]} --workers {num_workers} --chunk_id {id}"
+    )
 
 @bash_app(executors=[CGCNN_EXECUTOR_LABEL])
 def cgcnn_prediction(config, n_chunks, id):

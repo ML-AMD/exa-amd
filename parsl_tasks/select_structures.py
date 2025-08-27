@@ -38,9 +38,11 @@ def cmd_select_structures(config):
 
     except Exception as e:
         raise
-    return "python {} --ef_threshold {} --num_workers {} --csv_file {} --nomix_dir {}".format(
-        dir_select_structure, str(config[CK.EF_THR]), config[CK.NUM_WORKERS], tr_csv_file, dir_structures)
-
+    return (
+        f"python {dir_select_structure} --ef_threshold {config[CK.EF_THR]} "
+        f"--num_workers {config[CK.NUM_WORKERS]} --csv_file {tr_csv_file} "
+        f"--nomix_dir {dir_structures}"
+    )
 
 @bash_app(executors=[SELECT_EXECUTOR_LABEL])
 def select_structures(config):

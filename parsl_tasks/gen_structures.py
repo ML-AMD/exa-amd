@@ -40,8 +40,11 @@ def cmd_gen_structures(config, n_chunks, id):
     except Exception as e:
         raise
 
-    return "python {} --num_workers {} --input_dir {} --elements {} --n_chunks {} --chunk_id {}".format(
-        dir_gen_structures, config[CK.NUM_WORKERS], dir_mp_structures, config[CK.ELEMENTS], n_chunks, id)
+    return (
+        f"python {dir_gen_structures} --num_workers {config[CK.NUM_WORKERS]} "
+        f"--input_dir {dir_mp_structures} --elements {config[CK.ELEMENTS]} "
+        f"--n_chunks {n_chunks} --chunk_id {id}"
+    )
 
 
 @bash_app(executors=[GENERATE_EXECUTOR_LABEL])

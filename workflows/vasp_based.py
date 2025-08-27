@@ -13,6 +13,13 @@ from tools.config_labels import ConfigKeys as CK
 
 from tools.post_processing import get_vasp_hull
 
+STATUS_BY_EXCEPTION = {
+    VaspNonReached:  "non_reached",
+    AppTimeout:      "time_out",
+    BashExitFailure: "bash_exit_failure",
+}
+def write_status(fp, id_, status):
+    fp.write(f"{id_},{status}\n")
 
 def vasp_calculations(config):
     from parsl_tasks.dft_optimization import run_vasp_calc
@@ -35,16 +42,12 @@ def vasp_calculations(config):
             err = future.exception()
             if err:
                 raise err
-            fp.write("{},{}\n".format(id, "success"))
-        except VaspNonReached:
-            fp.write("{},{}\n".format(id, "non_reached"))
-        except AppTimeout:
-            fp.write("{},{}\n".format(id, "time_out"))
-        except BashExitFailure:
-            fp.write("{},{}\n".format(id, "bash_exit_failure"))
+            write_status(fp, id, "success")
+        except tuple(STATUS_BY_EXCEPTION) as e:
+            write_status(fp, id, STATUS_BY_EXCEPTION[type(e)])
         except Exception as e:
             amd_logger.warning(f"An exception occurred: {e}")
-            fp.write("{},{}\n".format(id, "unexpected_error"))
+            write_status(fp, id, "unexpected_error")
 
     fp.close()
 

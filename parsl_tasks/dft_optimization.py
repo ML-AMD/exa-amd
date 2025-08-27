@@ -44,8 +44,10 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
     clean_work_dir = "rm DOSCAR PCDAT REPORT XDATCAR CHG CHGCAR EIGENVAL PROCAR WAVECAR vasprun.xml"
 
     try:
-        exec_cmd_prefix = "" if config[CK.VASP_NTASKS_PER_RUN] == 1 else "srun -n {}".format(
-            config[CK.VASP_NTASKS_PER_RUN])
+        exec_cmd_prefix = (
+            "" if config[CK.VASP_NTASKS_PER_RUN] == 1
+            else f"srun -n {config[CK.VASP_NTASKS_PER_RUN]}"
+        )
         work_subdir = os.path.join(config[CK.VASP_WORK_DIR], str(id))
         if not os.path.exists(work_subdir):
             os.makedirs(work_subdir)
@@ -57,8 +59,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         output_file = os.path.join(work_subdir, "output.rx")
 
         vasp_std_exe = config[CK.VASP_STD_EXE]
-        poscar = os.path.join(config[CK.WORK_DIR],
-                              "new", "POSCAR_{}".format(id))
+        poscar = os.path.join(config[CK.WORK_DIR], "new", f"POSCAR_{id}")
         incar = os.path.join(config[CK.CMS_DIR], "INCAR.rx")
         os.symlink(os.path.join(config[CK.WORK_DIR], "POTCAR"), "POTCAR")
 
@@ -71,8 +72,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {VASP_NSW}/' INCAR")
 
         # run relaxation
-        srun_cmd = "timeout {} {} {} > {} ".format(
-            config[CK.VASP_TIMEOUT], exec_cmd_prefix, vasp_std_exe, output_file)
+        srun_cmd = (
+            f"timeout {config[CK.VASP_TIMEOUT]} {exec_cmd_prefix} {vasp_std_exe} > {output_file} "
+        )
         relaxation_status = os.system(srun_cmd)
 
         #
@@ -87,17 +89,17 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             raise VaspNonReached
 
         incar_en = os.path.join(config[CK.CMS_DIR], "INCAR.en")
-        output_file_en = os.path.join(work_subdir, "output_{}.en".format(id))
+        output_file_en = os.path.join(work_subdir, f"output_{id}.en")
 
-        os.rename("OUTCAR", "OUTCAR_{}.rx".format(id))
-        shutil.copy("CONTCAR", os.path.join(
-            work_subdir, "CONTCAR_{}".format(id)))
+        os.rename("OUTCAR", f"OUTCAR_{id}.rx")
+        shutil.copy("CONTCAR", os.path.join(work_subdir, f"CONTCAR_{id}"))
         shutil.copy("CONTCAR", "POSCAR")
         shutil.copy(incar_en, "INCAR")
 
         # run relaxation
-        srun_cmd = "timeout {} {} {} > {} ".format(
-            config[CK.VASP_TIMEOUT], exec_cmd_prefix, vasp_std_exe, output_file_en)
+        srun_cmd = (
+            f"timeout {config[CK.VASP_TIMEOUT]} {exec_cmd_prefix} {vasp_std_exe} > {output_file_en} "
+        )
         os.system(srun_cmd)
 
         # clean

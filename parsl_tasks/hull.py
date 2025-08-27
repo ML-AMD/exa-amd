@@ -36,8 +36,10 @@ def cmd_vasp_hull(config, work_subdir):
     import os
     try:
         os.chdir(work_subdir)
-        exec_cmd_prefix = "" if config[CK.VASP_NTASKS_PER_RUN] == 1 else "srun -n {}".format(
-            config[CK.VASP_NTASKS_PER_RUN])
+        exec_cmd_prefix = (
+            "" if config[CK.VASP_NTASKS_PER_RUN] == 1 
+            else f"srun -n {config[CK.VASP_NTASKS_PER_RUN]}"
+        )
         output_file = os.path.join(work_subdir, "output")
     except Exception as e:
         raise

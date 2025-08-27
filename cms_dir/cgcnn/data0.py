@@ -332,9 +332,10 @@ class CIFData(Dataset):
         nbr_fea_idx, nbr_fea = [], []
         for nbr in all_nbrs:
             if len(nbr) < self.max_num_nbr:
-                warnings.warn('{} not find enough neighbors to build graph. '
-                              'If it happens frequently, consider increase '
-                              'radius.'.format(cif_id))
+                warnings.warn(
+                    f"{cif_id} could not find enough neighbors to build graph. "
+                    "If this happens frequently, consider increasing the radius."
+                )
                 nbr_fea_idx.append(list(map(lambda x: x[2], nbr)) +
                                    [0] * (self.max_num_nbr - len(nbr)))
                 nbr_fea.append(list(map(lambda x: x[1], nbr)) +

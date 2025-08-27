@@ -30,13 +30,13 @@ parser.add_argument("--chunk_id", type=int, default=1, help="Chunk index (1-base
 
 args = parser.parse_args(sys.argv[1:])
 if os.path.isfile(args.modelpath):
-    print("=> loading model params '{}'".format(args.modelpath))
+    print(f"=> loading model params '{args.modelpath}'")
     model_checkpoint = torch.load(args.modelpath,
                                   map_location=lambda storage, loc: storage)
     model_args = argparse.Namespace(**model_checkpoint['args'])
-    print("=> loaded model params '{}'".format(args.modelpath))
+    print(f"=> loaded model params '{args.modelpath}'")
 else:
-    print("=> no model params found at '{}'".format(args.modelpath))
+    print(f"=> no model params found at '{args.modelpath}'")
 
 args.cuda = not args.disable_cuda and torch.cuda.is_available()
 
@@ -90,16 +90,19 @@ def main():
 
     # optionally resume from a checkpoint
     if os.path.isfile(args.modelpath):
-        print("=> loading model '{}'".format(args.modelpath))
-        checkpoint = torch.load(args.modelpath,
-                                map_location=lambda storage, loc: storage)
+        print(f"=> loading model '{args.modelpath}'")
+        checkpoint = torch.load(
+            args.modelpath,
+            map_location=lambda storage, loc: storage
+        )
         model.load_state_dict(checkpoint['state_dict'])
         normalizer.load_state_dict(checkpoint['normalizer'])
-        print("=> loaded model '{}' (epoch {}, validation {})"
-              .format(args.modelpath, checkpoint['epoch'],
-                      checkpoint['best_mae_error']))
+        print(
+            f"=> loaded model '{args.modelpath}' "
+            f"(epoch {checkpoint['epoch']}, validation {checkpoint['best_mae_error']})"
+        )
     else:
-        print("=> no model found at '{}'".format(args.modelpath))
+        print(f"=> no model found at '{args.modelpath}'")
 
     validate(test_loader, model, criterion, normalizer, test=True)
 
@@ -184,24 +187,23 @@ def validate(val_loader, model, criterion, normalizer, test=False):
 
         if i % args.print_freq == 0:
             if model_args.task == 'regression':
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'MAE {mae_errors.val:.3f} ({mae_errors.avg:.3f})'.format(
-                          i, len(val_loader), batch_time=batch_time, loss=losses,
-                          mae_errors=mae_errors))
+                print(
+                    f"Test: [{i}/{len(val_loader)}]\t"
+                    f"Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
+                    f"Loss {losses.val:.4f} ({losses.avg:.4f})\t"
+                    f"MAE {mae_errors.val:.3f} ({mae_errors.avg:.3f})"
+                )
             else:
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Accu {accu.val:.3f} ({accu.avg:.3f})\t'
-                      'Precision {prec.val:.3f} ({prec.avg:.3f})\t'
-                      'Recall {recall.val:.3f} ({recall.avg:.3f})\t'
-                      'F1 {f1.val:.3f} ({f1.avg:.3f})\t'
-                      'AUC {auc.val:.3f} ({auc.avg:.3f})'.format(
-                          i, len(val_loader), batch_time=batch_time, loss=losses,
-                          accu=accuracies, prec=precisions, recall=recalls,
-                          f1=fscores, auc=auc_scores))
+                print(
+                    f"Test: [{i}/{len(val_loader)}]\t"
+                    f"Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
+                    f"Loss {losses.val:.4f} ({losses.avg:.4f})\t"
+                    f"Accu {accuracies.val:.3f} ({accuracies.avg:.3f})\t"
+                    f"Precision {precisions.val:.3f} ({precisions.avg:.3f})\t"
+                    f"Recall {recalls.val:.3f} ({recalls.avg:.3f})\t"
+                    f"F1 {fscores.val:.3f} ({fscores.avg:.3f})\t"
+                    f"AUC {auc_scores.val:.3f} ({auc_scores.avg:.3f})"
+                )
 
     if test:
         star_label = '**'
@@ -213,13 +215,12 @@ def validate(val_loader, model, criterion, normalizer, test=False):
                 writer.writerow((cif_id, target, pred))
     else:
         star_label = '*'
+
     if model_args.task == 'regression':
-        print(' {star} MAE {mae_errors.avg:.3f}'.format(star=star_label,
-                                                        mae_errors=mae_errors))
+        print(f" {star_label} MAE {mae_errors.avg:.3f}")
         return mae_errors.avg
     else:
-        print(' {star} AUC {auc.avg:.3f}'.format(star=star_label,
-                                                 auc=auc_scores))
+        print(f" {star_label} AUC {auc_scores.avg:.3f}")
         return auc_scores.avg
 
 
