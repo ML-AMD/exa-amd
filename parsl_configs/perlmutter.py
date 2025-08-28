@@ -18,10 +18,11 @@ class PerlmutterConfig(Config):
     This configuration defines four Parsl executors, each targeting a different part of the
     exa-AMD workflow and resource type:
 
-    - **Generate Structures Executor** (`generate_structures_executor`): run on CPU, single-node.
-    - **CGCNN Executor** (`cgcnn_executor`): run on GPU, single-node.
+    - **Generate Structures Executor** (`generate_structures_executor`): run on CPU, multi-node.
+    - **CGCNN Executor** (`cgcnn_executor`): run on GPU, multi-node.
     - **Select Structures Executor** (`select_structures_executor`): run on CPU, single-node.
     - **VASP Executor** (`vasp_executor`): run on GPU, multi-node.
+    - **Post-processing Executor** (`post_processing`): run on GPU, multi-node.
 
     Args:
         json_config (dict)
@@ -32,8 +33,11 @@ class PerlmutterConfig(Config):
 
     def __init__(self, json_config):
         """
+          - json_config[CK.GEN_STRUCTURES_NNODES] (int): number of CPU (and GPU) nodes used for generating the structures (and formation energy prediction)
           - json_config[CK.VASP_NNODES] (int): number of GPU nodes used for VASP calculations
           - json_config[CK.NUM_WORKERS] (int): number of CPU workers per node
+          - json_config[CK.CPU_ACCOUNT] (int): slurm CPU account
+          - json_config[CK.GPU_ACCOUNT] (int): slurm GPU account
         """
 
         nnodes_vasp = json_config[CK.VASP_NNODES]

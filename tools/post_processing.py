@@ -149,7 +149,7 @@ def get_vasp_hull(config):
             incar_path.write_text(text)
 
             # Create POTCAR
-            potcar_paths = [Path(potcar_dir) / elem / "POTCAR" for elem in phase["structure"].elements]
+            potcar_paths = [Path(potcar_dir) / str(elem) / "POTCAR" for elem in phase["structure"].elements]
             out_path = Path(calc_dir) / "POTCAR"
 
             with out_path.open("wb") as out:

@@ -58,7 +58,7 @@ Edit the following fields in `my_config_perlmutter.json`:
 - ``vasp_pot_dir``: Path to your `potpaw_PBE` directory
 - ``initial_structures``: Path to the `initial_structures` directory (downloaded in the previous section)
 - ``post_processing_output_dir``:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.
-- ``mp_rester_api_key``: your Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir`` is provided.
+- ``mp_rester_api_key``: your Materials Project API key (see https://docs.materialsproject.org). This key is mandatory whenever `post_processing_output_dir` is provided.
 
 ----
 
@@ -165,7 +165,7 @@ Once everything is configured, run the full exa-AMD workflow from a login node o
    export PYTHONPATH=$(pwd):$PYTHONPATH
    python amd.py --config configs/my_config_perlmutter.json --vasp_nnodes 2
 
-This will launch the four steps:
+This will launch the five stages:
 
 1. :func:`~parsl_tasks.gen_structures.generate_structures` — structure generation
 2. :func:`~parsl_tasks.cgcnn.run_cgcnn` — formation energy prediction
