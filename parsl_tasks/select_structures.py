@@ -44,6 +44,7 @@ def cmd_select_structures(config):
         f"--nomix_dir {dir_structures}"
     )
 
+
 @bash_app(executors=[SELECT_EXECUTOR_LABEL])
 def select_structures(config):
     return cmd_select_structures(config)

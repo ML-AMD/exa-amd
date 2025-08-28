@@ -14,12 +14,15 @@ from tools.config_labels import ConfigKeys as CK
 from tools.post_processing import get_vasp_hull
 
 STATUS_BY_EXCEPTION = {
-    VaspNonReached:  "non_reached",
-    AppTimeout:      "time_out",
+    VaspNonReached: "non_reached",
+    AppTimeout: "time_out",
     BashExitFailure: "bash_exit_failure",
 }
+
+
 def write_status(fp, id_, status):
     fp.write(f"{id_},{status}\n")
+
 
 def vasp_calculations(config):
     from parsl_tasks.dft_optimization import run_vasp_calc

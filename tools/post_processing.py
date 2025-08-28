@@ -6,6 +6,10 @@ import subprocess
 import time
 import math
 import shutil
+import re
+from pathlib import Path
+from shutil import copyfileobj
+import subprocess
 
 from mp_api.client import MPRester
 from pymatgen.io.vasp.inputs import Incar
@@ -106,10 +110,11 @@ def get_vasp_hull(config):
         ENERGY_DAT_OUT = CK.ENERGY_DAT_OUT
         cmd_get_energy = (
             f"grep -h 'F=' */output_*.en | "
-            r"sed 's/^[[:blank:]]\+//'"
-            f" | sort -t/ -k1,1n > {ENERGY_DAT_OUT}"
+            r"sed 's/^[[:blank:]]\+//' | "
+            f"sort -t/ -k1,1n > {CK.ENERGY_DAT_OUT}"
         )
-        if os.system(cmd_get_energy) != 0:
+        result = subprocess.run(cmd_get_energy, shell=True)
+        if result.returncode != 0:
             amd_logger.critical(f"{cmd_get_energy} failed")
 
         # prepare the input and output paths
@@ -138,12 +143,19 @@ def get_vasp_hull(config):
             else:
                 shutil.copy(incar_file, f"{calc_dir}/INCAR")
 
-            os.system(f"sed -i -E 's/^SYSTEM[[:space:]]*=[[:space:]]*.*/SYSTEM = {phase['formula']}/' {calc_dir}/INCAR")
+            incar_path = Path(calc_dir) / "INCAR"
+            text = incar_path.read_text()
+            text = re.sub(r"^SYSTEM[ \t]*=[ \t]*.*", f"SYSTEM = {phase['formula']}", text, flags=re.MULTILINE)
+            incar_path.write_text(text)
 
-            potcar_paths = [
-                f"{potcar_dir}/{elem}/POTCAR" for elem in phase['structure'].elements]
-            potcar_cmd = f"cat {' '.join(potcar_paths)} > {calc_dir}/POTCAR"
-            os.system(potcar_cmd)
+            # Create POTCAR
+            potcar_paths = [Path(potcar_dir) / elem / "POTCAR" for elem in phase["structure"].elements]
+            out_path = Path(calc_dir) / "POTCAR"
+
+            with out_path.open("wb") as out:
+                for p in potcar_paths:
+                    with p.open("rb") as inp:
+                        copyfileobj(inp, out)
 
             l_futures.append(
                 run_single_vasp_hull_calculation(

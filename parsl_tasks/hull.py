@@ -37,7 +37,7 @@ def cmd_vasp_hull(config, work_subdir):
     try:
         os.chdir(work_subdir)
         exec_cmd_prefix = (
-            "" if config[CK.VASP_NTASKS_PER_RUN] == 1 
+            "" if config[CK.VASP_NTASKS_PER_RUN] == 1
             else f"srun -n {config[CK.VASP_NTASKS_PER_RUN]}"
         )
         output_file = os.path.join(work_subdir, "output")

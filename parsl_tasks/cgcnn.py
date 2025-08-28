@@ -48,6 +48,7 @@ def cmd_cgcnn_prediction(config, n_chunks, id):
         f"--batch-size {config[CK.BATCH_SIZE]} --workers {num_workers} --chunk_id {id}"
     )
 
+
 @bash_app(executors=[CGCNN_EXECUTOR_LABEL])
 def cgcnn_prediction(config, n_chunks, id):
     return cmd_cgcnn_prediction(config, n_chunks, id)

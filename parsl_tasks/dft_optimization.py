@@ -1,3 +1,6 @@
+import re
+import subprocess
+from pathlib import Path
 from parsl import python_app, bash_app, join_app
 
 from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
@@ -34,14 +37,23 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
     Side Effects:
         - Creates and modifies files in a per-structure working directory
-        - Executes VASP via shell command (`os.system`)
         - Cleans intermediate VASP output files on completion or error
     """
     import os
     import shutil
     import time
     from tools.errors import VaspNonReached
-    clean_work_dir = "rm DOSCAR PCDAT REPORT XDATCAR CHG CHGCAR EIGENVAL PROCAR WAVECAR vasprun.xml"
+
+    def cleanup():
+        cleanup_files = [
+            "DOSCAR", "PCDAT", "REPORT", "XDATCAR", "CHG",
+            "CHGCAR", "EIGENVAL", "PROCAR", "WAVECAR", "vasprun.xml"
+        ]
+        for fname in cleanup_files:
+            try:
+                os.remove(fname)
+            except FileNotFoundError:
+                pass
 
     try:
         exec_cmd_prefix = (
@@ -69,20 +81,31 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         # Change NSW iterations
         VASP_NSW = config[CK.VASP_NSW]
-        os.system(f"sed -i 's/NSW\\s*=\\s*[0-9]*/NSW = {VASP_NSW}/' INCAR")
+        incar = Path("INCAR")
+
+        text = incar.read_text()
+        text = re.sub(r"NSW\s*=\s*\d*", f"NSW = {VASP_NSW}", text)
+        incar.write_text(text)
 
         # run relaxation
-        srun_cmd = (
-            f"timeout {config[CK.VASP_TIMEOUT]} {exec_cmd_prefix} {vasp_std_exe} > {output_file} "
-        )
-        relaxation_status = os.system(srun_cmd)
+        with open(output_file, "w") as out:
+            result = subprocess.run(
+                ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                stdout=out,
+                stderr=subprocess.STDOUT
+            )
+        relaxation_status = result.returncode
 
         #
         # prepare energy calculation
         #
-        output_rx = os.path.join(work_subdir, "output.rx")
-        relaxation_criteria = os.system(
-            f"grep -q -e 'reached' -e '{VASP_NSW} F=' output.rx")
+        output_rx = Path(work_subdir) / "output.rx"
+        relaxation_criteria = 1
+        with open(output_rx, "r") as f:
+            for line in f:
+                if "reached" in line or f"{VASP_NSW} F=" in line:
+                    relaxation_criteria = 0
+                    break
 
         # check relaxation criteria
         if relaxation_status != 0 and relaxation_criteria != 0:
@@ -97,16 +120,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         shutil.copy(incar_en, "INCAR")
 
         # run relaxation
-        srun_cmd = (
-            f"timeout {config[CK.VASP_TIMEOUT]} {exec_cmd_prefix} {vasp_std_exe} > {output_file_en} "
-        )
-        os.system(srun_cmd)
-
-        # clean
-        os.system(clean_work_dir)
-    except Exception as e:
-        os.system(clean_work_dir)
-        raise
+        with open(output_file_en, "w") as out:
+            result = subprocess.run(
+                ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                stdout=out,
+                stderr=subprocess.STDOUT
+            )
+    finally:
+        cleanup()
 
 
 @python_app(executors=[VASP_EXECUTOR_LABEL])

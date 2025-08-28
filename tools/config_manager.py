@@ -3,6 +3,9 @@ import json
 import os
 import sys
 import re
+import subprocess
+from pathlib import Path
+from shutil import copyfileobj
 
 from tools.config_labels import ConfigKeys as CK
 
@@ -233,29 +236,24 @@ class ConfigManager:
                 f"exa-AMD only supports ternary and quaternary systems")
 
         POTDIR = self.config[CK.POT_DIR]
+        # create the POTCAR file
+        potcar_paths = [Path(POTDIR) / el / "POTCAR" for el in elements]
+        out_path = Path(work_dir) / "POTCAR"
 
-        potcar_paths = [f"{POTDIR}/{el}/POTCAR" for el in elements]
-        potcar_command = f"cat {' '.join(potcar_paths)} > {work_dir}/POTCAR"
-        os.system(potcar_command)
-
-        # ele1, ele2, ele3 = elements.split("-")
-        # potcar_command = (
-        #     f"cat {POTDIR}/{ele1}/POTCAR "
-        #     f"{POTDIR}/{ele2}/POTCAR "
-        #     f"{POTDIR}/{ele3}/POTCAR "
-        #     f"> {work_dir}/POTCAR"
-        # )
+        with out_path.open("wb") as out:
+            for p in potcar_paths:
+                with p.open("rb") as inp:
+                    copyfileobj(inp, out, length=1024 * 1024)
 
     def _create_potcar(self):
         POTDIR = self.config[CK.POT_DIR]
         ele1, ele2, ele3 = self.config[CK.ELEMENTS].split("-")
-        potcar_command = (
-            f"cat {POTDIR}/{ele1}/POTCAR "
-            f"{POTDIR}/{ele2}/POTCAR "
-            f"{POTDIR}/{ele3}/POTCAR "
-            f"> {work_dir}/POTCAR"
-        )
-        os.system(potcar_command)
+        potcar_paths = [f"{POTDIR}/{el}/POTCAR" for el in (ele1, ele2, ele3)]
+
+        with open(f"{work_dir}/POTCAR", "wb") as outfile:
+            for path in potcar_paths:
+                with open(path, "rb") as infile:
+                    outfile.write(infile.read())
 
     def get_json_config(self):
         """Return the JSON configuration."""
