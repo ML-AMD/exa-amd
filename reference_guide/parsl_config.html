@@ -102,10 +102,11 @@
 <p>This configuration defines four Parsl executors, each targeting a different part of the
 exa-AMD workflow and resource type:</p>
 <ul class="simple">
-<li><p><strong>Generate Structures Executor</strong> (<cite>generate_structures_executor</cite>): run on CPU, single-node.</p></li>
-<li><p><strong>CGCNN Executor</strong> (<cite>cgcnn_executor</cite>): run on GPU, single-node.</p></li>
+<li><p><strong>Generate Structures Executor</strong> (<cite>generate_structures_executor</cite>): run on CPU, multi-node.</p></li>
+<li><p><strong>CGCNN Executor</strong> (<cite>cgcnn_executor</cite>): run on GPU, multi-node.</p></li>
 <li><p><strong>Select Structures Executor</strong> (<cite>select_structures_executor</cite>): run on CPU, single-node.</p></li>
 <li><p><strong>VASP Executor</strong> (<cite>vasp_executor</cite>): run on GPU, multi-node.</p></li>
+<li><p><strong>Post-processing Executor</strong> (<cite>post_processing</cite>): run on GPU, multi-node.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

@@ -139,7 +139,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">vasp_pot_dir</span></code>: Path to your <cite>potpaw_PBE</cite> directory</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">initial_structures</span></code>: Path to the <cite>initial_structures</cite> directory (downloaded in the previous section)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">post_processing_output_dir</span></code>:  Absolute path to the directory that will store every post-processing artifact. If this key is omitted or left empty, the entire post-processing stage is skipped.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mp_rester_api_key</span></code>: your Materials Project API key (see <a class="reference external" href="https://docs.materialsproject.org">https://docs.materialsproject.org</a>). This key is mandatory whenever <cite>post_processing_output_dir`</cite> is provided.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mp_rester_api_key</span></code>: your Materials Project API key (see <a class="reference external" href="https://docs.materialsproject.org">https://docs.materialsproject.org</a>). This key is mandatory whenever <cite>post_processing_output_dir</cite> is provided.</p></li>
 </ul>
 </section>
 <hr class="docutils" />
@@ -227,7 +227,7 @@ Then in your Parsl config, you should use:
 python<span class="w"> </span>amd.py<span class="w"> </span>--config<span class="w"> </span>configs/my_config_perlmutter.json<span class="w"> </span>--vasp_nnodes<span class="w"> </span><span class="m">2</span>
 </pre></div>
 </div>
-<p>This will launch the four steps:</p>
+<p>This will launch the five stages:</p>
 <ol class="arabic simple">
 <li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">generate_structures()</span></code> — structure generation</p></li>
 <li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">run_cgcnn()</span></code> — formation energy prediction</p></li>
