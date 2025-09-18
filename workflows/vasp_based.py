@@ -81,9 +81,8 @@ def run_cgcnn(config):
     try:
         n_chunks = config[CK.GEN_STRUCTURES_NNODES]
         l_futures = [cgcnn_prediction(config.get_json_config(), n_chunks, i) for i in range(1, n_chunks + 1)]
-
         for future in l_futures:
-            future.result()
+            future.exception()
 
         # merge results
         pattern = os.path.join(config[CK.WORK_DIR], "test_results_*.csv")
@@ -180,15 +179,16 @@ def run_workflow(config):
     if not os.path.exists(os.path.join(
             config[CK.WORK_DIR], 'test_results.csv')):
         run_cgcnn(config)
+
     amd_logger.info(f"cgcnn done")
 
-    if not os.path.exists(os.path.join(config[CK.WORK_DIR], 'new/POSCAR_1')):
-        select_structures(config)
-    amd_logger.info(f"select structures done")
+    # if not os.path.exists(os.path.join(config[CK.WORK_DIR], 'new/POSCAR_1')):
+    #     select_structures(config)
+    # amd_logger.info(f"select structures done")
 
-    config.setup_vasp_calculations()
-    vasp_calculations(config)
-    amd_logger.info(f"vasp calculations done")
+    # config.setup_vasp_calculations()
+    # vasp_calculations(config)
+    # amd_logger.info(f"vasp calculations done")
 
-    post_processing(config)
-    amd_logger.info(f"post_processing done")
+    # post_processing(config)
+    # amd_logger.info(f"post_processing done")
