@@ -10,7 +10,8 @@ from tools.logging_config import amd_logger
 from tools.config_manager import ConfigManager
 from tools.config_labels import ConfigKeys as CK
 
-
+from parsl_tasks.ehull import calculate_ehul
+from parsl_tasks.convex_hull import convex_hull_color
 from tools.post_processing import get_vasp_hull
 
 STATUS_BY_EXCEPTION = {
@@ -105,9 +106,6 @@ def run_cgcnn(config):
 
 
 def post_processing(config):
-    from parsl_tasks.hull import calculate_ehul
-    from parsl_tasks.hull import convex_hull_color
-
     if config[CK.POST_PROCESSING_OUT_DIR]:
 
         elements = config[CK.ELEMENTS]
@@ -182,13 +180,13 @@ def run_workflow(config):
 
     amd_logger.info(f"cgcnn done")
 
-    # if not os.path.exists(os.path.join(config[CK.WORK_DIR], 'new/POSCAR_1')):
-    #     select_structures(config)
-    # amd_logger.info(f"select structures done")
+    if not os.path.exists(os.path.join(config[CK.WORK_DIR], 'new/POSCAR_1')):
+        select_structures(config)
+    amd_logger.info(f"select structures done")
 
-    # config.setup_vasp_calculations()
-    # vasp_calculations(config)
-    # amd_logger.info(f"vasp calculations done")
+    config.setup_vasp_calculations()
+    vasp_calculations(config)
+    amd_logger.info(f"vasp calculations done")
 
-    # post_processing(config)
-    # amd_logger.info(f"post_processing done")
+    post_processing(config)
+    amd_logger.info(f"post_processing done")

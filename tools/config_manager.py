@@ -43,7 +43,6 @@ class ConfigManager:
     """
     # required arguments: must exist in JSON config or be provided as cmd line
     REQUIRED_PARAMS = {
-        CK.CMS_DIR: (str, "Path to the CMS directory (required)."),
         CK.VASP_STD_EXE: (str, "VASP executable (required)."),
         CK.WORK_DIR: (str, "Path to a work directory used for generating and selecting all the structures (required)."),
         CK.VASP_WORK_DIR: (str, "Path to a work directory for VASP-specific operations (required)."),

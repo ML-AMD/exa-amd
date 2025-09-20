@@ -1,5 +1,4 @@
 {
-    "cms_dir": "<path_to>/exa-amd/cms_dir",
     "work_dir": "<abs_path_to>/work_dir",
     "cpu_account": "cpu_account",
     "gpu_account": "gpu_account",

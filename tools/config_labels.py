@@ -5,7 +5,6 @@ Centralized mapping of internal config keys to user-visible CLI labels.
 
 class ConfigKeys:
     # required
-    CMS_DIR = "cms_dir"
     VASP_STD_EXE = "vasp_std_exe"
     WORK_DIR = "work_dir"
     VASP_WORK_DIR = "vasp_work_dir"

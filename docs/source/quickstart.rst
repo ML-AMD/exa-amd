@@ -55,7 +55,6 @@ Here is an example configuration file for the Perlmutter system:
 .. code-block:: json
 
     {
-        "cms_dir": "<path_to>/exa-amd/cms_dir",
         "work_dir": "<abs_path_to>/work_dir",
         "cpu_account": "cpu_account",
         "gpu_account": "gpu_account",
@@ -89,65 +88,8 @@ You can create multiple configuration files for different systems, workloads, or
 Command-line Usage
 ------------------
 
-You can override any field from the JSON configuration using command-line arguments:
+You can override any field from the JSON configuration using command-line arguments.
 
 .. code-block:: bash
 
     python exa_amd.py --help
-
-    usage: exa_amd.py [-h] [--config CONFIG] [--cms_dir CMS_DIR] [--vasp_std_exe VASP_STD_EXE] [--work_dir WORK_DIR] [--vasp_work_dir VASP_WORK_DIR] [--vasp_pot_dir VASP_POT_DIR] [--vasp_output_file VASP_OUTPUT_FILE] [--elements ELEMENTS] [--parsl_config PARSL_CONFIG]
-                  [--initial_structures_dir INITIAL_STRUCTURES_DIR] [--formation_energy_threshold FORMATION_ENERGY_THRESHOLD] [--num_workers NUM_WORKERS] [--cgcnn_batch_size CGCNN_BATCH_SIZE] [--vasp_nnodes VASP_NNODES] [--vasp_ntasks_per_run VASP_NTASKS_PER_RUN]
-                  [--vasp_nstructures VASP_NSTRUCTURES] [--vasp_timeout VASP_TIMEOUT] [--vasp_nsw VASP_NSW] [--cpu_account CPU_ACCOUNT] [--gpu_account GPU_ACCOUNT] [--output_level OUTPUT_LEVEL]
-
-    Override JSON config fields with command line arguments.
-
-    options:
-    -h, --help            show this help message and exit
-    --config CONFIG       Path to the JSON configuration file (required).
-    --cms_dir CMS_DIR     Path to the CMS directory (required).
-    --vasp_std_exe VASP_STD_EXE
-                            VASP executable (required).
-    --work_dir WORK_DIR
-                            Path to a work directory used for generating and selecting all the structures (required).
-    --vasp_work_dir VASP_WORK_DIR
-                            Path to a work directory for VASP-specific operations (required).
-    --vasp_pot_dir VASP_POT_DIR
-                            Path to the PAW potentials directory containing kinetic energy densities for meta-GGA calculations (required).
-    --vasp_output_file VASP_OUTPUT_FILE
-                            Output file name for storing the result of the VASP calculations (required).
-    --elements ELEMENTS
-                            Elements, e.g. 'Ce-Co-B' (required).
-    --parsl_config PARSL_CONFIG
-                            Parsl config name, previously registered (required).
-    --initial_structures_dir INITIAL_STRUCTURES_DIR
-                            Path to the directory that containts the initial crystal structures.
-    --formation_energy_threshold FORMATION_ENERGY_THRESHOLD
-                            A formation energy threshold used for selecting the structures, after the CGCNN prediction. (default='-0.2').
-    --num_workers NUM_WORKERS
-                            Number of threads used for generating, predicting and selecting the structures. (default='128').
-    --cgcnn_batch_size CGCNN_BATCH_SIZE
-                            Batch size for CGCNN. (default='256').
-    --vasp_nnodes VASP_NNODES
-                            Number of nodes used for VASP calculations. (default='1').
-    --vasp_ntasks_per_run VASP_NTASKS_PER_RUN
-                            Number of MPI processes per VASP calculation (useful for CPU-only Parsl configurations). (default='1').
-    --vasp_nstructures VASP_NSTRUCTURES
-                            Number of structures to be processed with VASP. (-1 means all). (default='-1').
-    --vasp_timeout VASP_TIMEOUT
-                            Max walltime in seconds for a VASP calculation. (default='1800').
-    --vasp_nsw VASP_NSW
-                            VASP NSW: gives the number of steps in all molecular dynamics runs. (default='100').
-    --cpu_account CPU_ACCOUNT
-                            The cpu account name on the current machine (forwarded to the workload manager). (default='').
-    --gpu_account GPU_ACCOUNT
-                            The gpu account name on the current machine (forwarded to the workload manager). (default='').
-    --output_level OUTPUT_LEVEL
-                            Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default='INFO').
-    --post_processing_output_dir POST_PROCESSING_OUTPUT_DIR
-                            A full path to a directory that will contain all the post-processing results. If not set, the post-processing step will be skipped. (default='').
-    --mp_rester_api_key MP_RESTER_API_KEY
-                            An API key for accessing the MP data (https://docs.materialsproject.org). Required if `post_processing_output_dir` is set. (default='').
-    --hull_energy_threshold HULL_ENERGY_THRESHOLD
-                            Maximum Ehull (eV/atom) to display for metastable phases (default='0.1').
-    --pre_processing_nnodes PRE_PROCESSING_NNODES
-                            Number of nodes used for the pre-processing phases (default='1').

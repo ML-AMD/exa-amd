@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 from shutil import copyfileobj
 import subprocess
+import importlib.resources as pkg_resources
 
 from mp_api.client import MPRester
 from pymatgen.io.vasp.inputs import Incar
@@ -22,7 +23,8 @@ from tools.logging_config import amd_logger
 from collections import defaultdict
 
 from tools.config_labels import ConfigKeys as CK
-from parsl_tasks.hull import run_single_vasp_hull_calculation, compile_vasp_hull
+from parsl_tasks.hull import run_single_vasp_hull_calculation
+from parsl_tasks.compile_hull import compile_vasp_hull
 
 
 def get_stable_phases(elements: List[str], api_key: str) -> List[Dict]:
@@ -79,7 +81,6 @@ def get_vasp_hull(config):
             * ``CK.ELEMENTS``
             * ``CK.MPRester_API_KEY``
             * ``CK.POT_DIR``
-            * ``CK.CMS_DIR``
             * ``CK.VASP_WORK_DIR``
             * ``CK.SUBDIR_STABLE_PHASES``
             * ``CK.POST_PROCESSING_OUT_DIR``
@@ -101,8 +102,10 @@ def get_vasp_hull(config):
         elements = config[CK.ELEMENTS].split("-")
         api_key = config[CK.MPRester_API_KEY]
         potcar_dir = config[CK.POT_DIR]
-        incar_file = os.path.join(config[CK.CMS_DIR], "INCAR.en")
-        incar_mag = os.path.join(config[CK.CMS_DIR], "INCAR_mag.en")
+        with pkg_resources.path("workflows.vasp_assets", "INCAR.en") as p:
+            incar_file = str(p)
+        with pkg_resources.path("workflows.vasp_assets", "INCAR_mag.en") as p:
+            incar_mag = str(p)
         mageles = ['Fe', 'Co', 'Ni', 'Mn']
 
         # gather the energy from the dft calculations

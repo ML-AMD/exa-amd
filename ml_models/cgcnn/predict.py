@@ -1,13 +1,14 @@
 # Crystal Graph Convolutional Neural Network (CGCNN) prediction script
-# Provides both a CLI and a callable function `predict_cgcnn` to run inference
-# on crystal structures stored in CIF files, using a pretrained CGCNN model.
+# Refactored to avoid global variables. Provides both a CLI and a callable
+# function `predict_cgcnn` to run inference on CIF files with a pretrained CGCNN.
 
 import argparse
 import os
 import shutil
 import sys
 import time
-from typing import Optional
+from types import SimpleNamespace
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
@@ -30,13 +31,13 @@ def predict_cgcnn(
     chunk_id: int = 1,
     output_csv: Optional[str] = None,
 ) -> str:
-    """Callable wrapper that sets args/model_args and runs main(); returns CSV path."""
-    global args, model_args, best_mae_error
-
+    """
+    Callable wrapper that prepares config and runs inference; returns CSV path.
+    """
     if output_csv is None:
         output_csv = f"test_results_{chunk_id}.csv"
 
-    args = argparse.Namespace(
+    args = SimpleNamespace(
         modelpath=modelpath,
         cifpath=cifpath,
         batch_size=batch_size,
@@ -47,58 +48,28 @@ def predict_cgcnn(
         output_csv=output_csv,
     )
 
-    if os.path.isfile(args.modelpath):
-        print(f"=> loading model params '{args.modelpath}'")
-        model_checkpoint = torch.load(
-            args.modelpath, map_location=lambda storage, loc: storage
-        )
-        model_args = argparse.Namespace(**model_checkpoint["args"])
-        print(f"=> loaded model params '{args.modelpath}'")
-    else:
-        print(f"=> no model params found at '{args.modelpath}'")
-        model_args = argparse.Namespace(task="regression")
+    model_args = _load_model_args(args.modelpath)
 
+    # compute cuda flag once, store on args for convenience
     args.cuda = (not args.disable_cuda) and torch.cuda.is_available()
-    best_mae_error = 1e10 if model_args.task == "regression" else 0.0
 
-    main()
+    _ = _run(args, model_args)  # returns (metric_value, csv_path)
     return os.path.abspath(args.output_csv)
 
+def _load_model_args(modelpath: str) -> SimpleNamespace:
+    """Load model hyperparameters from checkpoint; fall back to defaults."""
+    if os.path.isfile(modelpath):
+        print(f"=> loading model params '{modelpath}'")
+        model_checkpoint = torch.load(modelpath, map_location=lambda storage, loc: storage)
+        # Checkpoint is expected to have an "args" dict-like payload
+        model_args = SimpleNamespace(**model_checkpoint["args"])
+        print(f"=> loaded model params '{modelpath}'")
+    else:
+        print(f"=> no model params found at '{modelpath}'")
+        model_args = SimpleNamespace(task="regression")  # minimal default
+    return model_args
 
-parser = argparse.ArgumentParser(description="Crystal gated neural networks")
-parser.add_argument("modelpath", help="path to the trained model.")
-parser.add_argument("cifpath", help="path to the directory of CIF files.")
-parser.add_argument("-b", "--batch-size", default=256, type=int, metavar="N", help="mini-batch size")
-parser.add_argument(
-    "-j",
-    "--workers",
-    default=0,
-    type=int,
-    metavar="N",
-    help="number of data loading workers",
-)
-parser.add_argument("--disable-cuda", action="store_true", help="Disable CUDA")
-parser.add_argument("--print-freq", "-p", default=10, type=int, metavar="N", help="print frequency")
-parser.add_argument("--chunk_id", type=int, default=1, help="Chunk index (1-based)")
-
-args = None
-model_args = None
-best_mae_error = None
-
-
-def main():
-    global args, model_args, best_mae_error
-
-    dataset = CIFData(args.cifpath)
-    test_loader = DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.workers,
-        collate_fn=collate_pool,
-        pin_memory=args.cuda,
-    )
-
+def _build_model(dataset: CIFData, model_args: SimpleNamespace, use_cuda: bool) -> Tuple[nn.Module, int, int]:
     structures, _, _ = dataset[0]
     orig_atom_fea_len = structures[0].shape[-1]
     nbr_fea_len = structures[1].shape[-1]
@@ -109,23 +80,33 @@ def main():
         n_conv=model_args.n_conv,
         h_fea_len=model_args.h_fea_len,
         n_h=model_args.n_h,
-        classification=True if model_args.task == "classification" else False,
+        classification=(model_args.task == "classification"),
     )
-    if args.cuda:
+    if use_cuda:
         model.cuda()
+    return model, orig_atom_fea_len, nbr_fea_len
 
-    if model_args.task == "classification":
-        criterion = nn.NLLLoss()
-    else:
-        criterion = nn.MSELoss()
 
+def _run(args: SimpleNamespace, model_args: SimpleNamespace):
+    """Main evaluation entry. Returns (metric_value, csv_path)."""
+    dataset = CIFData(args.cifpath)
+    test_loader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.workers,
+        collate_fn=collate_pool,
+        pin_memory=args.cuda,
+    )
+
+    model, _, _ = _build_model(dataset, model_args, args.cuda)
+
+    criterion = nn.NLLLoss() if model_args.task == "classification" else nn.MSELoss()
     normalizer = Normalizer(torch.zeros(3))
 
     if os.path.isfile(args.modelpath):
         print(f"=> loading model '{args.modelpath}'")
-        checkpoint = torch.load(
-            args.modelpath, map_location=lambda storage, loc: storage
-        )
+        checkpoint = torch.load(args.modelpath, map_location=lambda storage, loc: storage)
         model.load_state_dict(checkpoint["state_dict"])
         normalizer.load_state_dict(checkpoint["normalizer"])
         print(
@@ -135,13 +116,23 @@ def main():
     else:
         print(f"=> no model found at '{args.modelpath}'")
 
-    validate(test_loader, model, criterion, normalizer, test=True)
+    metric = _validate(args, model_args, test_loader, model, criterion, normalizer, test=True)
+    return metric, args.output_csv
 
 
-def validate(val_loader, model, criterion, normalizer, test=False):
-    """Run evaluation loop; write predictions if test=True."""
+def _validate(
+    args: SimpleNamespace,
+    model_args: SimpleNamespace,
+    val_loader,
+    model,
+    criterion,
+    normalizer,
+    test: bool = False,
+):
+    """Run evaluation loop; write predictions if test=True. Returns main metric."""
     batch_time = AverageMeter()
     losses = AverageMeter()
+
     if model_args.task == "regression":
         mae_errors = AverageMeter()
     else:
@@ -150,14 +141,15 @@ def validate(val_loader, model, criterion, normalizer, test=False):
         recalls = AverageMeter()
         fscores = AverageMeter()
         auc_scores = AverageMeter()
+
     if test:
         test_targets = []
         test_preds = []
         test_cif_ids = []
 
     model.eval()
-
     end = time.time()
+
     for i, (input, target, batch_cif_ids) in enumerate(val_loader):
         with torch.no_grad():
             if args.cuda:
@@ -168,21 +160,15 @@ def validate(val_loader, model, criterion, normalizer, test=False):
                     [crys_idx.cuda(non_blocking=True) for crys_idx in input[3]],
                 )
             else:
-                input_var = (
-                    Variable(input[0]),
-                    Variable(input[1]),
-                    input[2],
-                    input[3],
-                )
+                input_var = (Variable(input[0]), Variable(input[1]), input[2], input[3])
+
         if model_args.task == "regression":
             target_normed = normalizer.norm(target)
         else:
             target_normed = target.view(-1).long()
+
         with torch.no_grad():
-            if args.cuda:
-                target_var = Variable(target_normed.cuda(non_blocking=True))
-            else:
-                target_var = Variable(target_normed)
+            target_var = target_normed.cuda(non_blocking=True) if args.cuda else target_normed
 
         output = model(*input_var)
         loss = criterion(output, target_var)
@@ -193,14 +179,11 @@ def validate(val_loader, model, criterion, normalizer, test=False):
             mae_errors.update(mae_error, target.size(0))
             if test:
                 test_pred = normalizer.denorm(output.data.cpu())
-                test_target = target
+                test_targets += target.view(-1).tolist()
                 test_preds += test_pred.view(-1).tolist()
-                test_targets += test_target.view(-1).tolist()
                 test_cif_ids += batch_cif_ids
         else:
-            accuracy, precision, recall, fscore, auc_score = class_eval(
-                output.data.cpu(), target
-            )
+            accuracy, precision, recall, fscore, auc_score = class_eval(output.data.cpu(), target)
             losses.update(loss.data.cpu().item(), target.size(0))
             accuracies.update(accuracy, target.size(0))
             precisions.update(precision, target.size(0))
@@ -209,10 +192,9 @@ def validate(val_loader, model, criterion, normalizer, test=False):
             auc_scores.update(auc_score, target.size(0))
             if test:
                 test_pred = torch.exp(output.data.cpu())
-                test_target = target
                 assert test_pred.shape[1] == 2
+                test_targets += target.view(-1).tolist()
                 test_preds += test_pred[:, 1].tolist()
-                test_targets += test_target.view(-1).tolist()
                 test_cif_ids += batch_cif_ids
 
         batch_time.update(time.time() - end)
@@ -240,7 +222,6 @@ def validate(val_loader, model, criterion, normalizer, test=False):
 
     if test:
         import csv
-
         with open(args.output_csv, "w") as f:
             writer = csv.writer(f)
             for cif_id, target, pred in zip(test_cif_ids, test_targets, test_preds):
@@ -252,7 +233,6 @@ def validate(val_loader, model, criterion, normalizer, test=False):
     else:
         print(f" ** AUC {auc_scores.avg:.3f}")
         return auc_scores.avg
-
 
 class Normalizer(object):
     """Normalize a Tensor and restore it later."""
@@ -323,23 +303,28 @@ def save_checkpoint(state, is_best, filename="checkpoint.pth.tar"):
     if is_best:
         shutil.copyfile(filename, "model_best.pth.tar")
 
+def _build_argparser():
+    parser = argparse.ArgumentParser(description="Crystal gated neural networks")
+    parser.add_argument("modelpath", help="path to the trained model.")
+    parser.add_argument("cifpath", help="path to the directory of CIF files.")
+    parser.add_argument("-b", "--batch-size", default=256, type=int, metavar="N", help="mini-batch size")
+    parser.add_argument("-j", "--workers", default=0, type=int, metavar="N", help="number of data loading workers")
+    parser.add_argument("--disable-cuda", action="store_true", help="Disable CUDA")
+    parser.add_argument("--print-freq", "-p", default=10, type=int, metavar="N", help="print frequency")
+    parser.add_argument("--chunk_id", type=int, default=1, help="Chunk index (1-based)")
+    parser.add_argument("--output-csv", default=None, help="Optional output CSV path")
+    return parser
 
 if __name__ == "__main__":
-    args = parser.parse_args(sys.argv[1:])
-    if os.path.isfile(args.modelpath):
-        print(f"=> loading model params '{args.modelpath}'")
-        model_checkpoint = torch.load(
-            args.modelpath, map_location=lambda storage, loc: storage
-        )
-        model_args = argparse.Namespace(**model_checkpoint["args"])
-        print(f"=> loaded model params '{args.modelpath}'")
-    else:
-        print(f"=> no model params found at '{args.modelpath}'")
-        model_args = argparse.Namespace(task="regression")
-
-    args.cuda = not args.disable_cuda and torch.cuda.is_available()
-    if not hasattr(args, "output_csv"):
-        args.output_csv = f"test_results_{args.chunk_id}.csv"
-
-    best_mae_error = 1e10 if model_args.task == "regression" else 0.0
-    main()
+    cli = _build_argparser().parse_args(sys.argv[1:])
+    csv_path = predict_cgcnn(
+        modelpath=cli.modelpath,
+        cifpath=cli.cifpath,
+        batch_size=cli.batch_size,
+        workers=cli.workers,
+        disable_cuda=cli.disable_cuda,
+        print_freq=cli.print_freq,
+        chunk_id=cli.chunk_id,
+        output_csv=cli.output_csv,
+    )
+    print(f"Wrote predictions to: {csv_path}")

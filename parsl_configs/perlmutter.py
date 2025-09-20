@@ -49,8 +49,6 @@ class PerlmutterConfig(Config):
         cpu_account = json_config[CK.CPU_ACCOUNT]
         gpu_account = json_config[CK.GPU_ACCOUNT]
 
-        print("# nnodes_cgcnn ", nnodes_cgcnn)
-
         # VASP executor
         vasp_executor = HighThroughputExecutor(
             label=VASP_EXECUTOR_LABEL,
@@ -61,7 +59,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="gpu",
                 init_blocks=0,
-                min_blocks=nnodes_vasp,
+                min_blocks=0,
                 max_blocks=nnodes_vasp,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
@@ -100,7 +98,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=nnodes_gen_struct,
                 launcher=SrunLauncher(),
@@ -120,7 +118,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
@@ -139,7 +137,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="gpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),

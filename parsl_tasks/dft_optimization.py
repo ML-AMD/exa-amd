@@ -2,6 +2,7 @@ import re
 import subprocess
 from pathlib import Path
 from parsl import python_app, bash_app, join_app
+import importlib.resources as pkg_resources
 
 from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
@@ -20,7 +21,6 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             - vasp_ntasks_per_run
             - vasp_work_dir
             - work_dir
-            - cms_dir
             - vasp_std_exe
             - vasp_timeout
             - vasp_nsw
@@ -72,7 +72,8 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         vasp_std_exe = config[CK.VASP_STD_EXE]
         poscar = os.path.join(config[CK.WORK_DIR], "new", f"POSCAR_{id}")
-        incar = os.path.join(config[CK.CMS_DIR], "INCAR.rx")
+        with pkg_resources.path("workflows.vasp_assets", "INCAR.rx") as p:
+            incar = str(p)
         os.symlink(os.path.join(config[CK.WORK_DIR], "POTCAR"), "POTCAR")
 
         # relaxation
@@ -111,7 +112,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         if relaxation_status != 0 and relaxation_criteria != 0:
             raise VaspNonReached
 
-        incar_en = os.path.join(config[CK.CMS_DIR], "INCAR.en")
+        with pkg_resources.path("workflows.vasp_assets", "INCAR.en") as p:
+            incar_en = str(p)
+        
         output_file_en = os.path.join(work_subdir, f"output_{id}.en")
 
         os.rename("OUTCAR", f"OUTCAR_{id}.rx")
