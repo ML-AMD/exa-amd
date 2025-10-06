@@ -31,4 +31,5 @@ jobs:
       - name: Run pytest
         run: |
           export PYTHONPATH=$(pwd):$PYTHONPATH
+          export PYTHONPATH="$(pwd)/ml_models:$PYTHONPATH"
           conda run -n amd_env pytest -s
