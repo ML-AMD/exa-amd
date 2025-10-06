@@ -557,9 +557,7 @@ def plot_convex_hull_quaternary(elements_str, stable_path, input_csv_path, ehull
             print(f"An error occurred reading {filename}: {e}")
             return []
 
-        print(
-            f"Found {
-                len(results)} calculated results within the specified element system.")
+        print(f"Found {len(results)} calculated results within the specified element system.")
         return results
 
     def plot_quaternary_hull(elements_str, stable_phases,

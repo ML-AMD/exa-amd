@@ -114,7 +114,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         with pkg_resources.path("workflows.vasp_assets", "INCAR.en") as p:
             incar_en = str(p)
-        
+
         output_file_en = os.path.join(work_subdir, f"output_{id}.en")
 
         os.rename("OUTCAR", f"OUTCAR_{id}.rx")

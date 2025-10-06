@@ -50,7 +50,7 @@ def _process_structure(args):
     return len(structures)
 
 
-def task_gen_structures(config, n_chunks, chunk_id):
+def run_gen_structures(config, n_chunks, chunk_id):
     """
     Parsl task that generates hypothetical structures based on the initial crystal structures.
 
@@ -120,4 +120,4 @@ def task_gen_structures(config, n_chunks, chunk_id):
 
 @python_app(executors=[GENERATE_EXECUTOR_LABEL])
 def gen_structures(config, n_chunks, chunk_id):
-    return task_gen_structures(config, n_chunks, chunk_id)
+    return run_gen_structures(config, n_chunks, chunk_id)

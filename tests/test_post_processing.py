@@ -1,4 +1,5 @@
 # tests/test_post_processing.py
+from tools.config_labels import ConfigKeys as CK
 import sys
 import os
 import tarfile
@@ -8,8 +9,6 @@ import pytest
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-from tools.config_labels import ConfigKeys as CK
 
 
 @pytest.fixture(scope="module")
@@ -64,6 +63,7 @@ def test_calculate_ehul_outputs(ehull_env):
     with open(out_path) as f:
         first = f.readline().strip()
     assert first.count(",") >= 3, "Unexpected hull.dat line format"
+
 
 def test_convex_hull_color_ternary(ehull_env, monkeypatch):
     """

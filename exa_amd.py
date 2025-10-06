@@ -6,7 +6,8 @@ from parsl_configs.parsl_config_registry import get_parsl_config
 from workflows.vasp_based import run_workflow
 from tools.config_labels import ConfigKeys as CK
 
-if __name__ == '__main__':
+
+def main():
     try:
         # load global config
         config = ConfigManager()
@@ -24,3 +25,7 @@ if __name__ == '__main__':
 
     # cleanup
     parsl.dfk().cleanup()
+
+
+if __name__ == '__main__':
+    main()

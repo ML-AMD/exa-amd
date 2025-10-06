@@ -56,6 +56,7 @@ def predict_cgcnn(
     _ = _run(args, model_args)  # returns (metric_value, csv_path)
     return os.path.abspath(args.output_csv)
 
+
 def _load_model_args(modelpath: str) -> SimpleNamespace:
     """Load model hyperparameters from checkpoint; fall back to defaults."""
     if os.path.isfile(modelpath):
@@ -68,6 +69,7 @@ def _load_model_args(modelpath: str) -> SimpleNamespace:
         print(f"=> no model params found at '{modelpath}'")
         model_args = SimpleNamespace(task="regression")  # minimal default
     return model_args
+
 
 def _build_model(dataset: CIFData, model_args: SimpleNamespace, use_cuda: bool) -> Tuple[nn.Module, int, int]:
     structures, _, _ = dataset[0]
@@ -234,6 +236,7 @@ def _validate(
         print(f" ** AUC {auc_scores.avg:.3f}")
         return auc_scores.avg
 
+
 class Normalizer(object):
     """Normalize a Tensor and restore it later."""
 
@@ -303,6 +306,7 @@ def save_checkpoint(state, is_best, filename="checkpoint.pth.tar"):
     if is_best:
         shutil.copyfile(filename, "model_best.pth.tar")
 
+
 def _build_argparser():
     parser = argparse.ArgumentParser(description="Crystal gated neural networks")
     parser.add_argument("modelpath", help="path to the trained model.")
@@ -314,6 +318,7 @@ def _build_argparser():
     parser.add_argument("--chunk_id", type=int, default=1, help="Chunk index (1-based)")
     parser.add_argument("--output-csv", default=None, help="Optional output CSV path")
     return parser
+
 
 if __name__ == "__main__":
     cli = _build_argparser().parse_args(sys.argv[1:])
