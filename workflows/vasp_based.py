@@ -123,17 +123,17 @@ def post_processing(config):
         if err:
             amd_logger.critical(err)
 
-        # err = convex_hull_color(config).exception()
-        # if err:
-        #     amd_logger.critical(err)
+        err = convex_hull_color(config).exception()
+        if err:
+            amd_logger.critical(err)
 
-        # out_hull = os.path.join(
-        #     config[CK.POST_PROCESSING_OUT_DIR], CK.POST_PROCESSING_FINAL_OUT)
-        # amd_logger.info(f"Convex hull plot saved to '{out_hull}'")
+        out_hull = os.path.join(
+            config[CK.POST_PROCESSING_OUT_DIR], CK.POST_PROCESSING_FINAL_OUT)
+        amd_logger.info(f"Convex hull plot saved to '{out_hull}'")
 
-        # out_selected = os.path.join(
-        #     config[CK.POST_PROCESSING_OUT_DIR], "selected")
-        # amd_logger.info(f"Selected candidates saved to '{out_selected}'")
+        out_selected = os.path.join(
+            config[CK.POST_PROCESSING_OUT_DIR], "selected")
+        amd_logger.info(f"Selected candidates saved to '{out_selected}'")
 
 
 def run_workflow(config):
@@ -167,7 +167,7 @@ def run_workflow(config):
     Raises:
         Exception: If any sub-stage raises an error that is not internally handled.
     """
-    amd_logger.info("Start the 'vasp_based' workflow'")
+    amd_logger.info("Start 'vasp_based' workflow")
 
     if not os.path.exists(os.path.join(
             config[CK.WORK_DIR], 'structures/1')):

@@ -1,0 +1,4 @@
+include README.md LICENSE
+recursive-include ml_models/cgcnn *.pth.tar *.json
+recursive-include workflows/vasp_assets *.en *.rx
+recursive-include configs *.json

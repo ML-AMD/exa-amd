@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "exa_amd"
+version = "0.1.0"
+description = "Parsl-powered workflow to accelerate the discovery and design of functional materials."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "ML-AMD" }]
+# deps
+dependencies = [
+  "parsl>=2025.3.24",
+  "pymatgen>=2025.3.10",
+  "numpy<2.0",
+  "scikit-learn>=1.6.1",
+  "torch>=2.2.2",
+  "torchvision>=0.17.2",
+  "matplotlib",
+  "scipy",
+  "spglib",
+  "monty",
+  "python-ternary",
+  "mp-api>=0.45.7"
+]
+
+[project.optional-dependencies]
+docs = ["sphinx>=7.1.2", "sphinx_rtd_theme>=3.0.2"]
+test = ["pytest>=8.3.5"]
+
+[project.scripts]
+exa_amd = "exa_amd:main"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = ["exa_amd"] 
+
+[tool.setuptools.packages.find]
+include = ["ml_models*", "parsl_tasks*", "parsl_configs*", "tools*", "workflows*", "configs*"]
+
+[tool.setuptools.package-data]
+"ml_models.cgcnn" = ["form_1st.pth.tar", "atom_init.json"]
+"workflows.vasp_assets" = ["INCAR.en", "INCAR_mag.en", "INCAR.rx"]
+"configs" = ["*.json"]
