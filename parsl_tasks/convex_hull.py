@@ -498,9 +498,7 @@ def plot_convex_hull_quaternary(elements_str, stable_path, input_csv_path, ehull
             print(f"An error occurred reading {filename}: {e}")
             return []
 
-        print(
-            f"Found {
-                len(stable_phases)} stable phases within the specified element system.")
+        print(f"Found {len(stable_phases)} stable phases within the specified element system.")
         return stable_phases
 
     def parse_results_csv(filename, element_map):
@@ -544,11 +542,9 @@ def plot_convex_hull_quaternary(elements_str, stable_path, input_csv_path, ehull
                             results.append((formula, ehull, coords))
 
                     except (ValueError, TypeError) as e:
-                        print(
-                            f"  Warning: Could not parse Ehull or composition for line: '{line}'. Error: {e}")
+                        print(f"  Warning: Could not parse Ehull or composition for line: '{line}'. Error: {e}")
                     except Exception as e:
-                        print(
-                            f"  Warning: Could not process composition {formula} from results: {e}")
+                        print(f"  Warning: Could not process composition {formula} from results: {e}")
 
         except FileNotFoundError:
             print(f"Error: Results file '{filename}' not found.")

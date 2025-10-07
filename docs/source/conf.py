@@ -29,6 +29,25 @@ extensions = [
     'sphinx.ext.napoleon'
 ]
 
+autodoc_mock_imports = [
+    'torch', 'torchvision',
+    'parsl',
+    'pymatgen',
+    'spglib',
+    'monty',
+    'mp_api',
+    'ternary',
+    'matplotlib', 'matplotlib.pyplot',
+    'scipy', 'scipy.spatial',
+    'sklearn',
+]
+
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': False,
+    'inherited-members': False,
+}
+
 templates_path = ['_templates']
 exclude_patterns = []
 
