@@ -32,7 +32,7 @@ conda activate amd_env
 
 Additionally:
 - Ensure you have a working [VASP](https://www.vasp.at) installation.
-- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put them in a directory called `initial_structures`. An example of an initial data set can be downloaded [here](https://iastate.box.com/s/3swro78kbcd69fwamhk7df4n5rx4edae).
+- Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put them in a directory called `initial_structures`. An example of an initial data set can be downloaded [here](https://doi.org/10.5281/zenodo.17180192).
 - Create a json file that specifies the running configurations for exa-AMD. See for example [configs/chicoma.json](configs/chicoma.json). The configuration file specifies general settings for running exa-AMD, CGCNN, VASP, and the Parsl configuration.
 
 
