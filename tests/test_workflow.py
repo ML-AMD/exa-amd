@@ -3,6 +3,7 @@ import pytest
 import tarfile
 import os
 import shutil
+import random
 from pathlib import Path
 
 # Ensure repo root is importable
@@ -65,15 +66,55 @@ def cgcnn_output(tmp_path_factory):
     }
 
 
-def test_cgcnn(cgcnn_output):
+def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
     """
-    test that test_results_1.csv has correct format
+    Run predict_cgcnn 5 times and check predictions are consistent between test runs.
     """
-    cgcnn_output_csv = cgcnn_output["csv"]
-    with open(cgcnn_output_csv) as f:
-        lines = [ln.strip() for ln in f if ln.strip()]
-    assert lines, "CSV is empty"
-    assert all(len(line.split(",")) == 3 for line in lines), "Unexpected line in CSV"
+    import os
+    from pathlib import Path
+    import ml_models.cgcnn as cgcnn_pkg
+    from ml_models.cgcnn.predict import predict_cgcnn
+
+    base = cgcnn_output["base"]
+    cif_dir = cgcnn_output["structures"] / "1"
+    model_path = Path(cgcnn_pkg.__file__).parent / "form_1st.pth.tar"
+    assert model_path.exists()
+
+    def read_preds(csv_path):
+        out = {}
+        with open(csv_path) as f:
+            for ln in f:
+                ln = ln.strip()
+                if not ln:
+                    continue
+                cid, _target, pred = ln.split(",")
+                out[cid] = float(pred)
+        return out
+
+    runs, outputs = 5, []
+    cwd = os.getcwd()
+    try:
+        os.chdir(base)
+        for i in range(runs):
+            out_csv = base / f"repro_{i}.csv"
+            _ = predict_cgcnn(
+                modelpath=str(model_path),
+                cifpath=str(cif_dir),
+                batch_size=256,
+                workers=0,
+                disable_cuda=True,
+                chunk_id=1,
+                output_csv=str(out_csv),
+            )
+            assert out_csv.exists()
+            outputs.append(read_preds(out_csv))
+    finally:
+        os.chdir(cwd)
+
+    first = outputs[0]
+    for j, cur in enumerate(outputs[1:], start=2):
+        for k in first:
+            assert abs(first[k] - cur[k]) <= 1e-6, f"Unstable CGCNN prediction for {k} on run {j}"
 
 
 def test_select_structure(cgcnn_output):
