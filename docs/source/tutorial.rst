@@ -18,11 +18,17 @@ Start by cloning the `exa-AMD` repository:
 2. Install Dependencies
 ------------------------
 
-Follow the :ref:`installation` instructions to create the required environment using Conda. After installation, make sure to activate the environment:
+CLI install:
 
 .. code-block:: bash
 
-   conda activate amd_env
+   pip install "https://github.com/ML-AMD/exa-amd/releases/download/v0.1.0/exa_amd-0.1.0-py3-none-any.whl"
+
+Verify the CLI is available:
+
+.. code-block:: bash
+
+   exa_amd --help
 
 ----
 
@@ -163,7 +169,7 @@ Once everything is configured, run the full exa-AMD workflow from a login node o
 .. code-block:: bash
 
    export PYTHONPATH=$(pwd):$PYTHONPATH
-   python amd.py --config configs/my_config_perlmutter.json --vasp_nnodes 2
+   exa_amd --config configs/my_config_perlmutter.json --vasp_nnodes 2
 
 This will launch the five stages:
 

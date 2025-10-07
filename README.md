@@ -24,12 +24,6 @@ This package requires:
 - mp-api >= 0.45.7
 - python-ternary >= 1.0.8
 
-If you use [Conda](https://docs.conda.io/en/latest/miniconda.html) to manage Python packages, you may create a conda environment to install the required packages using the `amd_env` environment yaml file we provide:
-```bash
-conda env create -f amd_env.yml
-conda activate amd_env
-```
-
 Additionally:
 - Ensure you have a working [VASP](https://www.vasp.at) installation.
 - Ensure you have prepared the initial crystal structures in the Crystallographic Information File (CIF) format and put them in a directory called `initial_structures`. An example of an initial data set can be downloaded [here](https://doi.org/10.5281/zenodo.17180192).
@@ -39,6 +33,20 @@ Additionally:
 ### External packages 
 This package contains a modified version of Crystal Graph Convolutional Neural Networks (CGCNN) placed under the `cms_dir` directory. The original [CGCNN](https://github.com/txie-93/cgcnn) source code was developed by [Tian Xie](https://txie.me/) et al., distributed under the MIT License.
 
+## Install
+### CLI (preferred)
+```bash
+pip install "https://github.com/ML-AMD/exa-amd/releases/download/v0.1.0/exa_amd-0.1.0-py3-none-any.whl"
+exa_amd --help
+```
+### Conda-only (run from source)
+If you use [Conda](https://docs.conda.io/en/latest/miniconda.html) to manage Python packages, you may create a conda environment to install the required packages using the `amd_env` environment yaml file we provide:
+```bash
+conda env create -f amd_env.yml
+conda activate amd_env
+# from the repo root:
+python exa_amd.py --config your_config.json
+```
 
 ## Registering a new Parsl configuration
 We currently support the automated workflows on NERSC's Perlmutter and LANL's Chicoma computers. If you would like to run on a different computing system, you must add your own Parsl configuration following these steps:
@@ -50,24 +58,24 @@ We currently support the automated workflows on NERSC's Perlmutter and LANL's Ch
 5. Modify your json configuration file accordingly by setting `parsl_config` to `<my_parsl_config_name>`
 
 
-## Usage
+## Usage (CLI)
 - Modify the `initial_structures_dir` field in the json configuration file to indicate the absolute path to the `initial_structures` directory
 
 - Run exa-AMD with the json file created in the prerequisite step:
     ```bash
-    python exa_amd.py --config <your_config_file>
+    exa_amd --config <your_config_file>
     ```
     For running on Perlmutter for example,
     ```bash
-    python exa_amd.py --config configs/perlmutter.json
+    exa_amd --config configs/perlmutter.json
     ```
 - (Optional) The json config file can be overridden via command line arguments, for example:
     ```bash
-    python exa_amd.py --config configs/perlmutter.json --num_workers 256
+    exa_amd --config configs/perlmutter.json --num_workers 256
     ```
     For a full list of command line arguments and their descriptions, run:
     ```bash
-    python exa_amd.py --help
+    exa_amd --help
     ```
 
 ## Documentation
