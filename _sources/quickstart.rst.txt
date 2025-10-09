@@ -27,21 +27,32 @@ Prerequisites
 
 Installation
 ------------
-- Ensure you have Conda installed.
-- Install the required packages:
+
+**Option A — From Release (preferred)**
+
+Install the packaged wheel (activate your Conda env first if you use Conda):
 
 .. code-block:: bash
 
-    conda env create -f amd_env.yml
+   pip install "https://github.com/ML-AMD/exa-amd/releases/download/v0.1.0/exa_amd-0.1.0-py3-none-any.whl"
 
-
-Run the tests
--------------
+Quick check:
 
 .. code-block:: bash
 
-    conda activate amd_env
-    pytest
+   exa_amd --help
+
+
+**Option B — From source (Conda-only)**
+
+Create/activate the environment, then run from the repo:
+
+.. code-block:: bash
+
+   conda env create -f amd_env.yml
+   conda activate amd_env
+   # from the repository root
+   python exa_amd.py --help
 
 
 Using a JSON Configuration File

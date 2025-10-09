@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Reference Guide" href="api.html" />
+    <link rel="next" title="Workflow stages" href="workflow.html" />
     <link rel="prev" title="Quickstart" href="quickstart.html" /> 
 </head>
 
@@ -65,6 +65,8 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
 </ul>
@@ -107,8 +109,12 @@
 <hr class="docutils" />
 <section id="install-dependencies">
 <h2>2. Install Dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading"></a></h2>
-<p>Follow the <a class="reference internal" href="quickstart.html#installation"><span class="std std-ref">Installation</span></a> instructions to create the required environment using Conda. After installation, make sure to activate the environment:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>amd_env
+<p>CLI install:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;https://github.com/ML-AMD/exa-amd/releases/download/v0.1.0/exa_amd-0.1.0-py3-none-any.whl&quot;</span>
+</pre></div>
+</div>
+<p>Verify the CLI is available:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>exa_amd<span class="w"> </span>--help
 </pre></div>
 </div>
 </section>
@@ -224,7 +230,7 @@ Then in your Parsl config, you should use:
 <h2>6. Run the Workflow<a class="headerlink" href="#run-the-workflow" title="Link to this heading"></a></h2>
 <p>Once everything is configured, run the full exa-AMD workflow from a login node of Perlmutter:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:<span class="nv">$PYTHONPATH</span>
-python<span class="w"> </span>amd.py<span class="w"> </span>--config<span class="w"> </span>configs/my_config_perlmutter.json<span class="w"> </span>--vasp_nnodes<span class="w"> </span><span class="m">2</span>
+exa_amd<span class="w"> </span>--config<span class="w"> </span>configs/my_config_perlmutter.json<span class="w"> </span>--vasp_nnodes<span class="w"> </span><span class="m">2</span>
 </pre></div>
 </div>
 <p>This will launch the five stages:</p>
@@ -319,7 +325,7 @@ convex-hull phase diagram generated in this final step.</span><a class="headerli
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="quickstart.html" class="btn btn-neutral float-left" title="Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="api.html" class="btn btn-neutral float-right" title="API Reference Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="workflow.html" class="btn btn-neutral float-right" title="Workflow stages" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

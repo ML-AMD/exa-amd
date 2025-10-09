@@ -1,0 +1,170 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workflow stages &mdash; exa-AMD 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Parsl configuration guide" href="parsl_config.html" />
+    <link rel="prev" title="Tutorial" href="tutorial.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            exa-AMD
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflow stages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#structure-generation">1. Structure generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cgcnn-based-structure-screening">2. CGCNN-based structure screening</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#removal-of-similar-structures">3. Removal of similar structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dft-calculations-relaxation-and-energy">4. DFT calculations (relaxation and energy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#post-processing-convex-hull-and-stability-analysis">5. Post-processing: convex hull and stability analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">exa-AMD</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Workflow stages</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/workflow.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="workflow-stages">
+<h1>Workflow stages<a class="headerlink" href="#workflow-stages" title="Link to this heading"></a></h1>
+<section id="structure-generation">
+<h2>1. Structure generation<a class="headerlink" href="#structure-generation" title="Link to this heading"></a></h2>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></p>
+<p>Start from structures in the <code class="docutils literal notranslate"><span class="pre">initial_structures</span></code> directory and generate hypothetical structures:</p>
+<ul class="simple">
+<li><p>Perform elemental substitution: the elements in each initial structure are replaced with the target elements under investigation.</p></li>
+<li><p>Cover atomic arrangements by enumerating (or randomly shuffling) the order of substituted elements (i.e., all permutations for the given system).</p></li>
+<li><p>Apply lattice scaling (typically from 0.94 to 1.06) to span realistic bond-length variations, since optimal bond lengths for the new elements may differ from the original structure.</p></li>
+<li><p>The cross-product of element orderings and scale factors yields many variants:
+- Ternary: 30 variants per initial structure.
+- Quaternary: 24 possible orderings.</p></li>
+</ul>
+</section>
+<section id="cgcnn-based-structure-screening">
+<h2>2. CGCNN-based structure screening<a class="headerlink" href="#cgcnn-based-structure-screening" title="Link to this heading"></a></h2>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></p>
+<ul class="simple">
+<li><p>Evaluate all generated structures with a Crystal Graph Convolutional Neural Network (CGCNN) to predict formation energies efficiently.</p></li>
+<li><p>Select structures with low predicted formation energy as promising candidates, reducing the cost of subsequent first-principles calculations.</p></li>
+</ul>
+</section>
+<section id="removal-of-similar-structures">
+<h2>3. Removal of similar structures<a class="headerlink" href="#removal-of-similar-structures" title="Link to this heading"></a></h2>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></p>
+<ul class="simple">
+<li><p>Identify and remove duplicates or near-duplicates using a structural-similarity threshold.</p></li>
+<li><p>The deduplication step ensures that only non-equivalent structures are retained, typically narrowing the set to a manageable number (e.g., 1,000–5,000 structures) for detailed study.</p></li>
+</ul>
+</section>
+<section id="dft-calculations-relaxation-and-energy">
+<h2>4. DFT calculations (relaxation and energy)<a class="headerlink" href="#dft-calculations-relaxation-and-energy" title="Link to this heading"></a></h2>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></p>
+<ul class="simple">
+<li><p>The filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT) using VASP (extensible to other ab initio codes such as Quantum ESPRESSO).</p></li>
+<li><p>Each structure undergoes full relaxation to find its lowest-energy geometry, followed by a self-consistent total-energy calculation.</p></li>
+<li><p>The resulting relaxed structures and total energies provide the basis for thermodynamic analysis.</p></li>
+</ul>
+</section>
+<section id="post-processing-convex-hull-and-stability-analysis">
+<h2>5. Post-processing: convex hull and stability analysis<a class="headerlink" href="#post-processing-convex-hull-and-stability-analysis" title="Link to this heading"></a></h2>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></p>
+<ul class="simple">
+<li><p>Determine the formation energies of each structure relative to known stable phases.</p></li>
+<li><p>Construct the convex hull to indentify structures that are:
+- Thermodynamically stable: on (or below) the current convex hull.
+- Metastable: low formation energy (&lt; 0.05 eV/atom ) above the hull (Ehull &lt; 0.05 eV/atom).</p></li>
+<li><p>This analysis reveals new stable and metastable structures and updates the phase diagram for the target system.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parsl_config.html" class="btn btn-neutral float-right" title="Parsl configuration guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2025. Iowa State University &amp; © 2025. Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

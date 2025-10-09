@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parsl configuration guide &mdash; exa-AMD 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference Guide" href="api.html" />
+    <link rel="prev" title="Workflow stages" href="workflow.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            exa-AMD
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow stages</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parsl configuration guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#executor-labels">Executor labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-a-config-at-runtime">Selecting a config at runtime</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#built-in-configurations">Built-in configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-provided-configs">Using the provided configs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#registering-a-new-config">Registering a new config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-allocation-placement">Resource allocation &amp; placement</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quick-mapping-to-slurm">Quick mapping to Slurm</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#what-the-run-json-typically-controls">What the run JSON typically controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-working-example">Full working example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#need-help">Need help?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">exa-AMD</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Parsl configuration guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/parsl_config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="parsl-configuration-guide">
+<span id="parsl-config"></span><h1>Parsl configuration guide<a class="headerlink" href="#parsl-configuration-guide" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This guide focuses on <strong>Slurm-based</strong> configurations for brevity. Parsl also
+supports a wide range of resource providers and launchers beyond Slurm, and
+can run on many different systems. See the Parsl documentation for other
+workload managers.</p>
+</div>
+<p>exa-AMD uses <a class="reference external" href="https://parsl-project.org">Parsl</a> to schedule each workflow
+phase on your system. exa-AMD typically uses Parsl <em>configuration</em> to specify Slurm accounts/queues,
+CPU/GPU placement, number of nodes, per-node workers/threads, walltime, and how
+the software environment is initialized on compute nodes.</p>
+<p>Parsl can technically run the workflow on a local machine. However, exa-AMD is designed for supercomputers and typically requires substantial computational resources, so local execution is not recommended.</p>
+<section id="executor-labels">
+<h2>Executor labels<a class="headerlink" href="#executor-labels" title="Link to this heading"></a></h2>
+<p>exa-AMD uses labels to link tasks to executors. A task’s label selects the executor it will run on.
+The executor, in turn, defines the computational resources used by the task (e.g., CPUs/GPs, node count).</p>
+<p>First, the label is used when registering the executor:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">executor</span> <span class="o">=</span> <span class="n">HighThroughputExecutor</span><span class="p">(</span>
+    <span class="n">label</span><span class="o">=</span><span class="n">EXECUTOR_LABEL</span><span class="p">,</span>
+    <span class="o">...</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, the same label is referenced by the task decorator to run that task on that executor:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@python_app</span><span class="p">(</span><span class="n">executors</span><span class="o">=</span><span class="p">[</span><span class="n">EXECUTOR_LABEL</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">():</span>
+</pre></div>
+</div>
+<p>This keeps the workflow code independent of site details while precisely controlling resource placement per task.</p>
+<p>exa-AMD uses fixed executor labels for each of the five workflow phases described in :doc:workflow:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Executor labels</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 65.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Phase</p></th>
+<th class="head"><p>Parsl executor label</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Structure generation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>CGCNN prediction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Structure selection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>VASP (DFT)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Post-processing</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="selecting-a-config-at-runtime">
+<h2>Selecting a config at runtime<a class="headerlink" href="#selecting-a-config-at-runtime" title="Link to this heading"></a></h2>
+<p>At runtime, exa-AMD reads a <strong>JSON</strong> run configuration. The key:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> — selects which <strong>registered Parsl config</strong> to use
+(e.g., <code class="docutils literal notranslate"><span class="pre">&quot;perlmutter_premium&quot;</span></code>).</p></li>
+</ul>
+<p>This value must <strong>match the registry name</strong> defined in the Python config, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># https://github.com/ML-AMD/exa-amd/blob/main/parsl_configs/perlmutter.py#L154</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="built-in-configurations">
+<h2>Built-in configurations<a class="headerlink" href="#built-in-configurations" title="Link to this heading"></a></h2>
+<p>The repository provides four registered configurations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;chicoma&quot;</span><span class="p">,</span> <span class="n">ChicomaConfig</span><span class="p">)</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;chicoma_debug&quot;</span><span class="p">,</span> <span class="n">ChicomaConfigDebug</span><span class="p">)</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;chicoma_debug_cpu&quot;</span><span class="p">,</span> <span class="n">ChicomaConfigDebugCPU</span><span class="p">)</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Select any of these by setting <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> accordingly in your run JSON.</p>
+</section>
+<section id="using-the-provided-configs">
+<h2>Using the provided configs<a class="headerlink" href="#using-the-provided-configs" title="Link to this heading"></a></h2>
+<p>For <strong>LANL Chicoma</strong> and <strong>NERSC Perlmutter</strong>:</p>
+<ul class="simple">
+<li><p>Update <strong>``worker_init``</strong> in the config to load your site modules and activate
+your Conda environment <em>on compute nodes</em>.</p></li>
+<li><p>Provide <strong>accounts</strong> and other runtime knobs (e.g., number of nodes) in your run JSON.</p></li>
+</ul>
+<p>Additionally, update the different Slurm fields (e.g., <code class="docutils literal notranslate"><span class="pre">qos</span></code>, <code class="docutils literal notranslate"><span class="pre">constraint</span></code>,
+launcher).</p>
+</section>
+<section id="registering-a-new-config">
+<h2>Registering a new config<a class="headerlink" href="#registering-a-new-config" title="Link to this heading"></a></h2>
+<p>If your site differs substantially you may want to register a new Parsl configuration:</p>
+<ol class="arabic">
+<li><p>Create a file under <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">my_system.py</span></code>).</p></li>
+<li><p>Implement a <code class="docutils literal notranslate"><span class="pre">Config</span></code> subclass with five executors (using the labels above).</p></li>
+<li><p><strong>Register</strong> it with a <strong>unique</strong> name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;my_system&quot;</span><span class="p">,</span> <span class="n">MySystemConfig</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;my_system&quot;</span></code> in your run JSON.</p></li>
+</ol>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>The registry name must be <strong>unique</strong> across all registered configs in your
+environment.</p>
+</div>
+</section>
+<section id="resource-allocation-placement">
+<h2>Resource allocation &amp; placement<a class="headerlink" href="#resource-allocation-placement" title="Link to this heading"></a></h2>
+<p>Parsl’s provider/executor fields map directly to the resources you request from Slurm.</p>
+<dl class="simple">
+<dt><strong>Node type</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint</span></code>: choose CPU vs GPU nodes (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;gpu&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">available_accelerators</span></code>: GPUs <em>per node</em> (e.g., 4 on Perlmutter).</p></li>
+</ul>
+</dd>
+<dt><strong>How many nodes</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes_per_block</span></code>: nodes in one Slurm allocation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_blocks</span></code> / <code class="docutils literal notranslate"><span class="pre">min_blocks</span></code> / <code class="docutils literal notranslate"><span class="pre">init_blocks</span></code>: how many allocations Parsl may keep alive.
+- One multi-node allocation: <code class="docutils literal notranslate"><span class="pre">nodes_per_block</span> <span class="pre">=</span> <span class="pre">N</span></code>, <code class="docutils literal notranslate"><span class="pre">max_blocks</span> <span class="pre">=</span> <span class="pre">1</span></code>.
+- Many single-node allocations: <code class="docutils literal notranslate"><span class="pre">nodes_per_block</span> <span class="pre">=</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">max_blocks</span> <span class="pre">=</span> <span class="pre">N</span></code>.</p></li>
+</ul>
+</dd>
+<dt><strong>Per-node concurrency</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cores_per_worker</span></code>: CPUs per Parsl worker.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_workers_per_node</span></code>: limit on workers per node.</p></li>
+</ul>
+</dd>
+<dt><strong>Operational</strong></dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">account</span></code> and <code class="docutils literal notranslate"><span class="pre">qos</span></code>: indetical to Slurm equivalents.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">walltime</span></code>: job time limit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">worker_init</span></code>: environment on compute nodes (e.g., modules).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scheduler_options</span></code>: raw <code class="docutils literal notranslate"><span class="pre">#SBATCH</span></code> directives when needed.</p></li>
+</ul>
+</dd>
+</dl>
+<section id="quick-mapping-to-slurm">
+<h3>Quick mapping to Slurm<a class="headerlink" href="#quick-mapping-to-slurm" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Nodes: <code class="docutils literal notranslate"><span class="pre">nodes_per_block</span></code> → roughly <code class="docutils literal notranslate"><span class="pre">-N</span></code>.</p></li>
+<li><p>GPUs per node: <code class="docutils literal notranslate"><span class="pre">available_accelerators</span></code> → akin to <code class="docutils literal notranslate"><span class="pre">--gpus-per-node</span></code>.</p></li>
+<li><p>CPU threads per worker: <code class="docutils literal notranslate"><span class="pre">cores_per_worker</span></code> → similar to <code class="docutils literal notranslate"><span class="pre">--cpus-per-task</span></code> (per worker).</p></li>
+<li><p>Multiple allocations: <code class="docutils literal notranslate"><span class="pre">max_blocks</span></code> &gt; 1 → multiple Slurm jobs managed by Parsl.</p></li>
+</ul>
+</section>
+</section>
+<section id="what-the-run-json-typically-controls">
+<h2>What the run JSON typically controls<a class="headerlink" href="#what-the-run-json-typically-controls" title="Link to this heading"></a></h2>
+<p>Common knobs provided in the run JSON (names may vary slightly by version):</p>
+<ul class="simple">
+<li><p><strong>Parsl selection &amp; accounts</strong>
+- <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code>: registry name of the site config (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;perlmutter_premium&quot;</span></code>).
+- <code class="docutils literal notranslate"><span class="pre">cpu_account</span></code> / <code class="docutils literal notranslate"><span class="pre">gpu_account</span></code>: Slurm accounts for CPU/GPU executors.</p></li>
+<li><p><strong>Resource allocation &amp; placement</strong>
+- <code class="docutils literal notranslate"><span class="pre">num_workers</span></code>: CPU threads per worker (used by CPU-bound phases).
+- <code class="docutils literal notranslate"><span class="pre">pre_processing_nnodes</span></code>: node count for structure generation and CGCNN.
+- <code class="docutils literal notranslate"><span class="pre">vasp_nnodes</span></code>: node count for the VASP phase.</p></li>
+</ul>
+</section>
+<section id="full-working-example">
+<h2>Full working example<a class="headerlink" href="#full-working-example" title="Link to this heading"></a></h2>
+<p>For a complete configuration with five labeled executors and typical Slurm settings,
+see the Perlmutter config in the repository:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">parsl_configs/perlmutter.py</span></code></p></li>
+</ul>
+</section>
+<section id="need-help">
+<h2>Need help?<a class="headerlink" href="#need-help" title="Link to this heading"></a></h2>
+<p>If you are setting up a new site configuration or encountering center-specific
+constraints, please open a <strong>discussion</strong> or <strong>issue</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ML-AMD/exa-amd">https://github.com/ML-AMD/exa-amd</a></p></li>
+</ul>
+</section>
+<section id="further-reading">
+<h2>Further reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Parsl configuration guide:
+<a class="reference external" href="https://parsl.readthedocs.io/en/latest">https://parsl.readthedocs.io/en/latest</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="workflow.html" class="btn btn-neutral float-left" title="Workflow stages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API Reference Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2025. Iowa State University &amp; © 2025. Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
