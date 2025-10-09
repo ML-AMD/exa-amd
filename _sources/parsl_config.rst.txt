@@ -43,7 +43,7 @@ Then, the same label is referenced by the task decorator to run that task on tha
 
 This keeps the workflow code independent of site details while precisely controlling resource placement per task.
 
-exa-AMD uses fixed executor labels for each of the five workflow phases described in :doc:workflow:
+exa-AMD uses fixed executor labels for each of the five workflow phases described in :doc:`workflow </workflow>`.
 
 .. list-table:: Executor labels
    :header-rows: 1
