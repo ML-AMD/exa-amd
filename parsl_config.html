@@ -108,7 +108,7 @@ the software environment is initialized on compute nodes.</p>
 <section id="executor-labels">
 <h2>Executor labels<a class="headerlink" href="#executor-labels" title="Link to this heading"></a></h2>
 <p>exa-AMD uses labels to link tasks to executors. A task’s label selects the executor it will run on.
-The executor, in turn, defines the computational resources used by the task (e.g., CPUs/GPs, node count).</p>
+The executor, in turn, defines the computational resources used by the task (e.g., CPUs/GPUs, node count).</p>
 <p>First, the label is used when registering the executor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">executor</span> <span class="o">=</span> <span class="n">HighThroughputExecutor</span><span class="p">(</span>
     <span class="n">label</span><span class="o">=</span><span class="n">EXECUTOR_LABEL</span><span class="p">,</span>

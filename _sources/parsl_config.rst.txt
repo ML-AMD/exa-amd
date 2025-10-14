@@ -21,7 +21,7 @@ Executor labels
 ---------------
 
 exa-AMD uses labels to link tasks to executors. A task’s label selects the executor it will run on.
-The executor, in turn, defines the computational resources used by the task (e.g., CPUs/GPs, node count).
+The executor, in turn, defines the computational resources used by the task (e.g., CPUs/GPUs, node count).
 
 
 First, the label is used when registering the executor:
