@@ -26,6 +26,20 @@ def write_status(fp, id_, status):
 
 
 def vasp_calculations(config):
+    """
+    Run two-stage VASP calculations for all selected structures and log outcomes.
+
+    Launches :func:`parsl_tasks.dft_optimization.run_vasp_calc` for each ID in
+    ``[config["nstart"], config["nend"])``. Writes a CSV of per-ID results to
+    ``{config[CK.VASP_WORK_DIR]}/{config[CK.OUTPUT_FILE]}``.
+
+    :param ConfigManager config: workflow configuration
+
+    :returns: None
+    :rtype: None
+
+    :raises Exception: only if uncaught errors propagate past per-task handling
+     """
     from parsl_tasks.dft_optimization import run_vasp_calc
     work_dir = config[CK.WORK_DIR]
     output_file_vasp_calc = os.path.join(
@@ -57,6 +71,18 @@ def vasp_calculations(config):
 
 
 def generate_structures(config):
+    """
+    Generate hypothetical structures in parallel (chunked).
+
+    Submits :func:`parsl_tasks.gen_structures.gen_structures` for each chunk
+    ``i ∈ [1, n_chunks]`` where ``n_chunks = config[CK.GEN_STRUCTURES_NNODES]``,
+    and waits for completion.
+
+    :param ConfigManager config: workflow configuration
+
+    :returns: None
+    :rtype: None
+    """
     from parsl_tasks.gen_structures import gen_structures
     try:
         n_chunks = config[CK.GEN_STRUCTURES_NNODES]
@@ -70,6 +96,17 @@ def generate_structures(config):
 
 
 def select_structures(config):
+    """
+    Filter, deduplicate, and select candidate structures.
+
+    Runs :func:`parsl_tasks.select_structures.select_structures` to produce
+    ``{work_dir}/new/POSCAR_{i}`` and ``{work_dir}/new/id_prop.csv``.
+
+    :param ConfigManager config: workflow configuration
+
+    :returns: None
+    :rtype: None
+    """
     from parsl_tasks.select_structures import select_structures
     try:
         select_structures(config.get_json_config()).result()
@@ -78,6 +115,19 @@ def select_structures(config):
 
 
 def run_cgcnn(config):
+    """
+    Predicts formation energy with CGCNN for the candidates.
+
+    Submits :func:`parsl_tasks.cgcnn.cgcnn_prediction` for each chunk
+    ``i ∈ [1, n_chunks]`` where ``n_chunks = config[CK.GEN_STRUCTURES_NNODES]``.
+    Merges ``work_dir/test_results_*.csv`` into ``work_dir/test_results.csv``,
+    then deletes the shard files.
+
+    :param ConfigManager config: workflow configuration
+
+    :returns: None
+    :rtype: None
+    """
     from parsl_tasks.cgcnn import cgcnn_prediction
     try:
         n_chunks = config[CK.GEN_STRUCTURES_NNODES]
@@ -106,6 +156,19 @@ def run_cgcnn(config):
 
 
 def post_processing(config):
+    """
+    Compute Ehull, color the convex hull, and collect promising candidates.
+
+    Requires a 3- or 4-element system. Runs
+    :func:`tools.post_processing.get_vasp_hull`,
+    :func:`parsl_tasks.ehull.calculate_ehul` and
+    :func:`parsl_tasks.convex_hull.convex_hull_color`.
+
+    :param ConfigManager config: workflow configuration
+
+    :returns: None
+    :rtype: None
+    """
     if config[CK.POST_PROCESSING_OUT_DIR]:
 
         elements = config[CK.ELEMENTS]

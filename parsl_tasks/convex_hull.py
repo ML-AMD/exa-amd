@@ -4,6 +4,27 @@ from tools.config_labels import ConfigKeys as CK
 
 
 def plot_convex_hull_ternary(elements_list, stable_dat, full_path_input_csv, threshold, output_file):
+    """
+    Plot the ternary convex hull and metastable points for a 3-element system.
+
+    :param list[str] elements_list:
+        Three element symbols (e.g., ``["Ce", "Co", "B"]``).
+
+    :param str stable_dat:
+        Path to a text file with elemental reference energies.
+
+    :param str full_path_input_csv:
+        CSV with rows ``Formula,Total_Energy_per_atom`` for calculated phases.
+
+    :param float threshold:
+        Max Ehull (eV/atom) to display for metastable points (``<= 0`` hides them).
+
+    :param str output_file:
+        Path for the saved image.
+
+    :returns: ``output_file`` path (for convenience).
+    :rtype: str
+    """
     import os
     import csv
     import numpy as np
@@ -383,6 +404,27 @@ def plot_convex_hull_ternary(elements_list, stable_dat, full_path_input_csv, thr
 
 
 def plot_convex_hull_quaternary(elements_str, stable_path, input_csv_path, ehull_threshold, output_file=None):
+    """
+    Plot the quaternary convex hull and metastable points for a 3-element system.
+
+    :param list[str] elements_str:
+        List of 4 element symbols (e.g., ['Si','Ge','Sn','Pb']).
+
+    :param str stable_path:
+        Path to a text file with elemental reference energies.
+
+    :param str input_csv_path:
+        CSV with rows ``Formula,Total_Energy_per_atom`` for calculated phases.
+
+    :param float ehull_threshold:
+        Max Ehull (eV/atom) to display for metastable points (``<= 0`` hides them).
+
+    :param str output_file:
+        Path for the saved image.
+
+    :returns: ``output_file`` path (for convenience).
+    :rtype: str
+    """
     import argparse
     import os
     import re

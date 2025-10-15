@@ -8,30 +8,17 @@ def cmd_vasp_hull(config, work_subdir):
     Using the total energies, computes the formation energies of each structure
     relative to reference elemental phases.
 
-    Parameters
-    ----------
-    config : dict
-        ConfigManager instance. The following fields are used:
+    :param dict config:
+        :class:`~tools.config_manager.ConfigManager` (or dict). Keys used:
+        - ``vasp_std_exe`` (str): path to the VASP executable.
 
-        - ``CK.VASP_NTASKS_PER_RUN`` (*int*): Number of MPI ranks.
-          ``1`` triggers a run with a single process; any other value results in
-          ``srun -n <N>``.
-        - ``CK.VASP_STD_EXE``: Path to the VASP executable.
+    :param str work_subdir:
+        Working subdirectory where the command should be executed.
 
-        See :class:`~tools.config_manager.ConfigManager` for field descriptions.
+    :returns: Shell command string.
+    :rtype: str
 
-    work_subdir : str
-        Name of the working subdirectory where the hull calculation is run.
-
-    Returns
-    -------
-    str
-        A formatted shell command string to execute `run_single_vasp_hull_calculation.py`.
-
-    Raises
-    ------
-    Exception
-        If directory navigation or file operations fail.
+    :raises Exception: on directory navigation failures.
     """
     import os
     try:

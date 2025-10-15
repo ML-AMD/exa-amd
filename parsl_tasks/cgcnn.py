@@ -11,19 +11,32 @@ import ml_models.cgcnn as cgcnn_pkg
 
 def cmd_cgcnn_prediction(config, n_chunks, id):
     """
-    Prepares the working environment and generates the command to execute
-    CGCNN predictions.
+    Prepare the working environment and build the command to run CGCNN predictions.
 
-    Args:
-        config (dict): ConfigManager. The following fields are used:
-            - work_dir
-            - batch_size
-            - num_workers
+    The prediction workload is partitioned into ``n_chunks`` disjoint segments.
+    This task handles the segment identified by ``id``.
 
-            See :class:`~tools.config_manager.ConfigManager` for full field descriptions.
+    :param dict config:
+        A :class:`~tools.config_manager.ConfigManager` (or dict with the same
+        fields). The following keys are read:
 
-    Returns:
-        str: Absolute path to csv file containing the predictions.
+        - ``work_dir`` (str): root working directory for inputs/outputs
+        - ``batch_size`` (int): inference batch size
+        - ``num_workers`` (int): data-loading workers for inference
+
+        See :class:`~tools.config_manager.ConfigManager` for full field descriptions.
+
+    :param int n_chunks:
+        Total number of chunks for the workload.
+
+    :param int id:
+        Zero-based index of the partition to execute, where ``0 <= id < n_chunks``.
+
+    :returns: Absolute path to this partition’s predictions CSV.
+    :rtype: str
+
+    :raises ValueError: if ``n_chunks`` is not positive or ``id`` is out of range
+    :raises Exception: on directory navigation or file I/O failures
     """
     import os
     import shutil

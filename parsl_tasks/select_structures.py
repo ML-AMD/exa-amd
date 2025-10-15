@@ -226,6 +226,50 @@ def run_select_structures(nomix_dir="nomix/",
     """
     Identify and remove duplicate or near-duplicate structures,
     based on a structural similarity threshold.
+
+    Reads candidates from a CSV file, sort data by formation energy (Ef) and
+    eliminates the structures above the `ef_threshold`.
+    It then deduplicates per composition using
+    :class:`pymatgen.analysis.structure_matcher.StructureMatcher`, and writes
+    the selected set to ``output_dir``.
+
+    :param str nomix_dir:
+        Root directory containing input CIFs laid out as
+        ``{chunk_prefix}/{index}.cif``.
+
+    :param str output_dir:
+        Directory to write outputs (created if missing). Writes
+        ``id_prop.csv`` and ``POSCAR_{i}`` files for selected structures.
+
+    :param str csv_file:
+        Path to the input CSV with three columns:
+        ``index, _ , Ef`` — where ``index`` matches CIF filenames and
+        ``Ef`` is a float (formation energy or score used for ranking).
+
+    :param float ef_threshold:
+        Maximum allowed ``Ef`` for initial filtering.
+
+    :param int min_total:
+        Desired minimum number of selected structures. A warning is printed
+        if the final count is smaller.
+
+    :param int max_total:
+        Hard cap on the number of selected structures.
+
+    :param int num_workers:
+        Number of worker processes (threads) for filtering and selection.
+
+    :param int natom_threshold:
+        Maximum total atoms (reduced formula) allowed per structure.
+
+    :param str element_fractions:
+        Comma-separated minimum fraction constraints by element.
+        Structures with any listed element below
+        its fraction are discarded. Empty string disables this filter.
+
+    :returns: None
+    :rtype: None
+
     """
     element_fractions = {elem: float(frac) for elem, frac in [pair.split(
         ':') for pair in element_fractions.split(',') if pair]}

@@ -52,22 +52,34 @@ def _process_structure(args):
 
 def run_gen_structures(config, n_chunks, chunk_id):
     """
-    Parsl task that generates hypothetical structures based on the initial crystal structures.
+    Parsl task that generates hypothetical structures from initial crystal structures.
 
-    Args:
-        config (dict): ConfigManager. The following fields are used:
-            - work_dir
-            - num_workers
-            - elements
-            - initial_structures_dir
+    The total search space is partitioned into ``n_chunks`` disjoint segments.
+    This task processes the segment identified by ``chunk_id``.
 
-            See :class:`~tools.config_manager.ConfigManager` for field descriptions.
+    :param dict config:
+        A :class:`~tools.config_manager.ConfigManager` (or dict with the same
+        fields). The following keys are read:
 
-    Returns:
-        str: Absolute path to rgw id prop csv file.
+        - ``work_dir`` (str): root working directory where outputs are written
+        - ``num_workers`` (int): number of parallel workers for the inner loop
+        - ``elements`` (str): target system (e.g., "Ce-Co-B")
+        - ``initial_structures_dir`` (str): directory containing initial structures
 
-    Raises:
-        Exception: If directory navigation or file operations fail.
+        See :class:`~tools.config_manager.ConfigManager` for complete field
+        descriptions and defaults.
+
+    :param int n_chunks:
+        Total number of chunks for the workload.
+
+    :param int chunk_id:
+        Zero-based index of the partition to execute, where ``0 <= chunk_id < n_chunks``.
+
+    :returns: Absolute path to this chunk’s ``id_prop.csv``.
+    :rtype: str
+
+    :raises ValueError: if ``n_chunks`` is not positive or ``chunk_id`` is out of range
+    :raises Exception: on directory navigation or file I/O failures
     """
     dir_structures = os.path.join(config[CK.WORK_DIR], "structures", str(chunk_id))
     input_dir = config[CK.INITIAL_STRS]

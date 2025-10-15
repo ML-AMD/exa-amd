@@ -13,31 +13,29 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
     Run a two-stage VASP calculation via a Python Parsl task.
 
     It start by running a relaxation phase trying to find
-    the lowest-energy configuration. If relaxation was successful,
+    the lowest-energy configuration. If relaxation is successful,
     it runs the energy calculaction
 
-    Args:
-        config (ConfigManager or dict): Configuration object. The following fields are used:
-            - vasp_ntasks_per_run
-            - vasp_work_dir
-            - work_dir
-            - vasp_std_exe
-            - vasp_timeout
-            - vasp_nsw
+    :param dict config:
+        :class:`~tools.config_manager.ConfigManager` (or dict). Keys used:
+        - ``vasp_work_dir`` (str): directory for per-structure work subdirs.
+        - ``work_dir`` (str): project root holding inputs (e.g., ``new/``, ``POTCAR``).
+        - ``vasp_std_exe`` (str): path to the VASP executable (e.g., ``vasp_std``).
+        - ``vasp_timeout`` (int, s): max walltime per VASP invocation.
+        - ``vasp_nsw`` (int): number of ionic steps (NSW) for relaxation.
 
-            See :class:`~tools.config_manager.ConfigManager` for field descriptions.
+    :param int id:
+        Structure identifier: maps to ``POSCAR_{id}`` and names outputs.
 
-        id (int): Identifier for the structure being processed. Used to name files and subdirectories.
+    :param int walltime:
+        Per-run timeout in seconds (unused; superseded by ``config[CK.VASP_TIMEOUT]``).
 
-        walltime (int, optional): Timeout in seconds for each VASP run.
+    :returns: None
+    :rtype: None
 
-    Raises:
-        VaspNonReached: If the relaxation step fails to reach the convergence threshold.
-        Exception: For general file I/O or execution failures.
+    :raises VaspNonReached: if relaxation fails to meet criteria.
+    :raises Exception: on file I/O or subprocess failures.
 
-    Side Effects:
-        - Creates and modifies files in a per-structure working directory
-        - Cleans intermediate VASP output files on completion or error
     """
     import os
     import shutil

@@ -10,16 +10,16 @@ def cmd_calculate_ehul(config):
     """
     Select promising structures: Structures with low energy above the hull (Ehull) are identified as promising candidates. These are automatically copied to a dedicated folder for further analysis, such as evaluation of additional physical properties or preparation for experimental validation.
 
-    Args:
-        config (dict): ConfigManager. The following fields are used:
-            - ``CK.ELEMENTS``
-            - ``CK.VASP_WORK_DIR``
-            - ``CK.ENERGY_DAT_OUT``
-            - ``CK.POST_PROCESSING_OUT_DIR``
-            - ``CK.MP_STABLE_OUT``
+    :param dict config:
+        :class:`~tools.config_manager.ConfigManager` (or dict). Keys used:
+        - ``elements`` (str): system spec, e.g. ``"Ce-Co-B"``.
+        - ``vasp_work_dir`` (str): directory holding per-ID subdirs with ``CONTCAR_{id}``.
+        - ``energy_dat_out`` (str): filename (under ``vasp_work_dir``) listing total energies.
+        - ``post_processing_out_dir`` (str): directory for outputs.
+        - ``mp_stable_out`` (str): output filename (under ``post_processing_out_dir``) with reference stable phases.
 
-            See :class:`~tools.config_manager.ConfigManager` for field
-            descriptions.
+    :returns: Absolute path to ``{post_processing_out_dir}/hull.dat``.
+    :rtype: str
 
     """
     import os
