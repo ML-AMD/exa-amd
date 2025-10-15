@@ -48,8 +48,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../parsl_config.html">Parsl configuration guide</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference Guide</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflows</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Internal API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="workflows.html">VASP-based workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Parsl Tasks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.gen_structures.run_gen_structures"><code class="docutils literal notranslate"><span class="pre">run_gen_structures()</span></code></a></li>
@@ -57,6 +57,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc"><code class="docutils literal notranslate"><span class="pre">cmd_fused_vasp_calc()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.hull.cmd_vasp_hull"><code class="docutils literal notranslate"><span class="pre">cmd_vasp_hull()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.ehull.cmd_calculate_ehul"><code class="docutils literal notranslate"><span class="pre">cmd_calculate_ehul()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.convex_hull.plot_convex_hull_ternary"><code class="docutils literal notranslate"><span class="pre">plot_convex_hull_ternary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.convex_hull.plot_convex_hull_quaternary"><code class="docutils literal notranslate"><span class="pre">plot_convex_hull_quaternary()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
@@ -79,7 +81,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../api.html">API Reference Guide</a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Internal API Reference</a></li>
       <li class="breadcrumb-item active">Parsl Tasks</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/reference_guide/parsl_tasks.rst.txt" rel="nofollow"> View page source</a>
@@ -95,25 +97,38 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.gen_structures.run_gen_structures">
 <span class="sig-prename descclassname"><span class="pre">parsl_tasks.gen_structures.</span></span><span class="sig-name descname"><span class="pre">run_gen_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_chunks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.gen_structures.run_gen_structures" title="Link to this definition"></a></dt>
-<dd><p>Parsl task that generates hypothetical structures based on the initial crystal structures.</p>
+<dd><p>Parsl task that generates hypothetical structures from initial crystal structures.</p>
+<p>The total search space is partitioned into <code class="docutils literal notranslate"><span class="pre">n_chunks</span></code> disjoint segments.
+This task processes the segment identified by <code class="docutils literal notranslate"><span class="pre">chunk_id</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
-- work_dir
-- num_workers
-- elements
-- initial_structures_dir</p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
-</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – <p>A <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> (or dict with the same
+fields). The following keys are read:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir</span></code> (str): root working directory where outputs are written</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code> (int): number of parallel workers for the inner loop</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">elements</span></code> (str): target system (e.g., “Ce-Co-B”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">initial_structures_dir</span></code> (str): directory containing initial structures</p></li>
+</ul>
+<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for complete field
+descriptions and defaults.</p>
+</p></li>
+<li><p><strong>n_chunks</strong> (<em>int</em>) – Total number of chunks for the workload.</p></li>
+<li><p><strong>chunk_id</strong> (<em>int</em>) – Zero-based index of the partition to execute, where <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">chunk_id</span> <span class="pre">&lt;</span> <span class="pre">n_chunks</span></code>.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Absolute path to rgw id prop csv file.</p>
+<dd class="field-even"><p>Absolute path to this chunk’s <code class="docutils literal notranslate"><span class="pre">id_prop.csv</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Exception</strong> – If directory navigation or file operations fail.</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">n_chunks</span></code> is not positive or <code class="docutils literal notranslate"><span class="pre">chunk_id</span></code> is out of range</p></li>
+<li><p><strong>Exception</strong> – on directory navigation or file I/O failures</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -123,6 +138,39 @@
 <span class="sig-prename descclassname"><span class="pre">parsl_tasks.select_structures.</span></span><span class="sig-name descname"><span class="pre">run_select_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nomix_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nomix/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'new/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'test_results.csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ef_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natom_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_fractions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.select_structures.run_select_structures" title="Link to this definition"></a></dt>
 <dd><p>Identify and remove duplicate or near-duplicate structures,
 based on a structural similarity threshold.</p>
+<p>Reads candidates from a CSV file, sort data by formation energy (Ef) and
+eliminates the structures above the <cite>ef_threshold</cite>.
+It then deduplicates per composition using
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.analysis.structure_matcher.StructureMatcher</span></code>, and writes
+the selected set to <code class="docutils literal notranslate"><span class="pre">output_dir</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nomix_dir</strong> (<em>str</em>) – Root directory containing input CIFs laid out as
+<code class="docutils literal notranslate"><span class="pre">{chunk_prefix}/{index}.cif</span></code>.</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Directory to write outputs (created if missing). Writes
+<code class="docutils literal notranslate"><span class="pre">id_prop.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">POSCAR_{i}</span></code> files for selected structures.</p></li>
+<li><p><strong>csv_file</strong> (<em>str</em>) – Path to the input CSV with three columns:
+<code class="docutils literal notranslate"><span class="pre">index,</span> <span class="pre">_</span> <span class="pre">,</span> <span class="pre">Ef</span></code> — where <code class="docutils literal notranslate"><span class="pre">index</span></code> matches CIF filenames and
+<code class="docutils literal notranslate"><span class="pre">Ef</span></code> is a float (formation energy or score used for ranking).</p></li>
+<li><p><strong>ef_threshold</strong> (<em>float</em>) – Maximum allowed <code class="docutils literal notranslate"><span class="pre">Ef</span></code> for initial filtering.</p></li>
+<li><p><strong>min_total</strong> (<em>int</em>) – Desired minimum number of selected structures. A warning is printed
+if the final count is smaller.</p></li>
+<li><p><strong>max_total</strong> (<em>int</em>) – Hard cap on the number of selected structures.</p></li>
+<li><p><strong>num_workers</strong> (<em>int</em>) – Number of worker processes (threads) for filtering and selection.</p></li>
+<li><p><strong>natom_threshold</strong> (<em>int</em>) – Maximum total atoms (reduced formula) allowed per structure.</p></li>
+<li><p><strong>element_fractions</strong> (<em>str</em>) – Comma-separated minimum fraction constraints by element.
+Structures with any listed element below
+its fraction are discarded. Empty string disables this filter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -130,35 +178,31 @@ based on a structural similarity threshold.</p>
 <span class="sig-prename descclassname"><span class="pre">parsl_tasks.dft_optimization.</span></span><span class="sig-name descname"><span class="pre">cmd_fused_vasp_calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walltime=&lt;class</span> <span class="pre">'int'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc" title="Link to this definition"></a></dt>
 <dd><p>Run a two-stage VASP calculation via a Python Parsl task.</p>
 <p>It start by running a relaxation phase trying to find
-the lowest-energy configuration. If relaxation was successful,
+the lowest-energy configuration. If relaxation is successful,
 it runs the energy calculaction</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a><em> or </em><em>dict</em>) – <p>Configuration object. The following fields are used:
-- vasp_ntasks_per_run
-- vasp_work_dir
-- work_dir
-- vasp_std_exe
-- vasp_timeout
-- vasp_nsw</p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
-</p></li>
-<li><p><strong>id</strong> (<em>int</em>) – Identifier for the structure being processed. Used to name files and subdirectories.</p></li>
-<li><p><strong>walltime</strong> (<em>int</em><em>, </em><em>optional</em>) – Timeout in seconds for each VASP run.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> (or dict). Keys used:
+- <code class="docutils literal notranslate"><span class="pre">vasp_work_dir</span></code> (str): directory for per-structure work subdirs.
+- <code class="docutils literal notranslate"><span class="pre">work_dir</span></code> (str): project root holding inputs (e.g., <code class="docutils literal notranslate"><span class="pre">new/</span></code>, <code class="docutils literal notranslate"><span class="pre">POTCAR</span></code>).
+- <code class="docutils literal notranslate"><span class="pre">vasp_std_exe</span></code> (str): path to the VASP executable (e.g., <code class="docutils literal notranslate"><span class="pre">vasp_std</span></code>).
+- <code class="docutils literal notranslate"><span class="pre">vasp_timeout</span></code> (int, s): max walltime per VASP invocation.
+- <code class="docutils literal notranslate"><span class="pre">vasp_nsw</span></code> (int): number of ionic steps (NSW) for relaxation.</p></li>
+<li><p><strong>id</strong> (<em>int</em>) – Structure identifier: maps to <code class="docutils literal notranslate"><span class="pre">POSCAR_{id}</span></code> and names outputs.</p></li>
+<li><p><strong>walltime</strong> (<em>int</em>) – Per-run timeout in seconds (unused; superseded by <code class="docutils literal notranslate"><span class="pre">config[CK.VASP_TIMEOUT]</span></code>).</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>VaspNonReached</strong> – If the relaxation step fails to reach the convergence threshold.</p></li>
-<li><p><strong>Exception</strong> – For general file I/O or execution failures.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Side Effects:</dt><dd><ul class="simple">
-<li><p>Creates and modifies files in a per-structure working directory</p></li>
-<li><p>Cleans intermediate VASP output files on completion or error</p></li>
+<li><p><strong>VaspNonReached</strong> – if relaxation fails to meet criteria.</p></li>
+<li><p><strong>Exception</strong> – on file I/O or subprocess failures.</p></li>
 </ul>
 </dd>
 </dl>
@@ -172,26 +216,19 @@ relative to reference elemental phases.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager instance. The following fields are used:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">CK.VASP_NTASKS_PER_RUN</span></code> (<em>int</em>): Number of MPI ranks.
-<code class="docutils literal notranslate"><span class="pre">1</span></code> triggers a run with a single process; any other value results in
-<code class="docutils literal notranslate"><span class="pre">srun</span> <span class="pre">-n</span> <span class="pre">&lt;N&gt;</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">CK.VASP_STD_EXE</span></code>: Path to the VASP executable.</p></li>
-</ul>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field descriptions.</p>
-</p></li>
-<li><p><strong>work_subdir</strong> (<em>str</em>) – Name of the working subdirectory where the hull calculation is run.</p></li>
+<li><p><strong>config</strong> (<em>dict</em>) – <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> (or dict). Keys used:
+- <code class="docutils literal notranslate"><span class="pre">vasp_std_exe</span></code> (str): path to the VASP executable.</p></li>
+<li><p><strong>work_subdir</strong> (<em>str</em>) – Working subdirectory where the command should be executed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A formatted shell command string to execute <cite>run_single_vasp_hull_calculation.py</cite>.</p>
+<dd class="field-even"><p>Shell command string.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Exception</strong> – If directory navigation or file operations fail.</p>
+<dd class="field-even"><p><strong>Exception</strong> – on directory navigation failures.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -202,15 +239,64 @@ relative to reference elemental phases.</p>
 <dd><p>Select promising structures: Structures with low energy above the hull (Ehull) are identified as promising candidates. These are automatically copied to a dedicated folder for further analysis, such as evaluation of additional physical properties or preparation for experimental validation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <p>ConfigManager. The following fields are used:
-- <code class="docutils literal notranslate"><span class="pre">CK.ELEMENTS</span></code>
-- <code class="docutils literal notranslate"><span class="pre">CK.VASP_WORK_DIR</span></code>
-- <code class="docutils literal notranslate"><span class="pre">CK.ENERGY_DAT_OUT</span></code>
-- <code class="docutils literal notranslate"><span class="pre">CK.POST_PROCESSING_OUT_DIR</span></code>
-- <code class="docutils literal notranslate"><span class="pre">CK.MP_STABLE_OUT</span></code></p>
-<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for field
-descriptions.</p>
-</p>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> (or dict). Keys used:
+- <code class="docutils literal notranslate"><span class="pre">elements</span></code> (str): system spec, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Ce-Co-B&quot;</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">vasp_work_dir</span></code> (str): directory holding per-ID subdirs with <code class="docutils literal notranslate"><span class="pre">CONTCAR_{id}</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">energy_dat_out</span></code> (str): filename (under <code class="docutils literal notranslate"><span class="pre">vasp_work_dir</span></code>) listing total energies.
+- <code class="docutils literal notranslate"><span class="pre">post_processing_out_dir</span></code> (str): directory for outputs.
+- <code class="docutils literal notranslate"><span class="pre">mp_stable_out</span></code> (str): output filename (under <code class="docutils literal notranslate"><span class="pre">post_processing_out_dir</span></code>) with reference stable phases.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Absolute path to <code class="docutils literal notranslate"><span class="pre">{post_processing_out_dir}/hull.dat</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.convex_hull.plot_convex_hull_ternary">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.convex_hull.</span></span><span class="sig-name descname"><span class="pre">plot_convex_hull_ternary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_path_input_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.convex_hull.plot_convex_hull_ternary" title="Link to this definition"></a></dt>
+<dd><p>Plot the ternary convex hull and metastable points for a 3-element system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Three element symbols (e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;Ce&quot;,</span> <span class="pre">&quot;Co&quot;,</span> <span class="pre">&quot;B&quot;]</span></code>).</p></li>
+<li><p><strong>stable_dat</strong> (<em>str</em>) – Path to a text file with elemental reference energies.</p></li>
+<li><p><strong>full_path_input_csv</strong> (<em>str</em>) – CSV with rows <code class="docutils literal notranslate"><span class="pre">Formula,Total_Energy_per_atom</span></code> for calculated phases.</p></li>
+<li><p><strong>threshold</strong> (<em>float</em>) – Max Ehull (eV/atom) to display for metastable points (<code class="docutils literal notranslate"><span class="pre">&lt;=</span> <span class="pre">0</span></code> hides them).</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – Path for the saved image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code> path (for convenience).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.convex_hull.plot_convex_hull_quaternary">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.convex_hull.</span></span><span class="sig-name descname"><span class="pre">plot_convex_hull_quaternary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_csv_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ehull_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.convex_hull.plot_convex_hull_quaternary" title="Link to this definition"></a></dt>
+<dd><p>Plot the quaternary convex hull and metastable points for a 3-element system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements_str</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of 4 element symbols (e.g., [‘Si’,’Ge’,’Sn’,’Pb’]).</p></li>
+<li><p><strong>stable_path</strong> (<em>str</em>) – Path to a text file with elemental reference energies.</p></li>
+<li><p><strong>input_csv_path</strong> (<em>str</em>) – CSV with rows <code class="docutils literal notranslate"><span class="pre">Formula,Total_Energy_per_atom</span></code> for calculated phases.</p></li>
+<li><p><strong>ehull_threshold</strong> (<em>float</em>) – Max Ehull (eV/atom) to display for metastable points (<code class="docutils literal notranslate"><span class="pre">&lt;=</span> <span class="pre">0</span></code> hides them).</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – Path for the saved image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">output_file</span></code> path (for convenience).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>

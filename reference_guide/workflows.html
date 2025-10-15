@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workflows &mdash; exa-AMD 0.1 documentation</title>
+  <title>VASP-based workflow &mdash; exa-AMD 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Parsl Configuration" href="parsl_config.html" />
-    <link rel="prev" title="API Reference Guide" href="../api.html" /> 
+    <link rel="prev" title="Internal API Reference" href="../api.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,9 +48,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../parsl_config.html">Parsl configuration guide</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference Guide</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Workflows</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Internal API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">VASP-based workflow</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.run_workflow"><code class="docutils literal notranslate"><span class="pre">run_workflow()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.generate_structures"><code class="docutils literal notranslate"><span class="pre">generate_structures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.run_cgcnn"><code class="docutils literal notranslate"><span class="pre">run_cgcnn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.select_structures"><code class="docutils literal notranslate"><span class="pre">select_structures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.vasp_calculations"><code class="docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.post_processing"><code class="docutils literal notranslate"><span class="pre">post_processing()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
@@ -75,8 +80,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../api.html">API Reference Guide</a></li>
-      <li class="breadcrumb-item active">Workflows</li>
+          <li class="breadcrumb-item"><a href="../api.html">Internal API Reference</a></li>
+      <li class="breadcrumb-item active">VASP-based workflow</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/reference_guide/workflows.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -86,8 +91,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="workflows">
-<h1>Workflows<a class="headerlink" href="#workflows" title="Link to this heading"></a></h1>
+  <section id="vasp-based-workflow">
+<h1>VASP-based workflow<a class="headerlink" href="#vasp-based-workflow" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="workflows.vasp_based.run_workflow">
 <span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">run_workflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.run_workflow" title="Link to this definition"></a></dt>
@@ -124,13 +129,117 @@ paths, and thresholds for each stage of the workflow.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="workflows.vasp_based.generate_structures">
+<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">generate_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.generate_structures" title="Link to this definition"></a></dt>
+<dd><p>Generate hypothetical structures in parallel (chunked).</p>
+<p>Submits <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.gen_structures.gen_structures()</span></code> for each chunk
+<code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">∈</span> <span class="pre">[1,</span> <span class="pre">n_chunks]</span></code> where <code class="docutils literal notranslate"><span class="pre">n_chunks</span> <span class="pre">=</span> <span class="pre">config[CK.GEN_STRUCTURES_NNODES]</span></code>,
+and waits for completion.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="workflows.vasp_based.run_cgcnn">
+<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">run_cgcnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.run_cgcnn" title="Link to this definition"></a></dt>
+<dd><p>Predicts formation energy with CGCNN for the candidates.</p>
+<p>Submits <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.cgcnn.cgcnn_prediction()</span></code> for each chunk
+<code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">∈</span> <span class="pre">[1,</span> <span class="pre">n_chunks]</span></code> where <code class="docutils literal notranslate"><span class="pre">n_chunks</span> <span class="pre">=</span> <span class="pre">config[CK.GEN_STRUCTURES_NNODES]</span></code>.
+Merges <code class="docutils literal notranslate"><span class="pre">work_dir/test_results_*.csv</span></code> into <code class="docutils literal notranslate"><span class="pre">work_dir/test_results.csv</span></code>,
+then deletes the shard files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="workflows.vasp_based.select_structures">
+<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">select_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.select_structures" title="Link to this definition"></a></dt>
+<dd><p>Filter, deduplicate, and select candidate structures.</p>
+<p>Runs <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.select_structures.select_structures()</span></code> to produce
+<code class="docutils literal notranslate"><span class="pre">{work_dir}/new/POSCAR_{i}</span></code> and <code class="docutils literal notranslate"><span class="pre">{work_dir}/new/id_prop.csv</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="workflows.vasp_based.vasp_calculations">
+<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">vasp_calculations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.vasp_calculations" title="Link to this definition"></a></dt>
+<dd><p>Run two-stage VASP calculations for all selected structures and log outcomes.</p>
+<p>Launches <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.dft_optimization.run_vasp_calc()</span></code> for each ID in
+<code class="docutils literal notranslate"><span class="pre">[config[&quot;nstart&quot;],</span> <span class="pre">config[&quot;nend&quot;])</span></code>. Writes a CSV of per-ID results to
+<code class="docutils literal notranslate"><span class="pre">{config[CK.VASP_WORK_DIR]}/{config[CK.OUTPUT_FILE]}</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – only if uncaught errors propagate past per-task handling</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="workflows.vasp_based.post_processing">
+<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">post_processing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.post_processing" title="Link to this definition"></a></dt>
+<dd><p>Compute Ehull, color the convex hull, and collect promising candidates.</p>
+<p>Requires a 3- or 4-element system. Runs
+<a class="reference internal" href="utils.html#tools.post_processing.get_vasp_hull" title="tools.post_processing.get_vasp_hull"><code class="xref py py-func docutils literal notranslate"><span class="pre">tools.post_processing.get_vasp_hull()</span></code></a>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.ehull.calculate_ehul()</span></code> and
+<code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.convex_hull.convex_hull_color()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../api.html" class="btn btn-neutral float-left" title="API Reference Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-left" title="Internal API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="parsl_config.html" class="btn btn-neutral float-right" title="Parsl Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

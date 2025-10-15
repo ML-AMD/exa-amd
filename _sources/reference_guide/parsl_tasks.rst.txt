@@ -12,3 +12,7 @@ Parsl Tasks
 .. autofunction:: parsl_tasks.hull.cmd_vasp_hull
 
 .. autofunction:: parsl_tasks.ehull.cmd_calculate_ehul
+
+.. autofunction:: parsl_tasks.convex_hull.plot_convex_hull_ternary
+
+.. autofunction:: parsl_tasks.convex_hull.plot_convex_hull_quaternary

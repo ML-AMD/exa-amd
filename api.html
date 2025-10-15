@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API Reference Guide &mdash; exa-AMD 0.1 documentation</title>
+  <title>Internal API Reference &mdash; exa-AMD 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Workflows" href="reference_guide/workflows.html" />
+    <link rel="next" title="VASP-based workflow" href="reference_guide/workflows.html" />
     <link rel="prev" title="Parsl configuration guide" href="parsl_config.html" /> 
 </head>
 
@@ -48,8 +48,8 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html">Workflows</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Internal API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html">VASP-based workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html">Parsl Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html">Parsl Tasks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/utils.html">Utils</a></li>
@@ -72,7 +72,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">API Reference Guide</li>
+      <li class="breadcrumb-item active">Internal API Reference</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -82,12 +82,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="api-reference-guide">
-<h1>API Reference Guide<a class="headerlink" href="#api-reference-guide" title="Link to this heading"></a></h1>
+  <section id="internal-api-reference">
+<h1>Internal API Reference<a class="headerlink" href="#internal-api-reference" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="reference_guide/workflows.html">Workflows</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="reference_guide/workflows.html">VASP-based workflow</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.run_workflow"><code class="docutils literal notranslate"><span class="pre">run_workflow()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.generate_structures"><code class="docutils literal notranslate"><span class="pre">generate_structures()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.run_cgcnn"><code class="docutils literal notranslate"><span class="pre">run_cgcnn()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.select_structures"><code class="docutils literal notranslate"><span class="pre">select_structures()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.vasp_calculations"><code class="docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.post_processing"><code class="docutils literal notranslate"><span class="pre">post_processing()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reference_guide/parsl_config.html">Parsl Configuration</a><ul>
@@ -108,6 +113,8 @@
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html#parsl_tasks.dft_optimization.cmd_fused_vasp_calc"><code class="docutils literal notranslate"><span class="pre">cmd_fused_vasp_calc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html#parsl_tasks.hull.cmd_vasp_hull"><code class="docutils literal notranslate"><span class="pre">cmd_vasp_hull()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html#parsl_tasks.ehull.cmd_calculate_ehul"><code class="docutils literal notranslate"><span class="pre">cmd_calculate_ehul()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html#parsl_tasks.convex_hull.plot_convex_hull_ternary"><code class="docutils literal notranslate"><span class="pre">plot_convex_hull_ternary()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html#parsl_tasks.convex_hull.plot_convex_hull_quaternary"><code class="docutils literal notranslate"><span class="pre">plot_convex_hull_quaternary()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reference_guide/utils.html">Utils</a><ul>
@@ -125,7 +132,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="parsl_config.html" class="btn btn-neutral float-left" title="Parsl configuration guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="reference_guide/workflows.html" class="btn btn-neutral float-right" title="Workflows" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="reference_guide/workflows.html" class="btn btn-neutral float-right" title="VASP-based workflow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
