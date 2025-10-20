@@ -48,6 +48,12 @@ conda activate amd_env
 python exa_amd.py --config your_config.json
 ```
 
+## Structure Input Formats
+
+exa-AMD utilizes the [`pymatgen`](https://pymatgen.org) library for handling atomic structures. The `pymatgen.Structure` class supports a wide range of structure file formats, including *CIF*, and *POSCAR*.
+
+In the current implementation, *CIF* files are used as the default input format for the initial structure pool provided with the package. However, users are free to supply structures in any format readable by `pymatgen`.
+
 ## Registering a new Parsl configuration
 We currently support the automated workflows on NERSC's Perlmutter and LANL's Chicoma computers. If you would like to run on a different computing system, you must add your own Parsl configuration following these steps:
 
