@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workflow stages &mdash; exa-AMD 0.1 documentation</title>
+  <title>Automated Workflow &mdash; exa-AMD 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -46,12 +46,15 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflow stages</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#structure-generation">1. Structure generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cgcnn-based-structure-screening">2. CGCNN-based structure screening</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#removal-of-similar-structures">3. Removal of similar structures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dft-calculations-relaxation-and-energy">4. DFT calculations (relaxation and energy)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#post-processing-convex-hull-and-stability-analysis">5. Post-processing: convex hull and stability analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Automated Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-stages">Workflow stages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#structure-generation">1. Structure generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cgcnn-based-structure-screening">2. CGCNN-based structure screening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removal-of-similar-structures">3. Removal of similar structures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dft-calculations-relaxation-and-energy">4. DFT calculations (relaxation and energy)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post-processing-convex-hull-and-stability-analysis">5. Post-processing: convex hull and stability analysis</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
@@ -73,7 +76,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Workflow stages</li>
+      <li class="breadcrumb-item active">Automated Workflow</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/workflow.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -83,11 +86,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="workflow-stages">
-<h1>Workflow stages<a class="headerlink" href="#workflow-stages" title="Link to this heading"></a></h1>
+  <section id="automated-workflow">
+<span id="workflow"></span><h1>Automated Workflow<a class="headerlink" href="#automated-workflow" title="Link to this heading"></a></h1>
+<p>This document presents the <a class="reference external" href="https://github.com/ML-AMD/exa-amd/blob/main/workflows/vasp_based.py">VASP-based workflow</a> depicted in the figure below.</p>
+<figure class="align-center" id="id1">
+<span id="fig-workflow"></span><a class="reference internal image-reference" href="_images/workflow.png"><img alt="_images/workflow.png" src="_images/workflow.png" style="width: 80%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">VASP-based workflow.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="workflow-stages">
+<h2>Workflow stages<a class="headerlink" href="#workflow-stages" title="Link to this heading"></a></h2>
 <section id="structure-generation">
-<h2>1. Structure generation<a class="headerlink" href="#structure-generation" title="Link to this heading"></a></h2>
-<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></p>
+<h3>1. Structure generation<a class="headerlink" href="#structure-generation" title="Link to this heading"></a></h3>
 <p>Start from structures in the <code class="docutils literal notranslate"><span class="pre">initial_structures</span></code> directory and generate hypothetical structures:</p>
 <ul class="simple">
 <li><p>Perform elemental substitution: the elements in each initial structure are replaced with the target elements under investigation.</p></li>
@@ -97,35 +109,72 @@
 - Ternary: 30 variants per initial structure.
 - Quaternary: 24 possible orderings.</p></li>
 </ul>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><p>Elements (e.g., Na, B, C) specified via JSON config</p></li>
+<li><p>Structure templates specified via JSON config</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p>Hypothetical structures</p></li>
+</ul>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></p>
 </section>
 <section id="cgcnn-based-structure-screening">
-<h2>2. CGCNN-based structure screening<a class="headerlink" href="#cgcnn-based-structure-screening" title="Link to this heading"></a></h2>
-<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></p>
+<h3>2. CGCNN-based structure screening<a class="headerlink" href="#cgcnn-based-structure-screening" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Evaluate all generated structures with a Crystal Graph Convolutional Neural Network (CGCNN) to predict formation energies efficiently.</p></li>
 <li><p>Select structures with low predicted formation energy as promising candidates, reducing the cost of subsequent first-principles calculations.</p></li>
 </ul>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><p>Hypothetical structures</p></li>
+<li><p>CGCNN-specific parameters (e.g., batch size) configurable via JSON config</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p>Predicted formation energies</p></li>
+</ul>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></p>
 </section>
 <section id="removal-of-similar-structures">
-<h2>3. Removal of similar structures<a class="headerlink" href="#removal-of-similar-structures" title="Link to this heading"></a></h2>
-<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></p>
+<h3>3. Removal of similar structures<a class="headerlink" href="#removal-of-similar-structures" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Identify and remove duplicates or near-duplicates using a structural-similarity threshold.</p></li>
 <li><p>The deduplication step ensures that only non-equivalent structures are retained, typically narrowing the set to a manageable number (e.g., 1,000–5,000 structures) for detailed study.</p></li>
 </ul>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><p>Structures with associated predicted formation energies</p></li>
+<li><p>Formation energy threshold (configurable via JSON config)</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p>Structural similarity scores used to further filter the structures</p></li>
+</ul>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></p>
 </section>
 <section id="dft-calculations-relaxation-and-energy">
-<h2>4. DFT calculations (relaxation and energy)<a class="headerlink" href="#dft-calculations-relaxation-and-energy" title="Link to this heading"></a></h2>
-<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></p>
+<h3>4. DFT calculations (relaxation and energy)<a class="headerlink" href="#dft-calculations-relaxation-and-energy" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>The filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT) using VASP (extensible to other ab initio codes such as Quantum ESPRESSO).</p></li>
 <li><p>Each structure undergoes full relaxation to find its lowest-energy geometry, followed by a self-consistent total-energy calculation.</p></li>
 <li><p>The resulting relaxed structures and total energies provide the basis for thermodynamic analysis.</p></li>
 </ul>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><p>Selected structures</p></li>
+<li><p>DFT input files (<code class="docutils literal notranslate"><span class="pre">INCAR.rx</span></code> and <code class="docutils literal notranslate"><span class="pre">INCAR.en</span></code>) from <a class="reference external" href="https://github.com/ML-AMD/exa-amd/tree/main/workflows/vasp_assets/">https://github.com/ML-AMD/exa-amd/tree/main/workflows/vasp_assets/</a></p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p>Per-job directories containing the calculation artifacts</p></li>
+<li><p>Summarized results for converged structures stored in <code class="docutils literal notranslate"><span class="pre">vasp_calc_result.csv</span></code></p></li>
+</ul>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></p>
 </section>
 <section id="post-processing-convex-hull-and-stability-analysis">
-<h2>5. Post-processing: convex hull and stability analysis<a class="headerlink" href="#post-processing-convex-hull-and-stability-analysis" title="Link to this heading"></a></h2>
-<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></p>
+<h3>5. Post-processing: convex hull and stability analysis<a class="headerlink" href="#post-processing-convex-hull-and-stability-analysis" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Determine the formation energies of each structure relative to known stable phases.</p></li>
 <li><p>Construct the convex hull to indentify structures that are:
@@ -133,6 +182,18 @@
 - Metastable: low formation energy (&lt; 0.05 eV/atom ) above the hull (Ehull &lt; 0.05 eV/atom).</p></li>
 <li><p>This analysis reveals new stable and metastable structures and updates the phase diagram for the target system.</p></li>
 </ul>
+<p><strong>Inputs</strong></p>
+<ul class="simple">
+<li><p>Relaxed structures</p></li>
+<li><p>DFT formation energies</p></li>
+</ul>
+<p><strong>Outputs</strong></p>
+<ul class="simple">
+<li><p>Phase diagram</p></li>
+<li><p>Convex hull</p></li>
+</ul>
+<p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></p>
+</section>
 </section>
 </section>
 
