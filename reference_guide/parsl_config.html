@@ -156,13 +156,13 @@ exa-AMD workflow and resource type:</p>
 
 <dl class="py function" id="module-parsl_configs.parsl_config_registry">
 <dt class="sig sig-object py" id="parsl_configs.parsl_config_registry.auto_register_configs">
-<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_config_registry.</span></span><span class="sig-name descname"><span class="pre">auto_register_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.parsl_config_registry.auto_register_configs" title="Link to this definition"></a></dt>
-<dd><p>Automatically discover and import all modules that contains a Parsl Configuration.</p>
-<p>Scans the specified package and detects the calls to <a class="reference internal" href="#parsl_configs.parsl_config_registry.register_parsl_config" title="parsl_configs.parsl_config_registry.register_parsl_config"><code class="xref py py-func docutils literal notranslate"><span class="pre">register_parsl_config()</span></code></a>,
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_config_registry.</span></span><span class="sig-name descname"><span class="pre">auto_register_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">configs_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.parsl_config_registry.auto_register_configs" title="Link to this definition"></a></dt>
+<dd><p>Automatically discover and import all modules that contain a Parsl Configuration.</p>
+<p>Scans the specified <strong>directory</strong> and detects the calls to <a class="reference internal" href="#parsl_configs.parsl_config_registry.register_parsl_config" title="parsl_configs.parsl_config_registry.register_parsl_config"><code class="xref py py-func docutils literal notranslate"><span class="pre">register_parsl_config()</span></code></a>,
 so the Parsl configurations can be selected at runtime.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>package_name</strong> (<em>str</em>)</p>
+<dd class="field-odd"><p><strong>configs_dir</strong> (<em>str</em>) – Path to a directory containing user Parsl config <a href="#id1"><span class="problematic" id="id2">*</span></a>.py files.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>SystemExit</strong> – If the specified package cannot be found or loaded.</p>
@@ -174,13 +174,11 @@ so the Parsl configurations can be selected at runtime.</p>
 <dt class="sig sig-object py" id="parsl_configs.parsl_config_registry.get_parsl_config">
 <span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_config_registry.</span></span><span class="sig-name descname"><span class="pre">get_parsl_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_configs.parsl_config_registry.get_parsl_config" title="Link to this definition"></a></dt>
 <dd><p>Retrieve and instantiate the registered Parsl config by name.</p>
-<p>If the registry is empty, it auto-imports all modules
-from the default <cite>parsl_configs</cite> package using <a class="reference internal" href="#parsl_configs.parsl_config_registry.auto_register_configs" title="parsl_configs.parsl_config_registry.auto_register_configs"><code class="xref py py-func docutils literal notranslate"><span class="pre">auto_register_configs()</span></code></a>.</p>
-<p>The configuration is provided via the <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> field in
+<p>The configuration name is provided via the <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> field in
 <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – Must contain the key <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code></p>
+<dd class="field-odd"><p><strong>config</strong> (<em>dict</em>) – Must contain the key <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> and <code class="docutils literal notranslate"><span class="pre">parsl_configs_dir</span></code></p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>An instance of the selected Parsl configuration.</p>
