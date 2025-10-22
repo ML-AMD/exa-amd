@@ -63,7 +63,7 @@ Start from structures in the ``initial_structures`` directory and generate hypot
 3. Removal of similar structures
 --------------------------------
 
-- Identify and remove duplicates or near-duplicates using a structural-similarity threshold.
+- Identify and remove duplicates or near-duplicates using a structural-similarity threshold. First, candidates are sorted by predicted formation energy, and basic filters (an energy cutoff, optional element-fraction limits, and a maximum-atoms limit) are applied. To identify unique crystal structures, we then group the remaining candidates by their reduced composition. Within each group, the structures are processed from lowest to highest formation energy. A structure is kept for subsequent DFT calculation only if it does not match any previously kept structure from that group, as determined by the :py:class:`pymatgen.analysis.structure_matcher.StructureMatcher` class.
 - The deduplication step ensures that only non-equivalent structures are retained, typically narrowing the set to a manageable number (e.g., 1,000–5,000 structures) for detailed study.
 
 **Inputs**
