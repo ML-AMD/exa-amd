@@ -151,9 +151,10 @@
 <hr class="docutils" />
 <section id="prepare-the-parsl-configuration">
 <h2>5. Prepare the Parsl Configuration<a class="headerlink" href="#prepare-the-parsl-configuration" title="Link to this heading"></a></h2>
-<p>Parsl configurations must be placed inside the <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> directory so that they can be automatically discovered by exa-AMD at runtime.</p>
-<p>Start by copying the default Perlmutter configuration:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>parsl_configs/perlmutter.py<span class="w"> </span>parsl_configs/my_perlmutter.py
+<p>Parsl configurations must be placed in a directory of your choice, and that directory must be provided via the <code class="docutils literal notranslate"><span class="pre">parsl_configs_dir</span></code> field in your JSON config so that exa-AMD can discover them at runtime.</p>
+<p>Start by copying the default Perlmutter configuration into your Parsl configs directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>/path/to/my_configs
+cp<span class="w"> </span>parsl_configs/perlmutter.py<span class="w"> </span>parsl_configs/my_perlmutter.py
 </pre></div>
 </div>
 <p>Then edit <cite>my_perlmutter.py</cite>:</p>
@@ -218,7 +219,8 @@ Then in your Parsl config, you should use:
 <p>After registering the new Parsl configuration, update your JSON config file to reference it:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
      ...
-    &quot;parsl_config&quot;: &quot;my_perlmutter&quot;
+    &quot;parsl_config&quot;: &quot;my_perlmutter&quot;,
+    &quot;parsl_configs_dir&quot;: &quot;/path/to/my_configs&quot;
 }
 </pre></div>
 </div>

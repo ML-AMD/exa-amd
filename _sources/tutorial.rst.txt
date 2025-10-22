@@ -71,12 +71,13 @@ Edit the following fields in `my_config_perlmutter.json`:
 5. Prepare the Parsl Configuration
 -----------------------------------
 
-Parsl configurations must be placed inside the ``parsl_configs/`` directory so that they can be automatically discovered by exa-AMD at runtime.
+Parsl configurations must be placed in a directory of your choice, and that directory must be provided via the ``parsl_configs_dir`` field in your JSON config so that exa-AMD can discover them at runtime.
 
-Start by copying the default Perlmutter configuration:
+Start by copying the default Perlmutter configuration into your Parsl configs directory:
 
 .. code-block:: bash
 
+   mkdir -p /path/to/my_configs
    cp parsl_configs/perlmutter.py parsl_configs/my_perlmutter.py
 
 Then edit `my_perlmutter.py`:
@@ -154,7 +155,8 @@ After registering the new Parsl configuration, update your JSON config file to r
 
    {
         ...
-       "parsl_config": "my_perlmutter"
+       "parsl_config": "my_perlmutter",
+       "parsl_configs_dir": "/path/to/my_configs"
    }
 
 exa-AMD will now automatically discover and use the `my_perlmutter` configuration at runtime.
