@@ -194,7 +194,7 @@ then deletes the shard files.</p>
 <span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">vasp_calculations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.vasp_calculations" title="Link to this definition"></a></dt>
 <dd><p>Run two-stage VASP calculations for all selected structures and log outcomes.</p>
 <p>Launches <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.dft_optimization.run_vasp_calc()</span></code> for each ID in
-<code class="docutils literal notranslate"><span class="pre">[config[&quot;nstart&quot;],</span> <span class="pre">config[&quot;nend&quot;])</span></code>. Writes a CSV of per-ID results to
+<code class="docutils literal notranslate"><span class="pre">{config[CK.VASP_ID_STRUCT_LIST]}</span></code>. Writes a CSV of per-ID results to
 <code class="docutils literal notranslate"><span class="pre">{config[CK.VASP_WORK_DIR]}/{config[CK.OUTPUT_FILE]}</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
