@@ -1,3 +1,5 @@
+SYSTEM = ABC
+
  Startparameter for this Run:
    ISTART =    0        job   : 0-new  1-cont  2-same basic set
    LCHARG =    .FALSE.  Write down charge densities or not

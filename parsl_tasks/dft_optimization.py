@@ -46,6 +46,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
     from pathlib import Path
     from tools.errors import VaspNonReached
 
+    def _is_timeout(rc):
+        return rc == 124
+
     def cleanup():
         cleanup_files = [
             "DOSCAR", "PCDAT", "REPORT", "XDATCAR", "CHG",
@@ -56,7 +59,8 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
                 os.remove(fname)
             except FileNotFoundError:
                 pass
-
+    success = False
+    timed_out = False
     try:
         exec_cmd_prefix = (
             "" if config[CK.VASP_NTASKS_PER_RUN] == 1
@@ -101,6 +105,8 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
                 stderr=subprocess.STDOUT
             )
             if rc.returncode != 0:
+                if _is_timeout(rc.returncode):
+                    timed_out = True
                 raise VaspNonReached(f"VASP exited with {rc} during relaxation")
 
         #  grep "reached"
@@ -125,6 +131,8 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
                     stderr=subprocess.STDOUT
                 )
                 if rc.returncode != 0:
+                    if _is_timeout(rc.returncode):
+                        timed_out = True
                     raise VaspNonReached(f"VASP exited with {rc} during 2nd relaxation")
 
             shutil.copy("CONTCAR", os.path.join(work_subdir, f"CONTCAR_{id}"))
@@ -149,10 +157,11 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
                 stderr=subprocess.STDOUT
             )
         os.rename("OUTCAR", f"OUTCAR_{id}.en")
-
+        success = True
     finally:
         try:
-            Path("DONE").touch()
+            if success or timed_out:
+                Path("DONE").touch()
         except Exception:
             pass
         cleanup()

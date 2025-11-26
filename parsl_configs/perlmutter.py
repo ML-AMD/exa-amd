@@ -68,10 +68,9 @@ class PerlmutterConfig(Config):
             )
         )
 
+        # CGCNN executor
         cgcnn_executor = HighThroughputExecutor(
             label=CGCNN_EXECUTOR_LABEL,
-            max_workers_per_node=1,
-            available_accelerators=1,
             cores_per_worker=num_cores_cgcnn,
             provider=SlurmProvider(
                 account=gpu_account,
@@ -81,9 +80,10 @@ class PerlmutterConfig(Config):
                 min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=nnodes_cgcnn,
+                launcher=SrunLauncher(overrides="--ntasks-per-node=1 --gpus-per-task=1"),
                 walltime="01:00:00",
                 worker_init="module load conda/Miniforge3-24.7.1-0 && conda activate amd_env",
-                scheduler_options="#SBATCH --cpus-per-task=128\n#SBATCH --exclusive"
+                scheduler_options="#SBATCH --cpus-per-task=128\n#SBATCH --exclusive\n#SBATCH --gpus-per-node=1\n"
             )
         )
 

@@ -53,13 +53,12 @@ class PerlmutterConfig(Config):
         vasp_executor = HighThroughputExecutor(
             label=VASP_EXECUTOR_LABEL,
             cores_per_worker=json_config[CK.VASP_NTASKS_PER_RUN],
-            max_workers_per_node=4,
             provider=SlurmProvider(
                 account=cpu_account,
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=nnodes_vasp,
                 walltime='16:00:00',
@@ -67,21 +66,23 @@ class PerlmutterConfig(Config):
             )
         )
 
+        # CGCNN executor
         cgcnn_executor = HighThroughputExecutor(
             label=CGCNN_EXECUTOR_LABEL,
-            max_workers_per_node=1,
             cores_per_worker=num_cores_cgcnn,
+            max_workers_per_node=1,
             provider=SlurmProvider(
                 account=cpu_account,
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=nnodes_cgcnn,
+                launcher=SrunLauncher(),
                 walltime="01:00:00",
-                worker_init="module load conda/Miniforge3-24.7.1-0 && conda activate amd_env",
-                scheduler_options="#SBATCH --cpus-per-task=128\n#SBATCH --exclusive"
+                worker_init='module load conda/Miniforge3-24.7.1-0 && conda activate amd_env',
+                scheduler_options=f"#SBATCH --exclusive"
             )
         )
 
@@ -95,7 +96,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=nnodes_gen_struct,
                 launcher=SrunLauncher(),
@@ -115,7 +116,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=1,
                 launcher=SimpleLauncher(),
@@ -134,7 +135,7 @@ class PerlmutterConfig(Config):
                 qos="premium",
                 constraint="cpu",
                 init_blocks=0,
-                min_blocks=1,
+                min_blocks=0,
                 max_blocks=1,
                 nodes_per_block=1,
                 walltime='5:00:00',
