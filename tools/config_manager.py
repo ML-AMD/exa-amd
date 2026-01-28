@@ -68,8 +68,11 @@ class ConfigManager:
     defaults for optional settings.
 
     """
+    #    CK.WORKFLOW_NAME: (str, f"Workflow to be run from the available list: {available_workflows()}(required)"),
+    
     # required arguments: must exist in JSON config or be provided as cmd line
     REQUIRED_PARAMS = {
+        CK.WORKFLOW_NAME: (str, f"Workflow to be run (required)"),
         CK.VASP_STD_EXE: (str, "VASP executable (required)."),
         CK.WORK_DIR: (str, "Path to a work directory used for generating and selecting all the structures (required)."),
         CK.VASP_WORK_DIR: (str, "Path to a work directory for VASP-specific operations (required)."),
@@ -80,7 +83,7 @@ class ConfigManager:
             str, "Parsl config name, previously registered (required)."),
         CK.INITIAL_STRS: (
             str, "Path to the directory that containts the initial crystal structures (required)."),
-        CK.PARSL_CONFIGS_DIR: (str, "Path to the directory that contains the Parsl configurations (required).")
+        CK.PARSL_CONFIGS_DIR: (str, "Path to the directory that contains the Parsl configurations (required)."),   
     }
 
     # optional arguments: if absent, assign defaults.
@@ -100,7 +103,9 @@ class ConfigManager:
         CK.MPRester_API_KEY: ("", f"An API key for accessing the MP data (https://docs.materialsproject.org). Required if --{CK.POST_PROCESSING_OUT_DIR} is set. "),
         CK.HULL_ENERGY_THR: (
             0.1, "Maximum Ehull (eV/atom) to display for metastable phases"),
-        CK.GEN_STRUCTURES_NNODES: (1, "Number of nodes used for the pre-processing phases")
+        CK.GEN_STRUCTURES_NNODES: (1, "Number of nodes used for the pre-processing phases"),
+        CK.MLIP_RELAX_NNODES: (1, "Number of nodes used for the MLIP relaxation step"),
+        CK.GPUS_PER_NODE: (4, "Number of GPUs per node")
     }
 
     CONFIG_HELP_MSG = "Path to the JSON configuration file (required)."
@@ -112,7 +117,16 @@ class ConfigManager:
         Check if all the required arguments were provided.
         """
 
+        import workflows
+        from workflows.registry import available_workflows
+        avail_workflows = available_workflows()
+        self.REQUIRED_PARAMS[CK.WORKFLOW_NAME] = (
+            str,
+            f"Workflow to be run (required). Available workflows: {avail_workflows}."
+        )
+
         self._early_help()
+
         # Preliminary parser for -config (read only the JSON path)
         config_parser = argparse.ArgumentParser(add_help=False)
         config_parser.add_argument(
@@ -237,7 +251,7 @@ class ConfigManager:
         """calculate which VASP structures should be run"""
         work_dir = self.config[CK.WORK_DIR]
         vasp_work_dir = self.config[CK.VASP_WORK_DIR]
-        structure_dir = os.path.join(work_dir, "new")
+        structure_dir = os.path.join(work_dir, CK.SELECT_STRUCT_OUTPUT)
 
         num_strs = int(self.config[CK.NUM_STRS])  # -1 means "run all remaining"
         id_list = _collect_batch_ids(vasp_work_dir, structure_dir, num_strs)
