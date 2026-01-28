@@ -28,6 +28,7 @@ STATUS_BY_EXCEPTION = {
     BashExitFailure: "bash_exit_failure",
 }
 
+
 def _write_status(fp, id_, status):
     fp.write(f"{id_},{status}\n")
 
@@ -143,7 +144,7 @@ class CgcnnStep(Step):
 
 class SelectStructuresStep(Step):
 
-    def __init__(self, config, out_dir, min_total=1000, max_total=4000) :
+    def __init__(self, config, out_dir, min_total=1000, max_total=4000):
         super().__init__(config)
         self.out_dir = Path(self.config[CK.WORK_DIR]) / out_dir
         self.min_total = min_total
@@ -239,12 +240,12 @@ class MLIPRelaxationStep(Step):
                         raise err
                 except Exception as e:
                     amd_logger.critical(f"An exception occurred: {e}")
-        
+
         # write final result
         with open(ener_ml_file, "w") as out:
             for p in sorted(Path(log_dir).glob("energy_*")):
                 out.write(p.read_text())
-        
+
     def not_finished(self) -> bool:
         ener_ml_file = Path(self.config[CK.WORK_DIR]) / CK.MLIP_ENER_ML_FILE
         return not (ener_ml_file.is_file() and ener_ml_file.stat().st_size > 0)
@@ -267,7 +268,7 @@ class VaspCalculationsStep(Step):
         This method is used in the MLIP-based workflow to post-process results
         obtained with MLIP relaxation, and prepare a set of POSCAR files for subsequent VASP optimization.
         """
-        import shutil 
+        import shutil
         work_dir = self.config[CK.WORK_DIR]
         structure_dir = os.path.join(work_dir, CK.SELECT_STRUCT_OUTPUT)
         energy_log_dir = os.path.join(work_dir, CK.MLIP_LOG_DIR)
@@ -372,8 +373,9 @@ class EhullMLParallel(Step):
             self._ehull_ml_parallel()
         amd_logger.info(f"ehull_ml_parallel done")
 
+
 class PostProcessingStep(Step):
-    
+
     def __init__(self, config, get_hull: bool = True):
         super().__init__(config)
         self.get_hull = get_hull
@@ -402,7 +404,7 @@ class PostProcessingStep(Step):
                     f"The post-processing is only supported with 3 or 4 elements")
 
             os.makedirs(self.config[CK.POST_PROCESSING_OUT_DIR], exist_ok=True)
-            
+
             # for MLIP workflow the hull was compiled in previous steps
             if self.get_hull:
                 get_vasp_hull(self.config)

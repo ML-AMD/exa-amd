@@ -2,6 +2,7 @@
 from typing import Any, Iterable
 from tools.logging_config import amd_logger
 
+
 class Workflow:
     """
     Workflow runner

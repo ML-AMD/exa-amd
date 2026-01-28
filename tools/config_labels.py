@@ -45,5 +45,5 @@ class ConfigKeys:
     SELECT_STRUCT_OUTPUT = "new"
     SELECT_STRUCT_OUTPUT_0 = "new0"
     MLIP_LOG_DIR = "mlip_logs"
-    MLIP_ENER_ML_FILE="ener_ml.dat"
-    MLIP_HULL_ML_FILE="hull_ml.dat"
+    MLIP_ENER_ML_FILE = "ener_ml.dat"
+    MLIP_HULL_ML_FILE = "hull_ml.dat"

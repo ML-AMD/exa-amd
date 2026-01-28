@@ -214,10 +214,10 @@ def select_structures_core(nomix_dir, output_dir, csv_file, ef_threshold,
         print("This may be due to a lack of sufficiently diverse structures in the dataset or the filtering criteria.")
 
 
-def run_select_structures(nomix_dir="nomix/",
-                          output_dir="new/",
+def run_select_structures(output_dir,
+                          nomix_dir="nomix/",
                           csv_file="test_results.csv",
-                          ef_threshold=-0.2,
+                          ef_threshold=1.0,
                           min_total=1000,
                           max_total=4000,
                           num_workers=mp.cpu_count(),
@@ -233,13 +233,13 @@ def run_select_structures(nomix_dir="nomix/",
     :class:`pymatgen.analysis.structure_matcher.StructureMatcher`, and writes
     the selected set to ``output_dir``.
 
-    :param str nomix_dir:
-        Root directory containing input CIFs laid out as
-        ``{chunk_prefix}/{index}.cif``.
-
     :param str output_dir:
         Directory to write outputs (created if missing). Writes
         ``id_prop.csv`` and ``POSCAR_{i}`` files for selected structures.
+
+    :param str nomix_dir:
+        Root directory containing input CIFs laid out as
+        ``{chunk_prefix}/{index}.cif``.
 
     :param str csv_file:
         Path to the input CSV with three columns:
@@ -280,15 +280,18 @@ def run_select_structures(nomix_dir="nomix/",
 
 
 @python_app(executors=[SELECT_EXECUTOR_LABEL])
-def select_structures(config):
+def select_structures(config, out_dir, min_total, max_total):
     try:
         os.chdir(config[CK.WORK_DIR])
         tr_csv_file = os.path.join(config[CK.WORK_DIR], "test_results.csv")
         dir_structures = os.path.join(config[CK.WORK_DIR], "structures")
         run_select_structures(
+            out_dir,
             nomix_dir=dir_structures,
             csv_file=tr_csv_file,
             ef_threshold=float(config[CK.EF_THR]),
+            min_total=min_total,
+            max_total=max_total,
             num_workers=int(config[CK.NUM_WORKERS])
         )
     except Exception as e:

@@ -69,7 +69,7 @@ class ConfigManager:
 
     """
     #    CK.WORKFLOW_NAME: (str, f"Workflow to be run from the available list: {available_workflows()}(required)"),
-    
+
     # required arguments: must exist in JSON config or be provided as cmd line
     REQUIRED_PARAMS = {
         CK.WORKFLOW_NAME: (str, f"Workflow to be run (required)"),
@@ -83,7 +83,7 @@ class ConfigManager:
             str, "Parsl config name, previously registered (required)."),
         CK.INITIAL_STRS: (
             str, "Path to the directory that containts the initial crystal structures (required)."),
-        CK.PARSL_CONFIGS_DIR: (str, "Path to the directory that contains the Parsl configurations (required)."),   
+        CK.PARSL_CONFIGS_DIR: (str, "Path to the directory that contains the Parsl configurations (required)."),
     }
 
     # optional arguments: if absent, assign defaults.

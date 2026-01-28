@@ -13,6 +13,7 @@ from workflows.steps import (
     PostProcessingStep,
 )
 
+
 @register_workflow("mlip")
 class MLIPWorkflow(Workflow):
     def __init__(self, config, dry_run: bool = False):

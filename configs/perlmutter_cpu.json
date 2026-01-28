@@ -1,4 +1,6 @@
 {
+    "workflow": "<workflow_name>",
+
     "work_dir": "<abs_path_to>/work_dir",
     "cpu_account": "cpu_account",
     "gpu_account": "gpu_account",
@@ -11,6 +13,8 @@
     "parsl_configs_dir": "<abs_path_to>/parsl_configs",
 
     "pre_processing_nnodes":4,
+    "mlip_relax_nnodes": 4,
+    "gpus_per_node": 4,
 
     "cgcnn_batch_size": 256,
 

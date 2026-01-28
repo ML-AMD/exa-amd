@@ -10,6 +10,7 @@ from workflows.steps import (
     PostProcessingStep,
 )
 
+
 @register_workflow("vasp")
 class VaspWorkflow(Workflow):
     """
@@ -42,6 +43,7 @@ class VaspWorkflow(Workflow):
     Raises:
         Exception: If any sub-stage raises an error that is not internally handled.
     """
+
     def __init__(self, config, dry_run: bool = False):
         steps = [
             GenerateStructuresStep(config),

@@ -6,6 +6,7 @@ from parsl_configs.parsl_config_registry import get_parsl_config
 from tools.config_labels import ConfigKeys as CK
 from workflows.registry import get_workflow, available_workflows
 
+
 def main():
     try:
         # load global config
@@ -35,6 +36,7 @@ def main():
             pass
         except Exception as cleanup_err:
             amd_logger.warning(f"Parsl cleanup error: {cleanup_err}")
+
 
 if __name__ == '__main__':
     main()

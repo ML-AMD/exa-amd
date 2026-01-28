@@ -29,7 +29,14 @@ jobs:
           use-mamba: true
       
       - name: Run pytest
+        shell: bash -l {0}
+        env:
+            PYTHONFAULTHANDLER: "1"
+            OMP_NUM_THREADS: "1"
+            MKL_NUM_THREADS: "1"
+            OPENBLAS_NUM_THREADS: "1"
+            NUMEXPR_NUM_THREADS: "1"
+            VECLIB_MAXIMUM_THREADS: "1"
         run: |
-          export PYTHONPATH=$(pwd):$PYTHONPATH
-          export PYTHONPATH="$(pwd)/ml_models:$PYTHONPATH"
+          export PYTHONPATH="$(pwd):$(pwd)/ml_models:${PYTHONPATH}"
           conda run -n amd_env pytest -s

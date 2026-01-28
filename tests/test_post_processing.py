@@ -45,7 +45,8 @@ def test_calculate_ehul_outputs(ehull_env):
     ehull_dir = ehull_env["ehull_dir"]
     config = ehull_env["config"]
 
-    out_path = Path(cmd_calculate_ehul(config))
+    out_path = Path(cmd_calculate_ehul(config, False))
+
     assert out_path == ehull_dir / "hull.dat"
 
     assert out_path.exists(), "hull.dat not created"

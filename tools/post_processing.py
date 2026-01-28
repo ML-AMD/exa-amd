@@ -19,9 +19,10 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from typing import List, Dict, Tuple
 from itertools import combinations
 from typing import List, Dict, Tuple
-from tools.logging_config import amd_logger
 from collections import defaultdict
+from typing import Optional, Sequence
 
+from tools.logging_config import amd_logger
 from tools.config_labels import ConfigKeys as CK
 from parsl_tasks.hull import run_single_vasp_hull_calculation
 from parsl_tasks.compile_hull import compile_vasp_hull
@@ -113,18 +114,6 @@ def get_vasp_hull(config):
             incar_mag = str(p)
         mageles = ['Fe', 'Co', 'Ni', 'Mn']
 
-        # gather the energy from the dft calculations
-        os.chdir(config[CK.VASP_WORK_DIR])
-        cmd_get_energy = (
-            f"grep 'F=' */output_*.en | "
-            r"sed 's/\/output\.en://g' > "
-            f"{CK.ENERGY_DAT_OUT}"
-        )
-        result = subprocess.run(cmd_get_energy, shell=True)
-        is_empty = (not os.path.exists(CK.ENERGY_DAT_OUT)) or os.path.getsize(CK.ENERGY_DAT_OUT) == 0
-        if result.returncode != 0:
-            amd_logger.critical(f"{cmd_get_energy} failed")
-
         # prepare the input and output paths
         WORK_DIR = os.path.join(
             config[CK.VASP_WORK_DIR], CK.SUBDIR_STABLE_PHASES)
@@ -135,6 +124,10 @@ def get_vasp_hull(config):
             config[CK.POST_PROCESSING_OUT_DIR], CK.MP_STABLE_OUT)
         mp_file = os.path.join(config[CK.VASP_WORK_DIR], CK.MP_STABLE_OUT)
 
+        if os.path.isfile(mp_file) and os.path.getsize(mp_file) > 0:
+            amd_logger.info(f"compiled hull exists already: {mp_file}")
+            return
+
         phases = get_stable_phases(elements, api_key)
         n_structures = len(phases)
 
@@ -143,10 +136,14 @@ def get_vasp_hull(config):
             calc_id = i + 1
             calc_dir = os.path.join(VASP_CALCS_DIR, f"calc_{calc_id}")
             os.makedirs(calc_dir, exist_ok=True)
-            phase["structure"].to(fmt="poscar", filename=os.path.join(calc_dir, "POSCAR"))
+            # phase["structure"].to(fmt="poscar", filename=os.path.join(calc_dir, "POSCAR"))
+
+            sga = SpacegroupAnalyzer(phase['structure'], symprec=0.05)
+            symm_structure = sga.get_refined_structure()
+            symm_structure.to(filename=os.path.join(calc_dir, "POSCAR"))
 
             # Copy INCAR
-            if any(Element(magele) in phase['elements'] for magele in mageles):
+            if any(magele in phase["elements"] for magele in mageles):
                 shutil.copy(incar_mag, f"{calc_dir}/INCAR")
             else:
                 shutil.copy(incar_file, f"{calc_dir}/INCAR")
@@ -170,7 +167,7 @@ def get_vasp_hull(config):
         for future in l_futures:
             err = future.exception()
             if err:
-                amd_logger.warning(f"Post-processing VASP: {err}")
+                amd_logger.critical(f"get_vasp_hull VASP: {err}")
         amd_logger.info("vasp hull calculation done")
 
         prefix = os.path.join(VASP_CALCS_DIR, f"calc_")
@@ -179,7 +176,7 @@ def get_vasp_hull(config):
             output_file,
             prefix).exception()
         if err:
-            amd_logger.warning(f"Post-processing VASP: {err}")
+            amd_logger.warning(f"get_vasp_hull VASP: {err}")
 
         shutil.copy(output_file, mp_file)
         amd_logger.info("vasp hull compilation done")

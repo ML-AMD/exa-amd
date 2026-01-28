@@ -61,6 +61,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
                 pass
     success = False
     timed_out = False
+    vasp_non_reached = False
     try:
         exec_cmd_prefix = (
             "" if config[CK.VASP_NTASKS_PER_RUN] == 1
@@ -107,6 +108,8 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             if rc.returncode != 0:
                 if _is_timeout(rc.returncode):
                     timed_out = True
+                else:
+                    vasp_non_reached = True
                 raise VaspNonReached(f"VASP exited with {rc} during relaxation")
 
         #  grep "reached"
@@ -133,13 +136,16 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
                 if rc.returncode != 0:
                     if _is_timeout(rc.returncode):
                         timed_out = True
+                    else:
+                        vasp_non_reached = True
                     raise VaspNonReached(f"VASP exited with {rc} during 2nd relaxation")
 
             shutil.copy("CONTCAR", os.path.join(work_subdir, f"CONTCAR_{id}"))
             os.rename("OUTCAR", f"OUTCAR_{id}.rx")
 
         else:
-            raise VaspNonReached
+            vasp_non_reached = True
+            raise VaspNonReached("relaxation did not converge and did not hit NSW")
 
         # energy calculation
         with iresources.as_file(iresources.files("workflows.vasp_assets") / "INCAR.en") as p:
@@ -160,7 +166,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         success = True
     finally:
         try:
-            if success or timed_out:
+            if success or timed_out or vasp_non_reached:
                 Path("DONE").touch()
         except Exception:
             pass
