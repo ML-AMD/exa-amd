@@ -1,0 +1,1 @@
+ml_models/mlip/uma-s-1p1.pt filter=lfs diff=lfs merge=lfs -text

@@ -33,6 +33,15 @@ Additionally:
 ### External packages 
 This package contains a modified version of Crystal Graph Convolutional Neural Networks (CGCNN) placed under the `cms_dir` directory. The original [CGCNN](https://github.com/txie-93/cgcnn) source code was developed by [Tian Xie](https://txie.me/) et al., distributed under the MIT License.
 
+### Workflow-dependent requirements
+
+Some workflows require additional resources beyond the general prerequisites.
+
+- **MLIP workflow**: Requires the pretrained model checkpoint `ml_models/mlip/uma-s-1p1.pt`. This file is managed using [Git Large File Storage (Git LFS)](https://git-lfs.com/). To ensure the model weights are properly retrieved, Git LFS must be installed and initialized before cloning the repository:
+
+  ```bash
+  git lfs install
+  ```
 ## Install
 ### CLI (preferred)
 ```bash
