@@ -60,20 +60,15 @@ class Step(ABC):
 
 
 class GenerateStructuresStep(Step):
+    """
+    Generate hypothetical structures in parallel (chunked).
+
+    Submits :func:`parsl_tasks.gen_structures.gen_structures` for each chunk
+    ``i ∈ [1, n_chunks]`` where ``n_chunks = config[CK.GEN_STRUCTURES_NNODES]``,
+    and waits for completion.
+    """
 
     def _generate_structures(self):
-        """
-        Generate hypothetical structures in parallel (chunked).
-
-        Submits :func:`parsl_tasks.gen_structures.gen_structures` for each chunk
-        ``i ∈ [1, n_chunks]`` where ``n_chunks = config[CK.GEN_STRUCTURES_NNODES]``,
-        and waits for completion.
-
-        :param ConfigManager config: workflow configuration
-
-        :returns: None
-        :rtype: None
-        """
         from parsl_tasks.gen_structures import gen_structures
         try:
             n_chunks = self.config[CK.GEN_STRUCTURES_NNODES]
@@ -93,21 +88,16 @@ class GenerateStructuresStep(Step):
 
 
 class CgcnnStep(Step):
+    """
+    Predicts formation energy with CGCNN for the candidates.
+
+    Submits :func:`parsl_tasks.cgcnn.cgcnn_prediction` for each chunk
+    ``i ∈ [1, n_chunks]`` where ``n_chunks = config[CK.GEN_STRUCTURES_NNODES]``.
+    Merges ``work_dir/test_results_*.csv`` into ``work_dir/test_results.csv``,
+    then deletes the shard files.
+    """
 
     def _run_cgcnn(self):
-        """
-        Predicts formation energy with CGCNN for the candidates.
-
-        Submits :func:`parsl_tasks.cgcnn.cgcnn_prediction` for each chunk
-        ``i ∈ [1, n_chunks]`` where ``n_chunks = config[CK.GEN_STRUCTURES_NNODES]``.
-        Merges ``work_dir/test_results_*.csv`` into ``work_dir/test_results.csv``,
-        then deletes the shard files.
-
-        :param ConfigManager config: workflow configuration
-
-        :returns: None
-        :rtype: None
-        """
         from parsl_tasks.cgcnn import cgcnn_prediction
         try:
             n_chunks = self.config[CK.GEN_STRUCTURES_NNODES]
@@ -143,6 +133,12 @@ class CgcnnStep(Step):
 
 
 class SelectStructuresStep(Step):
+    """
+    Filter, deduplicate, and select candidate structures.
+
+    Runs :func:`parsl_tasks.select_structures.select_structures` to produce
+    ``{work_dir}/new/POSCAR_{i}`` and ``{work_dir}/new/id_prop.csv``.
+    """
 
     def __init__(self, config, out_dir, min_total=1000, max_total=4000):
         super().__init__(config)
@@ -151,17 +147,6 @@ class SelectStructuresStep(Step):
         self.max_total = max_total
 
     def _select_structures(self):
-        """
-        Filter, deduplicate, and select candidate structures.
-
-        Runs :func:`parsl_tasks.select_structures.select_structures` to produce
-        ``{work_dir}/new/POSCAR_{i}`` and ``{work_dir}/new/id_prop.csv``.
-
-        :param ConfigManager config: workflow configuration
-
-        :returns: None
-        :rtype: None
-        """
         from parsl_tasks.select_structures import select_structures
         try:
             select_structures(self.config.get_json_config(), self.out_dir, self.min_total, self.max_total).result()
@@ -178,6 +163,7 @@ class SelectStructuresStep(Step):
 
 
 class MLIPRelaxationStep(Step):
+    """Relax selected structures with an MLIP and write per-structure energies."""
 
     @staticmethod
     def _extract_index(poscar: Path) -> str:
@@ -257,6 +243,13 @@ class MLIPRelaxationStep(Step):
 
 
 class VaspCalculationsStep(Step):
+    """
+    Run two-stage VASP calculations for all selected structures and log outcomes.
+
+    Launches :func:`parsl_tasks.dft_optimization.run_vasp_calc` for each ID in
+    ``{config[CK.VASP_ID_STRUCT_LIST]}``. Writes a CSV of per-ID results to
+    ``{config[CK.VASP_WORK_DIR]}/{config[CK.OUTPUT_FILE]}``.
+    """
     def __init__(self, config, run_mlip_post_processing: bool = False):
         super().__init__(config)
         self.run_mlip_post_processing = run_mlip_post_processing
@@ -299,20 +292,6 @@ class VaspCalculationsStep(Step):
                 file_id += 1
 
     def _vasp_calculations(self):
-        """
-        Run two-stage VASP calculations for all selected structures and log outcomes.
-
-        Launches :func:`parsl_tasks.dft_optimization.run_vasp_calc` for each ID in
-        ``{config[CK.VASP_ID_STRUCT_LIST]}``. Writes a CSV of per-ID results to
-        ``{config[CK.VASP_WORK_DIR]}/{config[CK.OUTPUT_FILE]}``.
-
-        :param ConfigManager config: workflow configuration
-
-        :returns: None
-        :rtype: None
-
-        :raises Exception: only if uncaught errors propagate past per-task handling
-         """
         from parsl_tasks.dft_optimization import run_vasp_calc
         work_dir = self.config[CK.WORK_DIR]
         output_file_vasp_calc = os.path.join(
@@ -355,6 +334,7 @@ class VaspCalculationsStep(Step):
 
 
 class EhullMLParallel(Step):
+    """Compute ML-based hull quantities in parallel and write the hull output."""
 
     def _ehull_ml_parallel(self):
         os.makedirs(self.config[CK.POST_PROCESSING_OUT_DIR], exist_ok=True)
@@ -375,25 +355,20 @@ class EhullMLParallel(Step):
 
 
 class PostProcessingStep(Step):
+    """
+    Compute Ehull, color the convex hull, and collect promising candidates.
+
+    Requires a 3- or 4-element system. Runs
+    :func:`tools.post_processing.get_vasp_hull`,
+    :func:`parsl_tasks.ehull.calculate_ehul` and
+    :func:`parsl_tasks.convex_hull.convex_hull_color`.
+    """
 
     def __init__(self, config, get_hull: bool = True):
         super().__init__(config)
         self.get_hull = get_hull
 
     def _post_processing(self):
-        """
-        Compute Ehull, color the convex hull, and collect promising candidates.
-
-        Requires a 3- or 4-element system. Runs
-        :func:`tools.post_processing.get_vasp_hull`,
-        :func:`parsl_tasks.ehull.calculate_ehul` and
-        :func:`parsl_tasks.convex_hull.convex_hull_color`.
-
-        :param ConfigManager config: workflow configuration
-
-        :returns: None
-        :rtype: None
-        """
         if self.config[CK.POST_PROCESSING_OUT_DIR]:
 
             elements = self.config[CK.ELEMENTS]

@@ -50,7 +50,7 @@ def auto_register_configs(configs_dir):
     so the Parsl configurations can be selected at runtime.
 
     Args:
-        configs_dir (str): Path to a directory containing user Parsl config *.py files.
+        configs_dir (str): Path to a directory containing user Parsl config ``*.py`` files.
 
     Raises:
         SystemExit: If the specified package cannot be found or loaded.
