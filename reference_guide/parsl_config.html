@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Parsl Tasks" href="parsl_tasks.html" />
-    <link rel="prev" title="VASP-based workflow" href="workflows.html" /> 
+    <link rel="prev" title="Workflow steps" href="workflows.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,14 +46,17 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflow.html">Automated Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">Internal API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="workflows.html">VASP-based workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflow steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#workflows">Workflows</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Parsl Configuration</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.perlmutter.PerlmutterConfig"><code class="docutils literal notranslate"><span class="pre">PerlmutterConfig</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.EHULL_ML_PARALLEL_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">EHULL_ML_PARALLEL_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.MLIP_RELAXATION_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">MLIP_RELAXATION_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.POSTPROCESSING_LABEL"><code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></a></li>
@@ -131,9 +134,21 @@ exa-AMD workflow and resource type:</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.EHULL_ML_PARALLEL_EXECUTOR_LABEL">
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">EHULL_ML_PARALLEL_EXECUTOR_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ehull_ml_parallel_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.EHULL_ML_PARALLEL_EXECUTOR_LABEL" title="Link to this definition"></a></dt>
+<dd><p>Executor label for the ML ehull step (used only in combination with MLIP relaxation)</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL">
 <span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">GENERATE_EXECUTOR_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'generate_executor_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL" title="Link to this definition"></a></dt>
 <dd><p>Executor label used for structure generation tasks.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parsl_configs.parsl_executors_labels.MLIP_RELAXATION_EXECUTOR_LABEL">
+<span class="sig-prename descclassname"><span class="pre">parsl_configs.parsl_executors_labels.</span></span><span class="sig-name descname"><span class="pre">MLIP_RELAXATION_EXECUTOR_LABEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mlip_relax_label'</span></em><a class="headerlink" href="#parsl_configs.parsl_executors_labels.MLIP_RELAXATION_EXECUTOR_LABEL" title="Link to this definition"></a></dt>
+<dd><p>Executor label for the MLIP relaxation step</p>
 </dd></dl>
 
 <dl class="py data">
@@ -162,7 +177,7 @@ exa-AMD workflow and resource type:</p>
 so the Parsl configurations can be selected at runtime.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>configs_dir</strong> (<em>str</em>) – Path to a directory containing user Parsl config <a href="#id1"><span class="problematic" id="id2">*</span></a>.py files.</p>
+<dd class="field-odd"><p><strong>configs_dir</strong> (<em>str</em>) – Path to a directory containing user Parsl config <code class="docutils literal notranslate"><span class="pre">*.py</span></code> files.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>SystemExit</strong> – If the specified package cannot be found or loaded.</p>
@@ -217,7 +232,7 @@ using the <a class="reference internal" href="utils.html#tools.config_manager.Co
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="workflows.html" class="btn btn-neutral float-left" title="VASP-based workflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="workflows.html" class="btn btn-neutral float-left" title="Workflow steps" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="parsl_tasks.html" class="btn btn-neutral float-right" title="Parsl Tasks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

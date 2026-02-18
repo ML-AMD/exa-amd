@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VASP-based workflow &mdash; exa-AMD 0.1 documentation</title>
+  <title>Workflow steps &mdash; exa-AMD 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -46,16 +46,29 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../workflow.html">Automated Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">Internal API Reference</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">VASP-based workflow</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.run_workflow"><code class="docutils literal notranslate"><span class="pre">run_workflow()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.generate_structures"><code class="docutils literal notranslate"><span class="pre">generate_structures()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.run_cgcnn"><code class="docutils literal notranslate"><span class="pre">run_cgcnn()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.select_structures"><code class="docutils literal notranslate"><span class="pre">select_structures()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.vasp_calculations"><code class="docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#workflows.vasp_based.post_processing"><code class="docutils literal notranslate"><span class="pre">post_processing()</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Workflow steps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-interface">Base interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.Step"><code class="docutils literal notranslate"><span class="pre">Step</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#steps">Steps</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.GenerateStructuresStep"><code class="docutils literal notranslate"><span class="pre">GenerateStructuresStep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.CgcnnStep"><code class="docutils literal notranslate"><span class="pre">CgcnnStep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.SelectStructuresStep"><code class="docutils literal notranslate"><span class="pre">SelectStructuresStep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.MLIPRelaxationStep"><code class="docutils literal notranslate"><span class="pre">MLIPRelaxationStep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.EhullMLParallel"><code class="docutils literal notranslate"><span class="pre">EhullMLParallel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.VaspCalculationsStep"><code class="docutils literal notranslate"><span class="pre">VaspCalculationsStep</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.steps.PostProcessingStep"><code class="docutils literal notranslate"><span class="pre">PostProcessingStep</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#workflows">Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mlip-based">MLIP based</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vasp-based">VASP based</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="parsl_config.html">Parsl Configuration</a></li>
@@ -81,7 +94,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">Internal API Reference</a></li>
-      <li class="breadcrumb-item active">VASP-based workflow</li>
+      <li class="breadcrumb-item active">Workflow steps</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/reference_guide/workflows.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -91,148 +104,189 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="vasp-based-workflow">
-<h1>VASP-based workflow<a class="headerlink" href="#vasp-based-workflow" title="Link to this heading"></a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="workflows.vasp_based.run_workflow">
-<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">run_workflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.run_workflow" title="Link to this definition"></a></dt>
-<dd><p>Run the full VASP-based materials discovery workflow.</p>
-<p>Consists of the following task-based steps (with a dependency between each step):</p>
-<ol class="arabic simple">
-<li><p><strong>Structure Generation</strong>
-<code class="xref py py-func docutils literal notranslate"><span class="pre">generate_structures()</span></code></p></li>
-<li><p><strong>CGCNN Prediction</strong>
-<code class="xref py py-func docutils literal notranslate"><span class="pre">run_cgcnn()</span></code>.</p></li>
-<li><p><strong>Structure Selection</strong>
-<code class="xref py py-func docutils literal notranslate"><span class="pre">select_structures()</span></code>.</p></li>
-<li><p><strong>VASP Calculations</strong>
-<code class="xref py py-func docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></p></li>
-<li><p><strong>Post Processing</strong></p></li>
-</ol>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – The configuration manager that provides runtime parameters,
-paths, and thresholds for each stage of the workflow.</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Side Effects:</dt><dd><ul class="simple">
-<li><p>Creates directories and files under <cite>config[CK.WORK_DIR]</cite></p></li>
-<li><p>Executes multiple shell commands and external applications</p></li>
+  <section id="workflow-steps">
+<h1>Workflow steps<a class="headerlink" href="#workflow-steps" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>The steps use filesystem artifacts to determine completion.</p></li>
+<li><p>Steps are fail-fast: they terminate execution on critical failures.</p></li>
+<li><p>The same step implementation may be reused by multiple workflows.</p></li>
 </ul>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Exception</strong> – If any sub-stage raises an error that is not internally handled.</p>
-</dd>
-</dl>
+<section id="base-interface">
+<h2>Base interface<a class="headerlink" href="#base-interface" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.Step">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">Step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.Step" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Minimal step interface: not_finished + run, bound to a config.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.Step.not_finished">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.Step.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.Step.run">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.Step.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="workflows.vasp_based.generate_structures">
-<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">generate_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.generate_structures" title="Link to this definition"></a></dt>
+</section>
+<section id="steps">
+<h2>Steps<a class="headerlink" href="#steps" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.GenerateStructuresStep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">GenerateStructuresStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.GenerateStructuresStep" title="Link to this definition"></a></dt>
 <dd><p>Generate hypothetical structures in parallel (chunked).</p>
 <p>Submits <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.gen_structures.gen_structures()</span></code> for each chunk
 <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">∈</span> <span class="pre">[1,</span> <span class="pre">n_chunks]</span></code> where <code class="docutils literal notranslate"><span class="pre">n_chunks</span> <span class="pre">=</span> <span class="pre">config[CK.GEN_STRUCTURES_NNODES]</span></code>,
 and waits for completion.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.GenerateStructuresStep.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.GenerateStructuresStep.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.GenerateStructuresStep.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.GenerateStructuresStep.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="workflows.vasp_based.run_cgcnn">
-<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">run_cgcnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.run_cgcnn" title="Link to this definition"></a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.CgcnnStep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">CgcnnStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.CgcnnStep" title="Link to this definition"></a></dt>
 <dd><p>Predicts formation energy with CGCNN for the candidates.</p>
 <p>Submits <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.cgcnn.cgcnn_prediction()</span></code> for each chunk
 <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">∈</span> <span class="pre">[1,</span> <span class="pre">n_chunks]</span></code> where <code class="docutils literal notranslate"><span class="pre">n_chunks</span> <span class="pre">=</span> <span class="pre">config[CK.GEN_STRUCTURES_NNODES]</span></code>.
 Merges <code class="docutils literal notranslate"><span class="pre">work_dir/test_results_*.csv</span></code> into <code class="docutils literal notranslate"><span class="pre">work_dir/test_results.csv</span></code>,
 then deletes the shard files.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.CgcnnStep.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.CgcnnStep.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.CgcnnStep.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.CgcnnStep.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="workflows.vasp_based.select_structures">
-<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">select_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.select_structures" title="Link to this definition"></a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.SelectStructuresStep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">SelectStructuresStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.SelectStructuresStep" title="Link to this definition"></a></dt>
 <dd><p>Filter, deduplicate, and select candidate structures.</p>
 <p>Runs <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.select_structures.select_structures()</span></code> to produce
 <code class="docutils literal notranslate"><span class="pre">{work_dir}/new/POSCAR_{i}</span></code> and <code class="docutils literal notranslate"><span class="pre">{work_dir}/new/id_prop.csv</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.SelectStructuresStep.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.SelectStructuresStep.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.SelectStructuresStep.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.SelectStructuresStep.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="workflows.vasp_based.vasp_calculations">
-<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">vasp_calculations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.vasp_calculations" title="Link to this definition"></a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.MLIPRelaxationStep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">MLIPRelaxationStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.MLIPRelaxationStep" title="Link to this definition"></a></dt>
+<dd><p>Relax selected structures with an MLIP and write per-structure energies.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.MLIPRelaxationStep.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.MLIPRelaxationStep.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.MLIPRelaxationStep.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.MLIPRelaxationStep.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.EhullMLParallel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">EhullMLParallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.EhullMLParallel" title="Link to this definition"></a></dt>
+<dd><p>Compute ML-based hull quantities in parallel and write the hull output.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.EhullMLParallel.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.EhullMLParallel.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.EhullMLParallel.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.EhullMLParallel.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.VaspCalculationsStep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">VaspCalculationsStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_mlip_post_processing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.VaspCalculationsStep" title="Link to this definition"></a></dt>
 <dd><p>Run two-stage VASP calculations for all selected structures and log outcomes.</p>
 <p>Launches <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.dft_optimization.run_vasp_calc()</span></code> for each ID in
 <code class="docutils literal notranslate"><span class="pre">{config[CK.VASP_ID_STRUCT_LIST]}</span></code>. Writes a CSV of per-ID results to
 <code class="docutils literal notranslate"><span class="pre">{config[CK.VASP_WORK_DIR]}/{config[CK.OUTPUT_FILE]}</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Exception</strong> – only if uncaught errors propagate past per-task handling</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.VaspCalculationsStep.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.VaspCalculationsStep.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.VaspCalculationsStep.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.VaspCalculationsStep.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="workflows.vasp_based.post_processing">
-<span class="sig-prename descclassname"><span class="pre">workflows.vasp_based.</span></span><span class="sig-name descname"><span class="pre">post_processing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_based.post_processing" title="Link to this definition"></a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.steps.PostProcessingStep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.steps.</span></span><span class="sig-name descname"><span class="pre">PostProcessingStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_hull</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.steps.PostProcessingStep" title="Link to this definition"></a></dt>
 <dd><p>Compute Ehull, color the convex hull, and collect promising candidates.</p>
 <p>Requires a 3- or 4-element system. Runs
 <a class="reference internal" href="utils.html#tools.post_processing.get_vasp_hull" title="tools.post_processing.get_vasp_hull"><code class="xref py py-func docutils literal notranslate"><span class="pre">tools.post_processing.get_vasp_hull()</span></code></a>,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.ehull.calculate_ehul()</span></code> and
 <code class="xref py py-func docutils literal notranslate"><span class="pre">parsl_tasks.convex_hull.convex_hull_color()</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – workflow configuration</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.PostProcessingStep.not_finished">
+<span class="sig-name descname"><span class="pre">not_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#workflows.steps.PostProcessingStep.not_finished" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.steps.PostProcessingStep.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#workflows.steps.PostProcessingStep.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
+</section>
+</section>
+<section id="workflows">
+<h1>Workflows<a class="headerlink" href="#workflows" title="Link to this heading"></a></h1>
+<section id="mlip-based">
+<h2>MLIP based<a class="headerlink" href="#mlip-based" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#workflows.steps.GenerateStructuresStep" title="workflows.steps.GenerateStructuresStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.GenerateStructuresStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.CgcnnStep" title="workflows.steps.CgcnnStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.CgcnnStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.SelectStructuresStep" title="workflows.steps.SelectStructuresStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.SelectStructuresStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.MLIPRelaxationStep" title="workflows.steps.MLIPRelaxationStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.MLIPRelaxationStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.EhullMLParallel" title="workflows.steps.EhullMLParallel"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.EhullMLParallel</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.VaspCalculationsStep" title="workflows.steps.VaspCalculationsStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.VaspCalculationsStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.PostProcessingStep" title="workflows.steps.PostProcessingStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.PostProcessingStep</span></code></a></p></li>
+</ol>
+</section>
+<section id="vasp-based">
+<h2>VASP based<a class="headerlink" href="#vasp-based" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#workflows.steps.GenerateStructuresStep" title="workflows.steps.GenerateStructuresStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.GenerateStructuresStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.CgcnnStep" title="workflows.steps.CgcnnStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.CgcnnStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.SelectStructuresStep" title="workflows.steps.SelectStructuresStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.SelectStructuresStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.VaspCalculationsStep" title="workflows.steps.VaspCalculationsStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.VaspCalculationsStep</span></code></a></p></li>
+<li><p><a class="reference internal" href="#workflows.steps.PostProcessingStep" title="workflows.steps.PostProcessingStep"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.steps.PostProcessingStep</span></code></a></p></li>
+</ol>
+</section>
 </section>
 
 

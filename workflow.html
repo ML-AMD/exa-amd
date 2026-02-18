@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Automated Workflow &mdash; exa-AMD 0.1 documentation</title>
+  <title>Workflow Description &mdash; exa-AMD 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -46,8 +46,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Automated Workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#workflow-stages">Workflow stages</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflow Description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vasp-workflow-stages">VASP Workflow Stages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#structure-generation">1. Structure generation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cgcnn-based-structure-screening">2. CGCNN-based structure screening</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#removal-of-similar-structures">3. Removal of similar structures</a></li>
@@ -55,6 +55,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#post-processing-convex-hull-and-stability-analysis">5. Post-processing: convex hull and stability analysis</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#other-workflows">Other Workflows</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
@@ -76,7 +77,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Automated Workflow</li>
+      <li class="breadcrumb-item active">Workflow Description</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/workflow.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -86,9 +87,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="automated-workflow">
-<span id="workflow"></span><h1>Automated Workflow<a class="headerlink" href="#automated-workflow" title="Link to this heading"></a></h1>
-<p>This document presents the <a class="reference external" href="https://github.com/ML-AMD/exa-amd/blob/main/workflows/vasp_based.py">VASP-based workflow</a> depicted in the figure below.</p>
+  <section id="workflow-description">
+<span id="workflow"></span><h1>Workflow Description<a class="headerlink" href="#workflow-description" title="Link to this heading"></a></h1>
+<p>This document presents the <a class="reference external" href="https://github.com/ML-AMD/exa-amd/blob/main/workflows/vasp_workflow.py">VASP workflow</a> depicted in the figure below, as a representative example of the automated materials discovery workflows implemented in <em>exa-amd</em>.</p>
 <figure class="align-center" id="id1">
 <span id="fig-workflow"></span><a class="reference internal image-reference" href="_images/workflow.png"><img alt="_images/workflow.png" src="_images/workflow.png" style="width: 80%;" />
 </a>
@@ -96,8 +97,8 @@
 <p><span class="caption-text">VASP-based workflow.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
-<section id="workflow-stages">
-<h2>Workflow stages<a class="headerlink" href="#workflow-stages" title="Link to this heading"></a></h2>
+<section id="vasp-workflow-stages">
+<h2>VASP Workflow Stages<a class="headerlink" href="#vasp-workflow-stages" title="Link to this heading"></a></h2>
 <section id="structure-generation">
 <h3>1. Structure generation<a class="headerlink" href="#structure-generation" title="Link to this heading"></a></h3>
 <p>Start from structures in the <code class="docutils literal notranslate"><span class="pre">initial_structures</span></code> directory and generate hypothetical structures:</p>
@@ -157,7 +158,7 @@
 <section id="dft-calculations-relaxation-and-energy">
 <h3>4. DFT calculations (relaxation and energy)<a class="headerlink" href="#dft-calculations-relaxation-and-energy" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>The filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT) using VASP (extensible to other ab initio codes such as Quantum ESPRESSO).</p></li>
+<li><p>The filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT) with VASP (extensible to other ab initio codes such as Quantum ESPRESSO).</p></li>
 <li><p>Each structure undergoes full relaxation to find its lowest-energy geometry, followed by a self-consistent total-energy calculation.</p></li>
 <li><p>The resulting relaxed structures and total energies provide the basis for thermodynamic analysis.</p></li>
 </ul>
@@ -177,7 +178,7 @@
 <h3>5. Post-processing: convex hull and stability analysis<a class="headerlink" href="#post-processing-convex-hull-and-stability-analysis" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Determine the formation energies of each structure relative to known stable phases.</p></li>
-<li><p>Construct the convex hull to indentify structures that are:
+<li><p>Construct the convex hull to identify structures that are:
 - Thermodynamically stable: on (or below) the current convex hull.
 - Metastable: low formation energy (&lt; 0.05 eV/atom ) above the hull (Ehull &lt; 0.05 eV/atom).</p></li>
 <li><p>This analysis reveals new stable and metastable structures and updates the phase diagram for the target system.</p></li>
@@ -194,6 +195,10 @@
 </ul>
 <p><strong>Parsl executor:</strong> <code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></p>
 </section>
+</section>
+<section id="other-workflows">
+<h2>Other Workflows<a class="headerlink" href="#other-workflows" title="Link to this heading"></a></h2>
+<p>In addition to the VASP workflow shown above, <em>exa-amd</em> provides alternative workflow configurations built from reusable steps documented in <a class="reference internal" href="api.html"><span class="doc">Internal API Reference</span></a>. These workflows usually introduce additional stages (e.g., MLIP relaxation).</p>
 </section>
 </section>
 

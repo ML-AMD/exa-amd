@@ -175,11 +175,11 @@ Once everything is configured, run the full exa-AMD workflow from a login node o
 
 This will launch the five stages:
 
-1. :func:`~parsl_tasks.gen_structures.generate_structures` — structure generation
-2. :func:`~parsl_tasks.cgcnn.run_cgcnn` — formation energy prediction
-3. :func:`~parsl_tasks.cgcnn.select_structures` — structure selection
-4. :func:`~parsl_tasks.vasp.vasp_calculations` — first-principles calculations
-5. :func:`~parsl_tasks.hull.cmd_convex_hull_color` — post-processing
+1. structure generation
+2. formation energy prediction
+3. structure selection
+4. first-principles calculations
+5. post-processing
 
 Progress and logs will be printed to stdout/stderr.
 

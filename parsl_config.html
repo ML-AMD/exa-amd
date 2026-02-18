@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Internal API Reference" href="api.html" />
-    <link rel="prev" title="Automated Workflow" href="workflow.html" /> 
+    <link rel="prev" title="Workflow Description" href="workflow.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflow.html">Automated Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow Description</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Parsl configuration guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#executor-labels">Executor labels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#selecting-a-config-at-runtime">Selecting a config at runtime</a></li>
@@ -150,6 +150,12 @@ The executor, in turn, defines the computational resources used by the task (e.g
 <tr class="row-even"><td><p>Post-processing</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></p></td>
 </tr>
+<tr class="row-odd"><td><p>MLIP relaxation step</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MLIP_RELAXATION_EXECUTOR_LABEL</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>ML ehull step (MLIP)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EHULL_ML_PARALLEL_EXECUTOR_LABEL</span></code></p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -161,18 +167,19 @@ The executor, in turn, defines the computational resources used by the task (e.g
 (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;perlmutter_premium&quot;</span></code>).</p></li>
 </ul>
 <p>This value must <strong>match the registry name</strong> defined in the Python config, e.g.:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># https://github.com/ML-AMD/exa-amd/blob/main/parsl_configs/perlmutter.py#L154</span>
-<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="built-in-configurations">
 <h2>Built-in configurations<a class="headerlink" href="#built-in-configurations" title="Link to this heading"></a></h2>
-<p>The repository provides four registered configurations:</p>
+<p>The repository provides the following registered configurations:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;chicoma&quot;</span><span class="p">,</span> <span class="n">ChicomaConfig</span><span class="p">)</span>
 <span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;chicoma_debug&quot;</span><span class="p">,</span> <span class="n">ChicomaConfigDebug</span><span class="p">)</span>
 <span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;chicoma_debug_cpu&quot;</span><span class="p">,</span> <span class="n">ChicomaConfigDebugCPU</span><span class="p">)</span>
 <span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium_mlip&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
+<span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;perlmutter_premium_cpu&quot;</span><span class="p">,</span> <span class="n">PerlmutterConfig</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Select any of these by setting <code class="docutils literal notranslate"><span class="pre">parsl_config</span></code> accordingly in your run JSON.</p>
@@ -288,7 +295,7 @@ constraints, please open a <strong>discussion</strong> or <strong>issue</strong>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="workflow.html" class="btn btn-neutral float-left" title="Automated Workflow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="workflow.html" class="btn btn-neutral float-left" title="Workflow Description" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="api.html" class="btn btn-neutral float-right" title="Internal API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

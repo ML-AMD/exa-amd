@@ -61,6 +61,10 @@ exa-AMD uses fixed executor labels for each of the five workflow phases describe
      - ``VASP_EXECUTOR_LABEL``
    * - Post-processing
      - ``POSTPROCESSING_LABEL``
+   * - MLIP relaxation step
+     - ``MLIP_RELAXATION_EXECUTOR_LABEL``
+   * - ML ehull step (MLIP)
+     - ``EHULL_ML_PARALLEL_EXECUTOR_LABEL``
 
 
 Selecting a config at runtime
@@ -75,13 +79,12 @@ This value must **match the registry name** defined in the Python config, e.g.:
 
 .. code-block:: python
 
-   # https://github.com/ML-AMD/exa-amd/blob/main/parsl_configs/perlmutter.py#L154
    register_parsl_config("perlmutter_premium", PerlmutterConfig)
 
 Built-in configurations
 -----------------------
 
-The repository provides four registered configurations:
+The repository provides the following registered configurations:
 
 .. code-block:: python
 
@@ -89,6 +92,8 @@ The repository provides four registered configurations:
    register_parsl_config("chicoma_debug", ChicomaConfigDebug)
    register_parsl_config("chicoma_debug_cpu", ChicomaConfigDebugCPU)
    register_parsl_config("perlmutter_premium", PerlmutterConfig)
+   register_parsl_config("perlmutter_premium_mlip", PerlmutterConfig)
+   register_parsl_config("perlmutter_premium_cpu", PerlmutterConfig)
 
 Select any of these by setting ``parsl_config`` accordingly in your run JSON.
 

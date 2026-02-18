@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="VASP-based workflow" href="reference_guide/workflows.html" />
+    <link rel="next" title="Workflow steps" href="reference_guide/workflows.html" />
     <link rel="prev" title="Parsl configuration guide" href="parsl_config.html" /> 
 </head>
 
@@ -46,10 +46,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflow.html">Automated Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Internal API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html">VASP-based workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html">Workflow steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows">Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html">Parsl Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_tasks.html">Parsl Tasks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/utils.html">Utils</a></li>
@@ -86,19 +87,22 @@
 <h1>Internal API Reference<a class="headerlink" href="#internal-api-reference" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="reference_guide/workflows.html">VASP-based workflow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.run_workflow"><code class="docutils literal notranslate"><span class="pre">run_workflow()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.generate_structures"><code class="docutils literal notranslate"><span class="pre">generate_structures()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.run_cgcnn"><code class="docutils literal notranslate"><span class="pre">run_cgcnn()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.select_structures"><code class="docutils literal notranslate"><span class="pre">select_structures()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.vasp_calculations"><code class="docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#workflows.vasp_based.post_processing"><code class="docutils literal notranslate"><span class="pre">post_processing()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_guide/workflows.html">Workflow steps</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#base-interface">Base interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#steps">Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference_guide/workflows.html#workflows">Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#mlip-based">MLIP based</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/workflows.html#vasp-based">VASP based</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reference_guide/parsl_config.html">Parsl Configuration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.perlmutter.PerlmutterConfig"><code class="docutils literal notranslate"><span class="pre">PerlmutterConfig</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">CGCNN_EXECUTOR_LABEL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.EHULL_ML_PARALLEL_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">EHULL_ML_PARALLEL_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">GENERATE_EXECUTOR_LABEL</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.MLIP_RELAXATION_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">MLIP_RELAXATION_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.POSTPROCESSING_LABEL"><code class="docutils literal notranslate"><span class="pre">POSTPROCESSING_LABEL</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">SELECT_EXECUTOR_LABEL</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL"><code class="docutils literal notranslate"><span class="pre">VASP_EXECUTOR_LABEL</span></code></a></li>
@@ -133,7 +137,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="parsl_config.html" class="btn btn-neutral float-left" title="Parsl configuration guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="reference_guide/workflows.html" class="btn btn-neutral float-right" title="VASP-based workflow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="reference_guide/workflows.html" class="btn btn-neutral float-right" title="Workflow steps" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

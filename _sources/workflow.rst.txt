@@ -1,11 +1,11 @@
 .. _workflow:
 
 ======================
-Automated Workflow
+Workflow Description
 ======================
 
+This document presents the `VASP workflow <https://github.com/ML-AMD/exa-amd/blob/main/workflows/vasp_workflow.py>`_ depicted in the figure below, as a representative example of the automated materials discovery workflows implemented in *exa-amd*.
 
-This document presents the `VASP-based workflow <https://github.com/ML-AMD/exa-amd/blob/main/workflows/vasp_based.py>`_ depicted in the figure below.
 
 .. _fig-workflow:
 
@@ -16,8 +16,8 @@ This document presents the `VASP-based workflow <https://github.com/ML-AMD/exa-a
    VASP-based workflow.
 
 
-Workflow stages
-===============
+VASP Workflow Stages
+====================
 
 1. Structure generation
 -----------------------
@@ -81,7 +81,7 @@ Start from structures in the ``initial_structures`` directory and generate hypot
 4. DFT calculations (relaxation and energy)
 -------------------------------------------
 
-- The filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT) using VASP (extensible to other ab initio codes such as Quantum ESPRESSO).
+- The filtered set of structures is subjected to first-principles calculations using Density Functional Theory (DFT) with VASP (extensible to other ab initio codes such as Quantum ESPRESSO).
 - Each structure undergoes full relaxation to find its lowest-energy geometry, followed by a self-consistent total-energy calculation.
 - The resulting relaxed structures and total energies provide the basis for thermodynamic analysis.
 
@@ -101,7 +101,7 @@ Start from structures in the ``initial_structures`` directory and generate hypot
 ------------------------------------------------------
 
 - Determine the formation energies of each structure relative to known stable phases.
-- Construct the convex hull to indentify structures that are:
+- Construct the convex hull to identify structures that are:
   - Thermodynamically stable: on (or below) the current convex hull.
   - Metastable: low formation energy (< 0.05 eV/atom ) above the hull (Ehull < 0.05 eV/atom).
 - This analysis reveals new stable and metastable structures and updates the phase diagram for the target system.
@@ -117,3 +117,8 @@ Start from structures in the ``initial_structures`` directory and generate hypot
 - Convex hull
 
 **Parsl executor:** ``POSTPROCESSING_LABEL``
+
+Other Workflows
+===============
+
+In addition to the VASP workflow shown above, *exa-amd* provides alternative workflow configurations built from reusable steps documented in :doc:`api`. These workflows usually introduce additional stages (e.g., MLIP relaxation).

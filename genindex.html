@@ -43,7 +43,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="workflow.html">Automated Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Internal API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
@@ -85,6 +85,7 @@
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
@@ -105,6 +106,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.CGCNN_EXECUTOR_LABEL">CGCNN_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
+</li>
+      <li><a href="reference_guide/workflows.html#workflows.steps.CgcnnStep">CgcnnStep (class in workflows.steps)</a>
 </li>
       <li><a href="reference_guide/parsl_tasks.html#parsl_tasks.ehull.cmd_calculate_ehul">cmd_calculate_ehul() (in module parsl_tasks.ehull)</a>
 </li>
@@ -138,10 +141,14 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference_guide/utils.html#tools.logging_config.ExaAmdLogger.error">error() (tools.logging_config.ExaAmdLogger method)</a>
+      <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.EHULL_ML_PARALLEL_EXECUTOR_LABEL">EHULL_ML_PARALLEL_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
+</li>
+      <li><a href="reference_guide/workflows.html#workflows.steps.EhullMLParallel">EhullMLParallel (class in workflows.steps)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference_guide/utils.html#tools.logging_config.ExaAmdLogger.error">error() (tools.logging_config.ExaAmdLogger method)</a>
+</li>
       <li><a href="reference_guide/utils.html#tools.logging_config.ExaAmdLogger">ExaAmdLogger (class in tools.logging_config)</a>
 </li>
   </ul></td>
@@ -152,7 +159,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.GENERATE_EXECUTOR_LABEL">GENERATE_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
 </li>
-      <li><a href="reference_guide/workflows.html#workflows.vasp_based.generate_structures">generate_structures() (in module workflows.vasp_based)</a>
+      <li><a href="reference_guide/workflows.html#workflows.steps.GenerateStructuresStep">GenerateStructuresStep (class in workflows.steps)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -192,6 +199,12 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.MLIP_RELAXATION_EXECUTOR_LABEL">MLIP_RELAXATION_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
+</li>
+      <li><a href="reference_guide/workflows.html#workflows.steps.MLIPRelaxationStep">MLIPRelaxationStep (class in workflows.steps)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
@@ -199,6 +212,30 @@
         <li><a href="reference_guide/parsl_config.html#module-parsl_configs.parsl_config_registry">parsl_configs.parsl_config_registry</a>
 </li>
         <li><a href="reference_guide/parsl_config.html#module-parsl_configs.parsl_executors_labels">parsl_configs.parsl_executors_labels</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference_guide/workflows.html#workflows.steps.CgcnnStep.not_finished">not_finished() (workflows.steps.CgcnnStep method)</a>
+
+      <ul>
+        <li><a href="reference_guide/workflows.html#workflows.steps.EhullMLParallel.not_finished">(workflows.steps.EhullMLParallel method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.GenerateStructuresStep.not_finished">(workflows.steps.GenerateStructuresStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.MLIPRelaxationStep.not_finished">(workflows.steps.MLIPRelaxationStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.PostProcessingStep.not_finished">(workflows.steps.PostProcessingStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.SelectStructuresStep.not_finished">(workflows.steps.SelectStructuresStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.Step.not_finished">(workflows.steps.Step method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.VaspCalculationsStep.not_finished">(workflows.steps.VaspCalculationsStep method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -237,9 +274,9 @@
 </li>
       <li><a href="reference_guide/parsl_tasks.html#parsl_tasks.convex_hull.plot_convex_hull_ternary">plot_convex_hull_ternary() (in module parsl_tasks.convex_hull)</a>
 </li>
-      <li><a href="reference_guide/workflows.html#workflows.vasp_based.post_processing">post_processing() (in module workflows.vasp_based)</a>
-</li>
       <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.POSTPROCESSING_LABEL">POSTPROCESSING_LABEL (in module parsl_configs.parsl_executors_labels)</a>
+</li>
+      <li><a href="reference_guide/workflows.html#workflows.steps.PostProcessingStep">PostProcessingStep (class in workflows.steps)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -251,15 +288,29 @@
 </li>
       <li><a href="reference_guide/utils.html#tools.config_manager.ConfigManager.REQUIRED_PARAMS">REQUIRED_PARAMS (tools.config_manager.ConfigManager attribute)</a>
 </li>
-      <li><a href="reference_guide/workflows.html#workflows.vasp_based.run_cgcnn">run_cgcnn() (in module workflows.vasp_based)</a>
+      <li><a href="reference_guide/workflows.html#workflows.steps.CgcnnStep.run">run() (workflows.steps.CgcnnStep method)</a>
+
+      <ul>
+        <li><a href="reference_guide/workflows.html#workflows.steps.EhullMLParallel.run">(workflows.steps.EhullMLParallel method)</a>
 </li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.GenerateStructuresStep.run">(workflows.steps.GenerateStructuresStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.MLIPRelaxationStep.run">(workflows.steps.MLIPRelaxationStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.PostProcessingStep.run">(workflows.steps.PostProcessingStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.SelectStructuresStep.run">(workflows.steps.SelectStructuresStep method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.Step.run">(workflows.steps.Step method)</a>
+</li>
+        <li><a href="reference_guide/workflows.html#workflows.steps.VaspCalculationsStep.run">(workflows.steps.VaspCalculationsStep method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference_guide/parsl_tasks.html#parsl_tasks.gen_structures.run_gen_structures">run_gen_structures() (in module parsl_tasks.gen_structures)</a>
 </li>
       <li><a href="reference_guide/parsl_tasks.html#parsl_tasks.select_structures.run_select_structures">run_select_structures() (in module parsl_tasks.select_structures)</a>
-</li>
-      <li><a href="reference_guide/workflows.html#workflows.vasp_based.run_workflow">run_workflow() (in module workflows.vasp_based)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -269,11 +320,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.SELECT_EXECUTOR_LABEL">SELECT_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
 </li>
+      <li><a href="reference_guide/workflows.html#workflows.steps.SelectStructuresStep">SelectStructuresStep (class in workflows.steps)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference_guide/workflows.html#workflows.vasp_based.select_structures">select_structures() (in module workflows.vasp_based)</a>
-</li>
       <li><a href="reference_guide/utils.html#tools.config_manager.ConfigManager.setup_vasp_calculations">setup_vasp_calculations() (tools.config_manager.ConfigManager method)</a>
+</li>
+      <li><a href="reference_guide/workflows.html#workflows.steps.Step">Step (class in workflows.steps)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -281,11 +334,11 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference_guide/workflows.html#workflows.vasp_based.vasp_calculations">vasp_calculations() (in module workflows.vasp_based)</a>
+      <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL">VASP_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference_guide/parsl_config.html#parsl_configs.parsl_executors_labels.VASP_EXECUTOR_LABEL">VASP_EXECUTOR_LABEL (in module parsl_configs.parsl_executors_labels)</a>
+      <li><a href="reference_guide/workflows.html#workflows.steps.VaspCalculationsStep">VaspCalculationsStep (class in workflows.steps)</a>
 </li>
   </ul></td>
 </tr></table>
