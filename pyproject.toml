@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "exa_amd"
-version = "0.1.1"
+version = "0.2.0"
 description = "Parsl-powered workflow to accelerate the discovery and design of functional materials."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,8 +22,9 @@ dependencies = [
   "scipy",
   "spglib",
   "monty",
-  "python-ternary",
-  "mp-api>=0.45.7"
+  "python-ternary >= 1.0.8",
+  "mp-api>=0.45.7",
+  "fairchem-core"
 ]
 
 [project.optional-dependencies]
