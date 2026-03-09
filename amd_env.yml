@@ -16,3 +16,4 @@ dependencies:
     - sphinx_rtd_theme >= 3.0.2
     - mp-api >= 0.45.7
     - python-ternary >= 1.0.8
+    - fairchem-core
