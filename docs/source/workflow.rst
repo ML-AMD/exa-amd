@@ -121,4 +121,4 @@ Start from structures in the ``initial_structures`` directory and generate hypot
 Other Workflows
 ===============
 
-In addition to the VASP workflow shown above, *exa-amd* provides alternative workflow configurations built from reusable steps documented in :doc:`api`. These workflows usually introduce additional stages (e.g., MLIP relaxation).
+In addition to the VASP workflow shown above, *exa-amd* provides alternative workflow configurations built from reusable steps documented in :doc:`api`. The main extension in version 0.2.0 is the :doc:`mlip_workflow`, which adds MLIP relaxation and hull-energy sorting before DFT validation.

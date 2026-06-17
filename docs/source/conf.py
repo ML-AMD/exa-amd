@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = 'exa-AMD'
 copyright = 'Copyright 2025. Iowa State University & © 2025. Triad National Security, LLC'
 author = 'ML-AMD team'
-release = '0.1'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -30,9 +30,13 @@ extensions = [
 ]
 
 autodoc_mock_imports = [
+    'numpy',
     'torch', 'torchvision',
     'parsl',
     'pymatgen',
+    'pandas',
+    'ase', 'ase.io', 'ase.optimize', 'ase.filters',
+    'fairchem', 'fairchem.core',
     'spglib',
     'monty',
     'mp_api',
