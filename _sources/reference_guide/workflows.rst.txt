@@ -40,6 +40,15 @@ Steps
 Workflows
 =========
 
+Workflow classes
+----------------
+
+.. autoclass:: workflows.vasp_workflow.VaspWorkflow
+   :members:
+
+.. autoclass:: workflows.mlip_workflow.MLIPWorkflow
+   :members:
+
 MLIP based
 ----------
 

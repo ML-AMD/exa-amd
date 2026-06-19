@@ -43,7 +43,9 @@ Then, the same label is referenced by the task decorator to run that task on tha
 
 This keeps the workflow code independent of site details while precisely controlling resource placement per task.
 
-exa-AMD uses fixed executor labels for each of the five workflow phases described in :doc:`workflow </workflow>`.
+exa-AMD uses fixed executor labels for the standard workflow phases described in
+:doc:`workflow </workflow>` and the optional MLIP stages described in
+:doc:`mlip_workflow </mlip_workflow>`.
 
 .. list-table:: Executor labels
    :header-rows: 1
@@ -116,7 +118,10 @@ Registering a new config
 If your site differs substantially you may want to register a new Parsl configuration:
 
 1. Create a file under ``parsl_configs/`` (e.g., ``my_system.py``).
-2. Implement a ``Config`` subclass with five executors (using the labels above).
+2. Implement a ``Config`` subclass with the executors required by your selected
+   workflow. The standard VASP workflow uses the generation, CGCNN, selection,
+   VASP, and post-processing labels. The MLIP workflow also needs
+   ``MLIP_RELAXATION_EXECUTOR_LABEL`` and ``EHULL_ML_PARALLEL_EXECUTOR_LABEL``.
 3. **Register** it with a **unique** name:
 
    .. code-block:: python
@@ -180,10 +185,10 @@ Common knobs provided in the run JSON (names may vary slightly by version):
 Full working example
 --------------------
 
-For a complete configuration with five labeled executors and typical Slurm settings,
-see the Perlmutter config in the repository:
+For complete Perlmutter-style configurations with typical Slurm settings, see:
 
 - ``parsl_configs/perlmutter.py``
+- ``parsl_configs/perlmutter_mlip.py``
 
 Need help?
 ----------

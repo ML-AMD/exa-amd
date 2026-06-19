@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parsl Tasks &mdash; exa-AMD 0.1 documentation</title>
+  <title>Parsl Tasks &mdash; exa-AMD 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -47,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mlip_workflow.html">Module 2: MLIP Relaxation and Hull Sorting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">Internal API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="workflows.html">Workflow steps</a></li>
@@ -56,6 +57,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.gen_structures.run_gen_structures"><code class="docutils literal notranslate"><span class="pre">run_gen_structures()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.cgcnn.cmd_cgcnn_prediction"><code class="docutils literal notranslate"><span class="pre">cmd_cgcnn_prediction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.select_structures.run_select_structures"><code class="docutils literal notranslate"><span class="pre">run_select_structures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.mlip_relaxation.cmd_mlip_relaxation"><code class="docutils literal notranslate"><span class="pre">cmd_mlip_relaxation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.ml_ehull.ehull_ml_parallel"><code class="docutils literal notranslate"><span class="pre">ehull_ml_parallel()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.dft_optimization.cmd_fused_vasp_calc"><code class="docutils literal notranslate"><span class="pre">cmd_fused_vasp_calc()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.hull.cmd_vasp_hull"><code class="docutils literal notranslate"><span class="pre">cmd_vasp_hull()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#parsl_tasks.ehull.cmd_calculate_ehul"><code class="docutils literal notranslate"><span class="pre">cmd_calculate_ehul()</span></code></a></li>
@@ -211,6 +214,48 @@ its fraction are discarded. Empty string disables this filter.</p></li>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.mlip_relaxation.cmd_mlip_relaxation">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.mlip_relaxation.</span></span><span class="sig-name descname"><span class="pre">cmd_mlip_relaxation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_paths</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.mlip_relaxation.cmd_mlip_relaxation" title="Link to this definition"></a></dt>
+<dd><p>Prepare the working environment and build the command to run CGCNN predictions.</p>
+<p>The prediction workload is partitioned into <code class="docutils literal notranslate"><span class="pre">n_chunks</span></code> disjoint segments.
+This task handles the segment identified by <code class="docutils literal notranslate"><span class="pre">id</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>dict</em>) – <p>A <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> (or dict with the same
+fields). The following keys are read:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir</span></code> (str): root working directory for inputs/outputs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (int): inference batch size</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_workers</span></code> (int): data-loading workers for inference</p></li>
+</ul>
+<p>See <a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> for full field descriptions.</p>
+</p></li>
+<li><p><strong>n_chunks</strong> (<em>int</em>) – Total number of chunks for the workload.</p></li>
+<li><p><strong>id</strong> (<em>int</em>) – Zero-based index of the partition to execute, where <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">id</span> <span class="pre">&lt;</span> <span class="pre">n_chunks</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Absolute path to this partition’s predictions CSV.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">n_chunks</span></code> is not positive or <code class="docutils literal notranslate"><span class="pre">id</span></code> is out of range</p></li>
+<li><p><strong>Exception</strong> – on directory navigation or file I/O failures</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parsl_tasks.ml_ehull.ehull_ml_parallel">
+<span class="sig-prename descclassname"><span class="pre">parsl_tasks.ml_ehull.</span></span><span class="sig-name descname"><span class="pre">ehull_ml_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parsl_tasks.ml_ehull.ehull_ml_parallel" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parsl_tasks.dft_optimization.cmd_fused_vasp_calc">

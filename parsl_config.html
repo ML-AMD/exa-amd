@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parsl configuration guide &mdash; exa-AMD 0.1 documentation</title>
+  <title>Parsl configuration guide &mdash; exa-AMD 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Internal API Reference" href="api.html" />
-    <link rel="prev" title="Workflow Description" href="workflow.html" /> 
+    <link rel="prev" title="Module 2: MLIP Relaxation and Hull Sorting" href="mlip_workflow.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mlip_workflow.html">Module 2: MLIP Relaxation and Hull Sorting</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Parsl configuration guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#executor-labels">Executor labels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#selecting-a-config-at-runtime">Selecting a config at runtime</a></li>
@@ -122,7 +123,9 @@ The executor, in turn, defines the computational resources used by the task (e.g
 </pre></div>
 </div>
 <p>This keeps the workflow code independent of site details while precisely controlling resource placement per task.</p>
-<p>exa-AMD uses fixed executor labels for each of the five workflow phases described in <a class="reference internal" href="workflow.html"><span class="doc">workflow</span></a>.</p>
+<p>exa-AMD uses fixed executor labels for the standard workflow phases described in
+<a class="reference internal" href="workflow.html"><span class="doc">workflow</span></a> and the optional MLIP stages described in
+<a class="reference internal" href="mlip_workflow.html"><span class="doc">mlip_workflow</span></a>.</p>
 <table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Executor labels</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
 <colgroup>
@@ -200,7 +203,10 @@ launcher).</p>
 <p>If your site differs substantially you may want to register a new Parsl configuration:</p>
 <ol class="arabic">
 <li><p>Create a file under <code class="docutils literal notranslate"><span class="pre">parsl_configs/</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">my_system.py</span></code>).</p></li>
-<li><p>Implement a <code class="docutils literal notranslate"><span class="pre">Config</span></code> subclass with five executors (using the labels above).</p></li>
+<li><p>Implement a <code class="docutils literal notranslate"><span class="pre">Config</span></code> subclass with the executors required by your selected
+workflow. The standard VASP workflow uses the generation, CGCNN, selection,
+VASP, and post-processing labels. The MLIP workflow also needs
+<code class="docutils literal notranslate"><span class="pre">MLIP_RELAXATION_EXECUTOR_LABEL</span></code> and <code class="docutils literal notranslate"><span class="pre">EHULL_ML_PARALLEL_EXECUTOR_LABEL</span></code>.</p></li>
 <li><p><strong>Register</strong> it with a <strong>unique</strong> name:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">register_parsl_config</span><span class="p">(</span><span class="s2">&quot;my_system&quot;</span><span class="p">,</span> <span class="n">MySystemConfig</span><span class="p">)</span>
 </pre></div>
@@ -268,10 +274,10 @@ environment.</p>
 </section>
 <section id="full-working-example">
 <h2>Full working example<a class="headerlink" href="#full-working-example" title="Link to this heading"></a></h2>
-<p>For a complete configuration with five labeled executors and typical Slurm settings,
-see the Perlmutter config in the repository:</p>
+<p>For complete Perlmutter-style configurations with typical Slurm settings, see:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">parsl_configs/perlmutter.py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parsl_configs/perlmutter_mlip.py</span></code></p></li>
 </ul>
 </section>
 <section id="need-help">
@@ -295,7 +301,7 @@ constraints, please open a <strong>discussion</strong> or <strong>issue</strong>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="workflow.html" class="btn btn-neutral float-left" title="Workflow Description" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mlip_workflow.html" class="btn btn-neutral float-left" title="Module 2: MLIP Relaxation and Hull Sorting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="api.html" class="btn btn-neutral float-right" title="Internal API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

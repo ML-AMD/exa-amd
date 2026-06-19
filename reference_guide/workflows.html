@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workflow steps &mdash; exa-AMD 0.1 documentation</title>
+  <title>Workflow steps &mdash; exa-AMD 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -47,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../workflow.html">Workflow Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mlip_workflow.html">Module 2: MLIP Relaxation and Hull Sorting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../parsl_config.html">Parsl configuration guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">Internal API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Workflow steps</a><ul>
@@ -67,6 +68,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#workflows">Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#workflow-classes">Workflow classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.vasp_workflow.VaspWorkflow"><code class="docutils literal notranslate"><span class="pre">VaspWorkflow</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#workflows.mlip_workflow.MLIPWorkflow"><code class="docutils literal notranslate"><span class="pre">MLIPWorkflow</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#mlip-based">MLIP based</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#vasp-based">VASP based</a></li>
 </ul>
@@ -265,6 +271,66 @@ then deletes the shard files.</p>
 </section>
 <section id="workflows">
 <h1>Workflows<a class="headerlink" href="#workflows" title="Link to this heading"></a></h1>
+<section id="workflow-classes">
+<h2>Workflow classes<a class="headerlink" href="#workflow-classes" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.vasp_workflow.VaspWorkflow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.vasp_workflow.</span></span><span class="sig-name descname"><span class="pre">VaspWorkflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.vasp_workflow.VaspWorkflow" title="Link to this definition"></a></dt>
+<dd><p>Run the full VASP-based materials discovery workflow.</p>
+<p>Consists of the following task-based steps (with a dependency between each step):</p>
+<ol class="arabic simple">
+<li><p><strong>Structure Generation</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">generate_structures()</span></code></p></li>
+<li><p><strong>CGCNN Prediction</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">run_cgcnn()</span></code>.</p></li>
+<li><p><strong>Structure Selection</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">select_structures()</span></code>.</p></li>
+<li><p><strong>VASP Calculations</strong>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">vasp_calculations()</span></code></p></li>
+<li><p><strong>Post Processing</strong></p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="utils.html#tools.config_manager.ConfigManager" title="tools.config_manager.ConfigManager"><em>ConfigManager</em></a>) – The configuration manager that provides runtime parameters,
+paths, and thresholds for each stage of the workflow.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><ul class="simple">
+<li><p>Creates directories and files under <cite>config[CK.WORK_DIR]</cite></p></li>
+<li><p>Executes multiple shell commands and external applications</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If any sub-stage raises an error that is not internally handled.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="workflows.vasp_workflow.VaspWorkflow.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'vasp'</span></em><a class="headerlink" href="#workflows.vasp_workflow.VaspWorkflow.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="workflows.mlip_workflow.MLIPWorkflow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">workflows.mlip_workflow.</span></span><span class="sig-name descname"><span class="pre">MLIPWorkflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#workflows.mlip_workflow.MLIPWorkflow" title="Link to this definition"></a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="workflows.mlip_workflow.MLIPWorkflow.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mlip'</span></em><a class="headerlink" href="#workflows.mlip_workflow.MLIPWorkflow.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="workflows.mlip_workflow.MLIPWorkflow.pre_check">
+<span class="sig-name descname"><span class="pre">pre_check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#workflows.mlip_workflow.MLIPWorkflow.pre_check" title="Link to this definition"></a></dt>
+<dd><p>override in subclasses</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="mlip-based">
 <h2>MLIP based<a class="headerlink" href="#mlip-based" title="Link to this heading"></a></h2>
 <ol class="arabic simple">

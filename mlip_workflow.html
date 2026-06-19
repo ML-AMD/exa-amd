@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 2: MLIP Relaxation and Hull Sorting &mdash; exa-AMD 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Parsl configuration guide" href="parsl_config.html" />
+    <link rel="prev" title="Workflow Description" href="workflow.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            exa-AMD
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow Description</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module 2: MLIP Relaxation and Hull Sorting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#when-to-use-this-workflow">When to use this workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-stages">Workflow stages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#structure-generation">1. Structure generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cgcnn-screening">2. CGCNN screening</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#initial-structure-selection">3. Initial structure selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mlip-relaxation">4. MLIP relaxation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mlip-hull-sorting">5. MLIP hull sorting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dft-validation-queue">6. DFT validation queue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#final-post-processing">7. Final post-processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-command">Run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-layout">Output layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="parsl_config.html">Parsl configuration guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Internal API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="team.html">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">exa-AMD</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Module 2: MLIP Relaxation and Hull Sorting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mlip_workflow.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-2-mlip-relaxation-and-hull-sorting">
+<span id="mlip-workflow"></span><h1>Module 2: MLIP Relaxation and Hull Sorting<a class="headerlink" href="#module-2-mlip-relaxation-and-hull-sorting" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">mlip</span></code> workflow is Module 2 in <em>exa-AMD</em>. It extends the original
+CGCNN-to-DFT workflow by introducing two machine-learning interatomic potential
+(MLIP)-based stages before VASP validation: structural relaxation using a MLIP,
+followed by hull-energy-based structural ranking. This workflow is designed to
+reserve expensive DFT calculations for candidate structures that have already
+been geometrically relaxed and ranked relative to the current convex hull.</p>
+<p>This feature was added to the original exa-AMD workflow in response to the
+Y-Mn-B development case, where a large pool of generated candidate structures
+required a more selective bridge between fast formation-energy screening and
+first-principles validation. In this workflow, CGCNN first reduces the generated
+structure set. MLIP relaxation then refines the selected structures, and
+hull-energy sorting prioritizes low-energy candidates for DFT calculations.</p>
+<section id="when-to-use-this-workflow">
+<h2>When to use this workflow<a class="headerlink" href="#when-to-use-this-workflow" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">workflow:</span> <span class="pre">&quot;mlip&quot;</span></code> option is most effective when:</p>
+<ul class="simple">
+<li><p>the generated candidate-structure pool is too large for DFT validation of every
+CGCNN-selected structure to be practical;</p></li>
+<li><p>an MLIP model is available and suitable for the chemistry being screened;</p></li>
+<li><p>GPU resources are available for the MLIP relaxation stage; and</p></li>
+<li><p>convex-hull ranking is needed before selecting the final DFT queue.</p></li>
+</ul>
+<p>For small candidate sets or systems where the MLIP model is not applicable,
+the standard <a class="reference internal" href="workflow.html"><span class="doc">Workflow Description</span></a> may be the safer choice.</p>
+</section>
+<section id="workflow-stages">
+<h2>Workflow stages<a class="headerlink" href="#workflow-stages" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">mlip</span></code> workflow is registered as <a class="reference internal" href="reference_guide/workflows.html#workflows.mlip_workflow.MLIPWorkflow" title="workflows.mlip_workflow.MLIPWorkflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.mlip_workflow.MLIPWorkflow</span></code></a>
+and consists of the following stages:</p>
+<section id="structure-generation">
+<h3>1. Structure generation<a class="headerlink" href="#structure-generation" title="Link to this heading"></a></h3>
+<p>Candidate structures are generated from the configured initial structures and
+target elements. This stage is shared with the standard VASP workflow.</p>
+<dl class="simple">
+<dt><strong>Main output</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/structures/</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="cgcnn-screening">
+<h3>2. CGCNN screening<a class="headerlink" href="#cgcnn-screening" title="Link to this heading"></a></h3>
+<p>CGCNN predicts formation energies for the generated candidates. The predictions
+are collected in <code class="docutils literal notranslate"><span class="pre">test_results.csv</span></code> and used to select a larger intermediate
+set for MLIP relaxation.</p>
+<dl class="simple">
+<dt><strong>Main output</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/test_results.csv</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="initial-structure-selection">
+<h3>3. Initial structure selection<a class="headerlink" href="#initial-structure-selection" title="Link to this heading"></a></h3>
+<p>The MLIP workflow writes the first selected structure pool to <code class="docutils literal notranslate"><span class="pre">new0</span></code>. This
+pool is intentionally larger than the final DFT queue so that MLIP relaxation
+and hull sorting can make the next prioritization decision.</p>
+<dl class="simple">
+<dt><strong>Main output</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/new0/POSCAR_*</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="mlip-relaxation">
+<h3>4. MLIP relaxation<a class="headerlink" href="#mlip-relaxation" title="Link to this heading"></a></h3>
+<p>The selected <code class="docutils literal notranslate"><span class="pre">new0/POSCAR_*</span></code> files are relaxed using the FAIRChem UMA model
+checkpoint expected at <code class="docutils literal notranslate"><span class="pre">ml_models/mlip/uma-s-1p1.pt</span></code> in a source checkout. The
+relaxation helper uses ASE with a FIRE optimizer and writes one relaxed
+structure and one energy record per candidate.</p>
+<p>The model checkpoint is managed with Git Large File Storage (LFS). Before
+cloning or running this workflow, initialize LFS and make sure the checkpoint is
+present:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>lfs<span class="w"> </span>install
+git<span class="w"> </span>lfs<span class="w"> </span>pull
+</pre></div>
+</div>
+<p><strong>Main outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/mlip_logs/CONTCAR_&lt;id&gt;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/mlip_logs/energy_&lt;id&gt;.tmp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/ener_ml.dat</span></code></p></li>
+</ul>
+</section>
+<section id="mlip-hull-sorting">
+<h3>5. MLIP hull sorting<a class="headerlink" href="#mlip-hull-sorting" title="Link to this heading"></a></h3>
+<p>The MLIP-relaxed energies are compared against the Materials Project-derived
+stable-phase reference set used by the post-processing pipeline. The workflow
+computes MLIP-based hull distances for ternary or quaternary systems and sorts
+the candidates from lowest to highest hull energy.</p>
+<p>This stage requires both:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">post_processing_output_dir</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mp_rester_api_key</span></code></p></li>
+</ul>
+<dl class="simple">
+<dt><strong>Main output</strong></dt><dd><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/hull_ml.dat</span></code></p>
+</dd>
+</dl>
+</section>
+<section id="dft-validation-queue">
+<h3>6. DFT validation queue<a class="headerlink" href="#dft-validation-queue" title="Link to this heading"></a></h3>
+<p>The sorted MLIP candidates are copied from <code class="docutils literal notranslate"><span class="pre">mlip_logs/CONTCAR_&lt;id&gt;</span></code> into the
+standard DFT input directory as <code class="docutils literal notranslate"><span class="pre">new/POSCAR_&lt;rank&gt;</span></code>. VASP then validates the
+top-ranked candidates according to <code class="docutils literal notranslate"><span class="pre">vasp_nstructures</span></code>. Set
+<code class="docutils literal notranslate"><span class="pre">vasp_nstructures</span></code> to <code class="docutils literal notranslate"><span class="pre">-1</span></code> to process all remaining structures.</p>
+<p><strong>Main outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">work_dir/&lt;elements&gt;/new/POSCAR_*</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vasp_work_dir/&lt;elements&gt;/&lt;id&gt;/</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vasp_work_dir/&lt;elements&gt;/vasp_results.csv</span></code></p></li>
+</ul>
+</section>
+<section id="final-post-processing">
+<h3>7. Final post-processing<a class="headerlink" href="#final-post-processing" title="Link to this heading"></a></h3>
+<p>The validated VASP results are post-processed with the standard exa-AMD convex
+hull workflow. This produces the final hull plot and the selected stable or
+metastable candidates.</p>
+<p><strong>Main outputs</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">post_processing_output_dir/hull_plot.png</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">post_processing_output_dir/selected/</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>An example input file (e.g. <code class="docutils literal notranslate"><span class="pre">configs/my_mlip_config.json</span></code>) to set the workflow and Parsl configuration to enable the MLIP workflow:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;workflow&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mlip&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;parsl_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;perlmutter_premium_mlip&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;parsl_configs_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/parsl_configs&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;cpu_account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;cpu_account&gt;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;gpu_account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;gpu_account&gt;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;elements&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Y-Mn-B&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/work_dir&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/vasp_work_dir&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;initial_structures_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/initial_structures&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_pot_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/potpaw_PBE&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;formation_energy_threshold&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-0.2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;num_workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;cgcnn_batch_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_std_exe&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_std&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_output_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vasp_results.csv&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;pre_processing_nnodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;mlip_relax_nnodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;gpus_per_node&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_nnodes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_nstructures&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_nsw&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;vasp_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1800</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;hull_energy_threshold&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;post_processing_output_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/post_processing_out_dir&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;mp_rester_api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;MP_RESTER_API_KEY&gt;&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The most important MLIP-specific keys are:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">MLIP workflow keys</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">workflow</span></code></p></td>
+<td><p>Use <code class="docutils literal notranslate"><span class="pre">&quot;mlip&quot;</span></code> to select <a class="reference internal" href="reference_guide/workflows.html#workflows.mlip_workflow.MLIPWorkflow" title="workflows.mlip_workflow.MLIPWorkflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">workflows.mlip_workflow.MLIPWorkflow</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">parsl_config</span></code></p></td>
+<td><p>Use an MLIP-capable Parsl config, such as <code class="docutils literal notranslate"><span class="pre">&quot;perlmutter_premium_mlip&quot;</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlip_relax_nnodes</span></code></p></td>
+<td><p>Number of GPU nodes allocated to MLIP relaxation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gpus_per_node</span></code></p></td>
+<td><p>Number of GPUs per node used to partition MLIP relaxation work.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">post_processing_output_dir</span></code></p></td>
+<td><p>Directory used to build reference hull data and final hull outputs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mp_rester_api_key</span></code></p></td>
+<td><p>Materials Project API key required for reference stable phases.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vasp_nstructures</span></code></p></td>
+<td><p>Number of hull-sorted MLIP candidates to validate with VASP.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="run-command">
+<h2>Run command<a class="headerlink" href="#run-command" title="Link to this heading"></a></h2>
+<p>From the repository root:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>exa_amd<span class="w"> </span>--config<span class="w"> </span>configs/my_mlip_config.json
+</pre></div>
+</div>
+<p>or, when running from source:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>exa_amd.py<span class="w"> </span>--config<span class="w"> </span>configs/my_mlip_config.json
+</pre></div>
+</div>
+</section>
+<section id="output-layout">
+<h2>Output layout<a class="headerlink" href="#output-layout" title="Link to this heading"></a></h2>
+<p>For an <code class="docutils literal notranslate"><span class="pre">elements</span></code> value such as <code class="docutils literal notranslate"><span class="pre">Y-Mn-B</span></code>, the main intermediate files are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>work_dir/
+`-- Y-Mn-B/
+    |-- structures/
+    |-- test_results.csv
+    |-- new0/
+    |   `-- POSCAR_*
+    |-- mlip_logs/
+    |   |-- CONTCAR_*
+    |   `-- energy_*.tmp
+    |-- ener_ml.dat
+    |-- hull_ml.dat
+    `-- new/
+        `-- POSCAR_*
+
+vasp_work_dir/
+`-- Y-Mn-B/
+    |-- mp_int_stable.dat
+    |-- energy.dat
+    |-- vasp_results.csv
+    `-- &lt;vasp job id&gt;/
+
+post_processing_output_dir/
+|-- hull_plot.png
+`-- selected/
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt>Missing UMA checkpoint</dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">ml_models/mlip/uma-s-1p1.pt</span></code> is a small pointer file or missing, install
+Git LFS and run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">lfs</span> <span class="pre">pull</span></code> from the repository root.</p>
+</dd>
+<dt>Missing Materials Project key</dt><dd><p>The MLIP workflow requires <code class="docutils literal notranslate"><span class="pre">post_processing_output_dir</span></code> and
+<code class="docutils literal notranslate"><span class="pre">mp_rester_api_key</span></code> because hull sorting needs reference stable phases before
+DFT validation.</p>
+</dd>
+<dt>No <code class="docutils literal notranslate"><span class="pre">new/POSCAR_*</span></code> files after MLIP sorting</dt><dd><p>Check that <code class="docutils literal notranslate"><span class="pre">hull_ml.dat</span></code> exists and that each listed candidate has a matching
+<code class="docutils literal notranslate"><span class="pre">mlip_logs/CONTCAR_&lt;id&gt;</span></code> file.</p>
+</dd>
+<dt>Unexpected DFT queue size</dt><dd><p>Check <code class="docutils literal notranslate"><span class="pre">vasp_nstructures</span></code>. A positive value limits the next VASP batch; <code class="docutils literal notranslate"><span class="pre">-1</span></code>
+processes all remaining structures.</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="workflow.html" class="btn btn-neutral float-left" title="Workflow Description" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parsl_config.html" class="btn btn-neutral float-right" title="Parsl configuration guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2025. Iowa State University &amp; © 2025. Triad National Security, LLC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

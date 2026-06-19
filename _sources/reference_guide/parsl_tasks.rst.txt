@@ -7,6 +7,10 @@ Parsl Tasks
 
 .. autofunction:: parsl_tasks.select_structures.run_select_structures
 
+.. autofunction:: parsl_tasks.mlip_relaxation.cmd_mlip_relaxation
+
+.. autofunction:: parsl_tasks.ml_ehull.ehull_ml_parallel
+
 .. autofunction:: parsl_tasks.dft_optimization.cmd_fused_vasp_calc
 
 .. autofunction:: parsl_tasks.hull.cmd_vasp_hull

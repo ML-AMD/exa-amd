@@ -20,6 +20,7 @@ Overview
    quickstart
    tutorial
    workflow
+   mlip_workflow
    parsl_config
    api
    team
