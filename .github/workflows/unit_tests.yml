@@ -27,7 +27,7 @@ jobs:
           activate-environment: amd_env
           auto-activate-base: false
           use-mamba: true
-      
+
       - name: Run pytest
         shell: bash -l {0}
         env:

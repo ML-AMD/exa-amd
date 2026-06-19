@@ -5,7 +5,7 @@ channels:
     - defaults
 dependencies:
     - python >= 3.10
-    - numpy < 2.0
+    - numpy
     - scikit-learn >= 1.6.1
     - pytorch >= 2.2.2
     - torchvision >= 0.17.2
@@ -14,6 +14,7 @@ dependencies:
     - pytest >= 8.3.5
     - sphinx >= 7.1.2
     - sphinx_rtd_theme >= 3.0.2
-    - mp-api >= 0.45.7
+    - mp-api
+    - emmet-core
     - python-ternary >= 1.0.8
     - fairchem-core

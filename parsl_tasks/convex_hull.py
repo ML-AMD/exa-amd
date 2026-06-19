@@ -320,15 +320,11 @@ def plot_convex_hull_ternary(elements_list, stable_dat, full_path_input_csv, thr
                     fout.write(formula + '   ' + str(eh * 1000) + '\n')
         fout.close()
 
-        marker_vec = [6, 7, ".", "."]
-        s_vec = [50, 50, 50, 50]
         all_color_data = []
         all_meta_data = []
-        # cm = ternary.plt.cm.get_cmap('tab20c')
-        cm = ternary.plt.cm.get_cmap('rainbow')
+        cm = ternary.plt.colormaps['rainbow']
 
         for ms in range(len(all_meta_stables)):
-            # all_meta_stables[ms]=np.array(all_meta_stables[ms])
             if (len(all_meta_stables[ms]) != 0):
                 meta_data = []
                 color_data = []
