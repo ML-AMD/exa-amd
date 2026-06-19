@@ -5,38 +5,38 @@ Module 2: MLIP Relaxation and Hull Sorting
 =============================================
 
 The ``mlip`` workflow is Module 2 in *exa-AMD*. It extends the original
-CGCNN-to-DFT workflow by inserting a machine-learning interatomic potential
-(MLIP) relaxation stage and an MLIP-based hull-energy sorting stage before VASP
-validation. The purpose is to spend expensive DFT calculations on structures
-that have already been geometrically relaxed and ranked against the current
-convex hull.
+CGCNN-to-DFT workflow by introducing two machine-learning interatomic potential
+(MLIP)-based stages before VASP validation: structural relaxation using a MLIP, 
+followed by hull-energy-based structural ranking. This workflow is designed to 
+reserve expensive DFT calculations for candidate structures that have already 
+been geometrically relaxed and ranked relative to the current convex hull.
 
-This module was added after the original exa-AMD workflow and is motivated by
-the Y-Mn-B development case, where a large generated candidate pool required a
-more selective bridge between fast formation-energy screening and first-principles
-validation. In that workflow, CGCNN first reduced the generated structure set,
-MLIP relaxation refined the selected structures, and hull sorting prioritized
-low-energy candidates for DFT.
+This feature was added to the original exa-AMD workflow in response to the 
+Y-Mn-B development case, where a large pool of generated candidate structures 
+required a more selective bridge between fast formation-energy screening and 
+first-principles validation. In this workflow, CGCNN first reduces the generated 
+structure set. MLIP relaxation then refines the selected structures, and 
+hull-energy sorting prioritizes low-energy candidates for DFT calculations.
 
 When to use this workflow
 =========================
 
-Use ``workflow: "mlip"`` when:
+The ``workflow: "mlip"`` option is most effective when:
 
-- the generated candidate pool is large enough that DFT validation of every
-  CGCNN-selected structure is impractical;
-- an MLIP model is suitable for the chemistry being screened;
+- the generated candidate-structure pool is too large for DFT validation of every
+  CGCNN-selected structure to be practical;
+- an MLIP model is available and suitable for the chemistry being screened;
 - GPU resources are available for the MLIP relaxation stage; and
 - convex-hull ranking is needed before selecting the final DFT queue.
 
-For small candidate sets or systems where the MLIP model is not appropriate,
+For small candidate sets or systems where the MLIP model is not applicable,
 the standard :doc:`workflow` may be the safer choice.
 
 Workflow stages
 ===============
 
 The ``mlip`` workflow is registered as :class:`workflows.mlip_workflow.MLIPWorkflow`
-and runs the following stages:
+and consists of the following stages:
 
 1. Structure generation
 -----------------------
@@ -75,8 +75,9 @@ checkpoint expected at ``ml_models/mlip/uma-s-1p1.pt`` in a source checkout. The
 relaxation helper uses ASE with a FIRE optimizer and writes one relaxed
 structure and one energy record per candidate.
 
-The model checkpoint is managed with Git LFS. Before cloning or running this
-workflow, initialize LFS and make sure the checkpoint is present:
+The model checkpoint is managed with Git Large File Storage (LFS). Before 
+cloning or running this workflow, initialize LFS and make sure the checkpoint is 
+present:
 
 .. code-block:: bash
 
@@ -134,7 +135,7 @@ metastable candidates.
 Configuration
 =============
 
-Set the workflow and Parsl configuration to the MLIP-enabled entries:
+An example input file (e.g. ``configs/my_mlip_config.json``) to set the workflow and Parsl configuration to enable the MLIP workflow:
 
 .. code-block:: json
 
