@@ -12,17 +12,21 @@ exa-AMD is designed to accommodate different workflow styles on high performance
 ## Prerequisites
 This package requires:
 - python >= 3.10
-- numpy < 2.0
-- scikit-learn >= 1.6.1
-- pytorch >= 2.2.2
-- torchvision >= 0.17.2
-- pymatgen >= 2025.3.10
+- emmet-core
+- fairchem-core
+- matplotlib
+- mp-api
+- numpy
 - parsl >= 2025.3.24
+- pymatgen >= 2025.3.10
 - pytest >= 8.3.5
+- python-ternary >= 1.0.8
+- pytorch >= 2.2.2
+- scikit-learn >= 1.6.1
+- scipy
 - sphinx >= 7.1.2
 - sphinx_rtd_theme >= 3.0.2
-- mp-api >= 0.45.7
-- python-ternary >= 1.0.8
+- torchvision >= 0.17.2
 
 Additionally:
 - Ensure you have a working [VASP](https://www.vasp.at) installation.
