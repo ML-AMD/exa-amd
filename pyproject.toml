@@ -53,3 +53,25 @@ include = [
 "ml_models.cgcnn" = ["form_1st.pth.tar", "atom_init.json"]
 "workflows.vasp_assets" = ["INCAR.en", "INCAR_mag.en", "INCAR.rx"]
 "configs" = ["*.json"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "B"] 
+
+[tool.pydocstyle]
+ignore = ["D100"]
+convention = "google"
+
+[tool.isort]
+line_length = 88
+
+[tool.flake8]
+max-line-length = 88
+
+[tool.autopep8]
+max_line_length = 88
+
+[tool.black]
+line-length = 88
