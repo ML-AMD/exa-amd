@@ -13,3 +13,5 @@ docs/source/.doctrees/
 # macOS metadata
 .DS_Store
 **/.DS_Store
+# Coverage files
+.coverage
