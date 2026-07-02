@@ -108,6 +108,16 @@ Command-line Usage
 
 You can override any field from the JSON configuration using command-line arguments.
 
+**If installed from wheel** (Option A):
+
+.. code-block:: bash
+
+    exa_amd --help
+    exa_amd --config my_config.json --num_workers 256
+
+**If running from source** (Option B):
+
 .. code-block:: bash
 
     python exa_amd.py --help
+    python exa_amd.py --config my_config.json --num_workers 256

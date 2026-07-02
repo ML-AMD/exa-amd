@@ -13,7 +13,7 @@ Overview
 
 - **Required parameters**: Must be provided in the JSON file or via command-line arguments
 - **Optional parameters**: Have sensible defaults but can be customized
-- **Command-line overrides**: Any JSON parameter can be overridden using ``--parameter_name value``
+- **Command-line overrides**: Supported configuration parameters can be overridden using ``--parameter_name value``
 
 Example:
 
@@ -26,7 +26,7 @@ Path Requirements
 
 .. important::
 
-   All directory paths must be **absolute paths**, not relative paths.
+   All directory paths should be **absolute paths**, not relative paths. Using absolute paths ensures consistent behavior across different execution contexts and prevents path resolution issues.
 
 Workflow Selection
 ------------------
@@ -247,7 +247,7 @@ Conditional Requirements
 Command-Line Overrides
 ======================
 
-Any configuration parameter can be overridden via command-line arguments. The command-line value takes precedence over the JSON file value.
+All required and optional configuration parameters listed in this reference can be overridden via command-line arguments. The command-line value takes precedence over the JSON file value.
 
 **Syntax:**
 
@@ -281,7 +281,7 @@ Configuration Validation
 exa-AMD performs automatic validation when loading configurations:
 
 1. **Required parameter check**: All required parameters must be present
-2. **Type validation**: Parameters must have the correct data type
+2. **Type coercion**: Command-line overrides are type-coerced based on the parameter definition
 3. **Path creation**: Work directories are created automatically if they don't exist
 4. **Element system validation**: Only ternary (3 elements) and quaternary (4 elements) systems are supported
 5. **POTCAR generation**: POTCAR files are automatically generated from individual element potentials
@@ -295,9 +295,9 @@ Common Validation Errors
 
 **Solution**: Add ``"workflow": "vasp"`` or ``"workflow": "mlip"`` to your JSON file.
 
-.. code-block:: text
+**Missing Materials Project API Key**
 
-   Error: Missing required argument 'mp_rester_api_key'
+**Condition**: When ``post_processing_output_dir`` is specified but ``mp_rester_api_key`` is not provided.
 
 **Solution**: Provide your Materials Project API key when using post-processing. Either add ``"mp_rester_api_key": "your_key"`` to the JSON file or use ``--mp_rester_api_key your_key`` on the command line.
 
