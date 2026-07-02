@@ -56,7 +56,7 @@ Copy the default Perlmutter configuration:
 
    cp configs/perlmutter_quaternary.json configs/my_config_perlmutter.json
 
-Edit the following fields in `my_config_perlmutter.json`:
+Edit the following fields in `my_config_perlmutter.json` (for a complete list of all configuration options, see :doc:`configuration_reference`):
 
 - ``cms_dir:`` Absolute path to your `cms_dir` directory
 - ``work_dir``: A scratch directory for intermediate files

@@ -61,6 +61,8 @@ Using a JSON Configuration File
 The recommended way to configure exa-AMD is through a JSON configuration file.
 It specifies all the required and optional parameters for running the workflow.
 
+For a complete reference of all configuration options, see :doc:`configuration_reference`.
+
 Here is an example configuration file for the Perlmutter system:
 
 .. code-block:: json
@@ -95,6 +97,11 @@ Here is an example configuration file for the Perlmutter system:
     }
 
 You can create multiple configuration files for different systems, workloads, or experiments.
+
+.. seealso::
+
+   :doc:`configuration_reference`
+      Exhaustive reference guide for all JSON configuration options
 
 Command-line Usage
 ------------------

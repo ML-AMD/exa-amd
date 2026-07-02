@@ -135,7 +135,9 @@ metastable candidates.
 Configuration
 =============
 
-An example input file (e.g. ``configs/my_mlip_config.json``) to set the workflow and Parsl configuration to enable the MLIP workflow:
+An example input file (e.g. ``configs/my_mlip_config.json``) to set the workflow and Parsl configuration to enable the MLIP workflow.
+
+For detailed descriptions of all configuration parameters, see :doc:`configuration_reference`.
 
 .. code-block:: json
 
