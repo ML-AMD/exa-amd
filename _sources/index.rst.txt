@@ -18,6 +18,7 @@ Overview
    :caption: Contents:
 
    quickstart
+   configuration_reference
    tutorial
    workflow
    mlip_workflow

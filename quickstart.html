@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="next" title="Configuration Reference Guide" href="configuration_reference.html" />
     <link rel="prev" title="Overview" href="index.html" /> 
 </head>
 
@@ -51,6 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#command-line-usage">Command-line Usage</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="configuration_reference.html">Configuration Reference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="workflow.html">Workflow Description</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mlip_workflow.html">Module 2: MLIP Relaxation and Hull Sorting</a></li>
@@ -120,11 +121,17 @@
 </pre></div>
 </div>
 <p><strong>Option B — From source (Conda-only)</strong></p>
-<p>Create/activate the environment, then run from the repo:</p>
+<p>Create/activate the environment, then perform an editable install from the
+repository root. This exposes the same <code class="docutils literal notranslate"><span class="pre">exa_amd</span></code> command as the wheel install,
+so both options share identical usage:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>amd_env.yml
 conda<span class="w"> </span>activate<span class="w"> </span>amd_env
 <span class="c1"># from the repository root</span>
-python<span class="w"> </span>exa_amd.py<span class="w"> </span>--help
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Quick check:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>exa_amd<span class="w"> </span>--help
 </pre></div>
 </div>
 </section>
@@ -132,6 +139,7 @@ python<span class="w"> </span>exa_amd.py<span class="w"> </span>--help
 <h2>Using a JSON Configuration File<a class="headerlink" href="#using-a-json-configuration-file" title="Link to this heading"></a></h2>
 <p>The recommended way to configure exa-AMD is through a JSON configuration file.
 It specifies all the required and optional parameters for running the workflow.</p>
+<p>For a complete reference of all configuration options, see <a class="reference internal" href="configuration_reference.html"><span class="doc">Configuration Reference Guide</span></a>.</p>
 <p>Here is an example configuration file for the Perlmutter system:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;work_dir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;abs_path_to&gt;/work_dir&quot;</span><span class="p">,</span>
@@ -164,11 +172,20 @@ It specifies all the required and optional parameters for running the workflow.<
 </pre></div>
 </div>
 <p>You can create multiple configuration files for different systems, workloads, or experiments.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="configuration_reference.html"><span class="doc">Configuration Reference Guide</span></a></dt><dd><p>Exhaustive reference guide for all JSON configuration options</p>
+</dd>
+</dl>
+</div>
 </section>
 <section id="command-line-usage">
 <h2>Command-line Usage<a class="headerlink" href="#command-line-usage" title="Link to this heading"></a></h2>
-<p>You can override any field from the JSON configuration using command-line arguments.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>exa_amd.py<span class="w"> </span>--help
+<p>You can override any field from the JSON configuration using command-line arguments.
+Both installation options expose the same <code class="docutils literal notranslate"><span class="pre">exa_amd</span></code> command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>exa_amd<span class="w"> </span>--help
+exa_amd<span class="w"> </span>--config<span class="w"> </span>my_config.json<span class="w"> </span>--num_workers<span class="w"> </span><span class="m">256</span>
 </pre></div>
 </div>
 </section>
@@ -179,7 +196,7 @@ It specifies all the required and optional parameters for running the workflow.<
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="configuration_reference.html" class="btn btn-neutral float-right" title="Configuration Reference Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
