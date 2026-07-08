@@ -53,12 +53,13 @@ pip install "https://github.com/ML-AMD/exa-amd/releases/download/v0.1.0/exa_amd-
 exa_amd --help
 ```
 ### Conda-only (run from source)
-If you use [Conda](https://docs.conda.io/en/latest/miniconda.html) to manage Python packages, you can create the environment using the file included in this repository: [amd_env.yml](./amd_env.yml).
+If you use [Conda](https://docs.conda.io/en/latest/miniconda.html) to manage Python packages, you can create the environment using the file included in this repository: [amd_env.yml](./amd_env.yml). Performing an editable install exposes the same `exa_amd` command as the wheel install, so both options share identical usage.
 ```bash
 conda env create -f amd_env.yml
 conda activate amd_env
 # from the repo root:
-python exa_amd.py --config your_config.json
+pip install -e .
+exa_amd --config your_config.json
 ```
 
 ## Structure Input Formats

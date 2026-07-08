@@ -45,14 +45,22 @@ Quick check:
 
 **Option B — From source (Conda-only)**
 
-Create/activate the environment, then run from the repo:
+Create/activate the environment, then perform an editable install from the
+repository root. This exposes the same ``exa_amd`` command as the wheel install,
+so both options share identical usage:
 
 .. code-block:: bash
 
    conda env create -f amd_env.yml
    conda activate amd_env
    # from the repository root
-   python exa_amd.py --help
+   pip install -e .
+
+Quick check:
+
+.. code-block:: bash
+
+   exa_amd --help
 
 
 Using a JSON Configuration File
@@ -107,17 +115,9 @@ Command-line Usage
 ------------------
 
 You can override any field from the JSON configuration using command-line arguments.
-
-**If installed from wheel** (Option A):
+Both installation options expose the same ``exa_amd`` command:
 
 .. code-block:: bash
 
     exa_amd --help
     exa_amd --config my_config.json --num_workers 256
-
-**If running from source** (Option B):
-
-.. code-block:: bash
-
-    python exa_amd.py --help
-    python exa_amd.py --config my_config.json --num_workers 256
