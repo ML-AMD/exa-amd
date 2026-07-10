@@ -57,18 +57,9 @@ def get_train_val_test_loader(dataset, collate_fn=default_collate,
     else:
         assert train_ratio + val_ratio + test_ratio <= 1
     indices = list(range(total_size))
-    if kwargs['train_size']:
-        train_size = kwargs['train_size']
-    else:
-        train_size = int(train_ratio * total_size)
-    if kwargs['test_size']:
-        test_size = kwargs['test_size']
-    else:
-        test_size = int(test_ratio * total_size)
-    if kwargs['val_size']:
-        valid_size = kwargs['val_size']
-    else:
-        valid_size = int(val_ratio * total_size)
+    train_size = kwargs.get('train_size', int(train_ratio * total_size))
+    test_size = kwargs.get('test_size', int(test_ratio * total_size))
+    valid_size = kwargs.get('val_size', int(val_ratio * total_size))
     train_sampler = SubsetRandomSampler(indices[:train_size])
     val_sampler = SubsetRandomSampler(
         indices[-(valid_size + test_size):-test_size])
@@ -130,7 +121,7 @@ def collate_pool(dataset_list):
     crystal_atom_idx, batch_target = [], []
     batch_cif_ids = []
     base_idx = 0
-    for i, ((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id)\
+    for _, ((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id)\
             in enumerate(dataset_list):
         n_i = atom_fea.shape[0]  # number of atoms for this crystal
         batch_atom_fea.append(atom_fea)
