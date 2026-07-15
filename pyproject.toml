@@ -61,7 +61,6 @@ line-length = 88
 select = ["E", "F", "B"] 
 
 [tool.pydocstyle]
-ignore = ["D100"]
 convention = "google"
 
 [tool.isort]
