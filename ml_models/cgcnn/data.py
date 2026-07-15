@@ -61,10 +61,14 @@ def get_train_val_test_loader(dataset, collate_fn=default_collate,
     test_size = kwargs.get('test_size', int(test_ratio * total_size))
     valid_size = kwargs.get('val_size', int(val_ratio * total_size))
     train_sampler = SubsetRandomSampler(indices[:train_size])
-    val_sampler = SubsetRandomSampler(
-        indices[-(valid_size + test_size):-test_size])
+    if test_size > 0:
+        val_sampler = SubsetRandomSampler(
+            indices[-(valid_size + test_size):-test_size])
+    else:
+        val_sampler = SubsetRandomSampler(
+            indices[-valid_size:] if valid_size > 0 else [])
     if return_test:
-        test_sampler = SubsetRandomSampler(indices[-test_size:])
+        test_sampler = SubsetRandomSampler(indices[-test_size:] if test_size > 0 else [])
     train_loader = DataLoader(dataset, batch_size=batch_size,
                               sampler=train_sampler,
                               num_workers=num_workers,
