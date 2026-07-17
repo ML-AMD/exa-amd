@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import tempfile
@@ -10,6 +11,7 @@ from torch.utils.data import Dataset
 from ml_models.cgcnn.data import (
     AtomCustomJSONInitializer,
     AtomInitializer,
+    CIFData,
     GaussianDistance,
     collate_pool,
     get_train_val_test_loader,
@@ -487,3 +489,117 @@ class TestCollatePool:
         assert torch.equal(crystal_atom_idx[1], torch.LongTensor([3, 4]))
         # Second crystal neighbor indices should be offset
         assert batch_nbr_fea_idx[3:].min() >= 3
+
+
+class TestGaussianDistanceExpandValues:
+    """Value-level tests for GaussianDistance.expand."""
+
+    def test_expand_peak_at_filter(self):
+        """Distance equal to a filter point should produce a value of 1.0."""
+        gd = GaussianDistance(dmin=0, dmax=4, step=1.0)
+        expanded = gd.expand(np.array([0.0]))
+        # First filter point is 0.0, so exp(0) == 1.0
+        assert np.isclose(expanded[0, 0], 1.0)
+
+    def test_expand_monotonic_decay(self):
+        """Values should decay away from the matching filter point."""
+        gd = GaussianDistance(dmin=0, dmax=4, step=1.0)
+        expanded = gd.expand(np.array([0.0]))
+        assert expanded[0, 0] > expanded[0, 1] > expanded[0, 2]
+
+
+class TestCIFData:
+    """Test suite for the CIFData dataset."""
+
+    @staticmethod
+    def _write_cif(path, cif_id):
+        """Write a minimal cubic NaCl-like CIF file."""
+        cif = f"""data_{cif_id}
+_cell_length_a 4.0
+_cell_length_b 4.0
+_cell_length_c 4.0
+_cell_angle_alpha 90.0
+_cell_angle_beta 90.0
+_cell_angle_gamma 90.0
+_symmetry_space_group_name_H-M 'P 1'
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+Na1 Na 0.0 0.0 0.0
+Cl1 Cl 0.5 0.5 0.5
+"""
+        with open(os.path.join(path, f"{cif_id}.cif"), "w") as f:
+            f.write(cif)
+
+    @staticmethod
+    def _write_atom_init(path, numbers, fea_len=4):
+        embedding = {str(n): [float(i)] * fea_len for i, n in enumerate(numbers)}
+        with open(os.path.join(path, "atom_init.json"), "w") as f:
+            json.dump(embedding, f)
+
+    @staticmethod
+    def _write_id_prop(path, rows):
+        with open(os.path.join(path, "id_prop.csv"), "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(rows)
+
+    def test_missing_root_dir(self):
+        """Nonexistent root_dir should raise AssertionError."""
+        with pytest.raises(AssertionError):
+            CIFData("/nonexistent/path/for/testing")
+
+    def test_missing_id_prop(self):
+        """Missing id_prop.csv should raise AssertionError."""
+        with tempfile.TemporaryDirectory() as tmp:
+            with pytest.raises(AssertionError):
+                CIFData(tmp)
+
+    def test_missing_atom_init(self):
+        """Missing atom_init.json should raise AssertionError."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_id_prop(tmp, [["mat0", "1.0"]])
+            with pytest.raises(AssertionError):
+                CIFData(tmp)
+
+    def test_len(self):
+        """__len__ should reflect the number of entries in id_prop.csv."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_id_prop(tmp, [["m0", "1.0"], ["m1", "2.0"]])
+            self._write_atom_init(tmp, [11, 17])
+            self._write_cif(tmp, "m0")
+            self._write_cif(tmp, "m1")
+            dataset = CIFData(tmp, max_num_nbr=6, radius=6)
+            assert len(dataset) == 2
+
+    def test_getitem_shapes(self):
+        """__getitem__ should return correctly shaped tensors and cif_id."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_id_prop(tmp, [["m0", "3.5"]])
+            self._write_atom_init(tmp, [11, 17], fea_len=4)
+            self._write_cif(tmp, "m0")
+            dataset = CIFData(tmp, max_num_nbr=6, radius=6, step=0.5)
+            (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id = dataset[0]
+
+            assert atom_fea.shape[0] == 2  # two atoms
+            assert atom_fea.shape[1] == 4  # feature length
+            assert nbr_fea.shape[0] == 2
+            assert nbr_fea.shape[1] == 6  # max_num_nbr
+            assert nbr_fea_idx.shape == (2, 6)
+            assert torch.isclose(target, torch.tensor([3.5]))
+            assert cif_id == "m0"
+
+    def test_getitem_insufficient_neighbors_warns(self):
+        """Requesting more neighbors than available should warn and pad."""
+        with tempfile.TemporaryDirectory() as tmp:
+            self._write_id_prop(tmp, [["m0", "1.0"]])
+            self._write_atom_init(tmp, [11, 17], fea_len=4)
+            self._write_cif(tmp, "m0")
+            # Small radius + large max_num_nbr forces padding
+            dataset = CIFData(tmp, max_num_nbr=50, radius=3, step=0.5)
+            with pytest.warns(UserWarning, match="not find enough neighbors"):
+                (_, nbr_fea, nbr_fea_idx), _, _ = dataset[0]
+            assert nbr_fea.shape[1] == 50
+            assert nbr_fea_idx.shape[1] == 50

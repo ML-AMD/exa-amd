@@ -61,7 +61,7 @@ line-length = 88
 select = ["E", "F", "B"] 
 
 [tool.pydocstyle]
-convention = "google"
+convention = "numpy"
 
 [tool.isort]
 line_length = 88

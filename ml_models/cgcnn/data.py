@@ -1,7 +1,19 @@
-from __future__ import print_function, division
+"""Data loading and graph-construction utilities for the CGCNN model.
+
+This module provides dataset wrappers and helper functions to turn crystal
+structures stored as CIF files into batched graph representations suitable
+for the Crystal Graph Convolutional Neural Network (CGCNN). It includes:
+
+- :func:`get_train_val_test_loader`: split a dataset into data loaders.
+- :func:`collate_pool`: collate variable-sized crystal graphs into a batch.
+- :class:`GaussianDistance`: expand distances onto a Gaussian basis.
+- :class:`AtomInitializer` / :class:`AtomCustomJSONInitializer`: build atom
+  feature vectors.
+- :class:`CIFData`: a :class:`torch.utils.data.Dataset` backed by CIF files.
+"""
+from __future__ import division, print_function
 
 import csv
-import functools
 import json
 import os
 import random
@@ -10,7 +22,7 @@ import warnings
 import numpy as np
 import torch
 from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
 
@@ -19,35 +31,43 @@ def get_train_val_test_loader(dataset, collate_fn=default_collate,
                               batch_size=64, train_ratio=None,
                               val_ratio=0.1, test_ratio=0.1, return_test=False,
                               num_workers=1, pin_memory=False, **kwargs):
-    """
-    Utility function for dividing a dataset to train, val, test datasets.
+    """Divide a dataset into train, validation, and test data loaders.
 
     !!! The dataset needs to be shuffled before using the function !!!
 
     Parameters
     ----------
-    dataset: torch.utils.data.Dataset
-      The full dataset to be divided.
-    collate_fn: torch.utils.data.DataLoader
-    batch_size: int
-    train_ratio: float
-    val_ratio: float
-    test_ratio: float
-    return_test: bool
-      Whether to return the test dataset loader. If False, the last test_size
-      data will be hidden.
-    num_workers: int
-    pin_memory: bool
+    dataset : torch.utils.data.Dataset
+        The full dataset to be divided.
+    collate_fn : callable, optional
+        Function to merge a list of samples into a batch. Defaults to
+        ``default_collate``.
+    batch_size : int, optional
+        The batch size for the DataLoader. Defaults to 64.
+    train_ratio : float, optional
+        Fraction of the dataset used for training. If ``None``, it is inferred
+        from ``val_ratio`` and ``test_ratio``. Defaults to ``None``.
+    val_ratio : float, optional
+        Fraction of the dataset used for validation. Defaults to 0.1.
+    test_ratio : float, optional
+        Fraction of the dataset used for testing. Defaults to 0.1.
+    return_test : bool, optional
+        Whether to return the test data loader. If ``False``, the last
+        ``test_size`` samples are hidden. Defaults to ``False``.
+    num_workers : int, optional
+        Number of subprocesses used for data loading. Defaults to 1.
+    pin_memory : bool, optional
+        Whether to copy tensors into pinned memory. Defaults to ``False``.
+    **kwargs
+        Optional ``train_size``, ``val_size``, and ``test_size`` integer
+        overrides for the computed split sizes.
 
     Returns
     -------
-    train_loader: torch.utils.data.DataLoader
-      DataLoader that random samples the training data.
-    val_loader: torch.utils.data.DataLoader
-      DataLoader that random samples the validation data.
-    (test_loader): torch.utils.data.DataLoader
-      DataLoader that random samples the test data, returns if
-        return_test=True.
+    tuple
+        A ``(train_loader, val_loader)`` pair, or a
+        ``(train_loader, val_loader, test_loader)`` triple when
+        ``return_test`` is ``True``.
     """
     total_size = len(dataset)
     if train_ratio is None:
@@ -68,7 +88,8 @@ def get_train_val_test_loader(dataset, collate_fn=default_collate,
         val_sampler = SubsetRandomSampler(
             indices[-valid_size:] if valid_size > 0 else [])
     if return_test:
-        test_sampler = SubsetRandomSampler(indices[-test_size:] if test_size > 0 else [])
+        test_sampler = SubsetRandomSampler(indices[-test_size:]
+                                           if test_size > 0 else [])
     train_loader = DataLoader(dataset, batch_size=batch_size,
                               sampler=train_sampler,
                               num_workers=num_workers,
@@ -89,37 +110,46 @@ def get_train_val_test_loader(dataset, collate_fn=default_collate,
 
 
 def collate_pool(dataset_list):
-    """
-    Collate a list of data and return a batch for predicting crystal
-    properties.
+    """Collate a list of samples into a batch for crystal property prediction.
+
+    N = sum(n_i); N0 = sum(i)
 
     Parameters
     ----------
+    dataset_list : list of tuple
+        A list of tuples, one per data point, structured as
+        ``((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id)`` where:
 
-    dataset_list: list of tuples for each data point.
-      (atom_fea, nbr_fea, nbr_fea_idx, target)
-
-      atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-      nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-      nbr_fea_idx: torch.LongTensor shape (n_i, M)
-      target: torch.Tensor shape (1, )
-      cif_id: str or int
+        atom_fea : torch.Tensor
+            Shape ``(n_i, atom_fea_len)``.
+        nbr_fea : torch.Tensor
+            Shape ``(n_i, M, nbr_fea_len)``.
+        nbr_fea_idx : torch.LongTensor
+            Shape ``(n_i, M)``.
+        target : torch.Tensor
+            Shape ``(1,)``.
+        cif_id : str or int
+            Unique crystal identifier.
 
     Returns
     -------
-    N = sum(n_i); N0 = sum(i)
+    tuple
+        A tuple of the form ``((batch_atom_fea, batch_nbr_fea,
+        batch_nbr_fea_idx, crystal_atom_idx), target, batch_cif_ids)`` where:
 
-    batch_atom_fea: torch.Tensor shape (N, orig_atom_fea_len)
-      Atom features from atom type
-    batch_nbr_fea: torch.Tensor shape (N, M, nbr_fea_len)
-      Bond features of each atom's M neighbors
-    batch_nbr_fea_idx: torch.LongTensor shape (N, M)
-      Indices of M neighbors of each atom
-    crystal_atom_idx: list of torch.LongTensor of length N0
-      Mapping from the crystal idx to atom idx
-    target: torch.Tensor shape (N, 1)
-      Target value for prediction
-    batch_cif_ids: list
+        batch_atom_fea : torch.Tensor
+            Shape ``(N, orig_atom_fea_len)``, atom features from atom type.
+        batch_nbr_fea : torch.Tensor
+            Shape ``(N, M, nbr_fea_len)``, bond features of each atom's M
+            neighbors.
+        batch_nbr_fea_idx : torch.LongTensor
+            Shape ``(N, M)``, indices of the M neighbors of each atom.
+        crystal_atom_idx : list of torch.LongTensor
+            List of length N0 mapping crystal indices to atom indices.
+        target : torch.Tensor
+            Shape ``(N, 1)``, target values for prediction.
+        batch_cif_ids : list
+            List of crystal identifiers.
     """
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
     crystal_atom_idx, batch_target = [], []
@@ -145,23 +175,24 @@ def collate_pool(dataset_list):
 
 
 class GaussianDistance(object):
-    """
-    Expands the distance by Gaussian basis.
+    """Expand interatomic distances using a Gaussian basis.
 
-    Unit: angstrom
+    Unit: angstrom.
     """
 
     def __init__(self, dmin, dmax, step, var=None):
-        """
+        """Initialize the Gaussian distance filter.
+
         Parameters
         ----------
-
-        dmin: float
-          Minimum interatomic distance
-        dmax: float
-          Maximum interatomic distance
-        step: float
-          Step size for the Gaussian filter
+        dmin : float
+            Minimum interatomic distance.
+        dmax : float
+            Maximum interatomic distance.
+        step : float
+            Step size for the Gaussian filter.
+        var : float, optional
+            Variance of the Gaussian. Defaults to ``step`` when ``None``.
         """
         assert dmin < dmax
         assert dmax - dmin > step
@@ -171,50 +202,90 @@ class GaussianDistance(object):
         self.var = var
 
     def expand(self, distances):
-        """
-        Apply Gaussian disntance filter to a numpy distance array
+        """Apply the Gaussian distance filter to a distance array.
 
         Parameters
         ----------
-
-        distance: np.array shape n-d array
-          A distance matrix of any shape
+        distances : np.ndarray
+            A distance matrix of any shape.
 
         Returns
         -------
-        expanded_distance: shape (n+1)-d array
-          Expanded distance matrix with the last dimension of length
-          len(self.filter)
+        np.ndarray
+            Expanded distance matrix with an added trailing dimension of
+            length ``len(self.filter)``.
         """
         return np.exp(-(distances[..., np.newaxis] - self.filter)**2 /
                       self.var**2)
 
 
 class AtomInitializer(object):
-    """
-    Base class for intializing the vector representation for atoms.
+    """Base class for initializing the vector representation for atoms.
 
     !!! Use one AtomInitializer per dataset !!!
     """
 
     def __init__(self, atom_types):
+        """Initialize the atom initializer.
+
+        Parameters
+        ----------
+        atom_types : iterable
+            Collection of valid atom type identifiers.
+        """
         self.atom_types = set(atom_types)
         self._embedding = {}
 
     def get_atom_fea(self, atom_type):
+        """Return the feature vector for a given atom type.
+
+        Parameters
+        ----------
+        atom_type
+            The atom type identifier.
+
+        Returns
+        -------
+        The feature vector associated with ``atom_type``.
+        """
         assert atom_type in self.atom_types
         return self._embedding[atom_type]
 
     def load_state_dict(self, state_dict):
+        """Load atom embeddings from a state dictionary.
+
+        Parameters
+        ----------
+        state_dict : dict
+            Mapping from atom type to feature vector.
+        """
         self._embedding = state_dict
         self.atom_types = set(self._embedding.keys())
         self._decodedict = {idx: atom_type for atom_type, idx in
                             self._embedding.items()}
 
     def state_dict(self):
+        """Return the current atom embedding state dictionary.
+
+        Returns
+        -------
+        dict
+            Mapping from atom type to feature vector.
+        """
         return self._embedding
 
     def decode(self, idx):
+        """Decode an embedding index back to its atom type.
+
+        Parameters
+        ----------
+        idx
+            The embedding index to decode.
+
+        Returns
+        -------
+        The atom type corresponding to ``idx``.
+        """
         if not hasattr(self, '_decodedict'):
             self._decodedict = {idx: atom_type for atom_type, idx in
                                 self._embedding.items()}
@@ -222,19 +293,20 @@ class AtomInitializer(object):
 
 
 class AtomCustomJSONInitializer(AtomInitializer):
-    """
-    Initialize atom feature vectors using a JSON file, which is a python
-    dictionary mapping from element number to a list representing the
-    feature vector of the element.
+    """Initialize atom feature vectors from a JSON file.
 
-    Parameters
-    ----------
-
-    elem_embedding_file: str
-        The path to the .json file
-    """
+    The JSON file is a Python dictionary mapping from element number to a
+    list representing the feature vector of the element.
+    """ 
 
     def __init__(self, elem_embedding_file):
+        """Initialize atom features from a JSON embedding file.
+
+        Parameters
+        ----------
+        elem_embedding_file : str
+            The path to the ``.json`` file.
+        """
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
         elem_embedding = {int(key): value for key, value
@@ -246,56 +318,48 @@ class AtomCustomJSONInitializer(AtomInitializer):
 
 
 class CIFData(Dataset):
-    """
-    The CIFData dataset is a wrapper for a dataset where the crystal structures
-    are stored in the form of CIF files. The dataset should have the following
-    directory structure:
+    """A dataset wrapper for crystal structures stored as CIF files.
 
-    root_dir
-    ├── id_prop.csv
-    ├── atom_init.json
-    ├── id0.cif
-    ├── id1.cif
-    ├── ...
+    The dataset should have the following directory structure::
 
-    id_prop.csv: a CSV file with two columns. The first column recodes a
-    unique ID for each crystal, and the second column recodes the value of
-    target property.
+        root_dir
+        ├── id_prop.csv
+        ├── atom_init.json
+        ├── id0.cif
+        ├── id1.cif
+        ├── ...
 
-    atom_init.json: a JSON file that stores the initialization vector for each
-    element.
-
-    ID.cif: a CIF file that recodes the crystal structure, where ID is the
-    unique ID for the crystal.
-
-    Parameters
-    ----------
-
-    root_dir: str
-        The path to the root directory of the dataset
-    max_num_nbr: int
-        The maximum number of neighbors while constructing the crystal graph
-    radius: float
-        The cutoff radius for searching neighbors
-    dmin: float
-        The minimum distance for constructing GaussianDistance
-    step: float
-        The step size for constructing GaussianDistance
-    random_seed: int
-        Random seed for shuffling the dataset
-
-    Returns
-    -------
-
-    atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-    nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-    nbr_fea_idx: torch.LongTensor shape (n_i, M)
-    target: torch.Tensor shape (1, )
-    cif_id: str or int
-    """
+    - ``id_prop.csv``: A CSV file with two columns. The first column records a
+      unique ID for each crystal, and the second column records the value of
+      the target property.
+    - ``atom_init.json``: A JSON file that stores the initialization vector
+      for each element.
+    - ``ID.cif``: A CIF file that records the crystal structure, where ``ID``
+      is the unique ID for the crystal.
+    """ 
 
     def __init__(self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2,
                  random_seed=123):
+        """Initialize the CIFData dataset.
+
+        Parameters
+        ----------
+        root_dir : str
+            The path to the root directory of the dataset.
+        max_num_nbr : int, optional
+            The maximum number of neighbors used when constructing the crystal
+            graph. Defaults to 12.
+        radius : float, optional
+            The cutoff radius for searching neighbors. Defaults to 8.
+        dmin : float, optional
+            The minimum distance for constructing ``GaussianDistance``.
+            Defaults to 0.
+        step : float, optional
+            The step size for constructing ``GaussianDistance``. Defaults to
+            0.2.
+        random_seed : int, optional
+            Random seed for shuffling the dataset. Defaults to 123.
+        """
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
         assert os.path.exists(root_dir), 'root_dir does not exist!'
@@ -310,12 +374,52 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), 'atom_init.json does not exist!'
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+        self._cache = {}
+        self._cache_maxsize = 1024
 
     def __len__(self):
+        """Return the number of crystals in the dataset.
+
+        Returns
+        -------
+        int
+            The number of entries in ``id_prop.csv``.
+        """
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=1024)  # Cache loaded structures
     def __getitem__(self, idx):
+        """Return the graph representation and target for a crystal.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the crystal to retrieve.
+
+        Returns
+        -------
+        tuple
+            ``((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id)`` where:
+
+            atom_fea : torch.Tensor
+                Shape ``(n_i, atom_fea_len)``.
+            nbr_fea : torch.Tensor
+                Shape ``(n_i, M, nbr_fea_len)``.
+            nbr_fea_idx : torch.LongTensor
+                Shape ``(n_i, M)``.
+            target : torch.Tensor
+                Shape ``(1,)``.
+            cif_id : str or int
+                The unique crystal identifier.
+        """
+        if idx in self._cache:
+            return self._cache[idx]
+        result = self._compute_item(idx)
+        if len(self._cache) < self._cache_maxsize:
+            self._cache[idx] = result
+        return result
+
+    def _compute_item(self, idx):
+        """Compute the graph representation for a crystal (uncached)."""
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir,
                                                    cif_id + '.cif'))
@@ -329,7 +433,8 @@ class CIFData(Dataset):
             if len(nbr) < self.max_num_nbr:
                 warnings.warn(
                     f"{cif_id} not find enough neighbors to build graph. "
-                    "If it happens frequently, consider increase radius."
+                    "If it happens frequently, consider increase radius.",
+                    stacklevel=3,
                 )
                 nbr_fea_idx.append(list(map(lambda x: x[2], nbr)) +
                                    [0] * (self.max_num_nbr - len(nbr)))
@@ -343,7 +448,6 @@ class CIFData(Dataset):
                                         nbr[:self.max_num_nbr])))
         nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
         nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.Tensor(atom_fea)
         nbr_fea = torch.Tensor(nbr_fea)
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
