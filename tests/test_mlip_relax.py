@@ -1,12 +1,9 @@
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-# Add the ml_models directory to the path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "ml_models" / "mlip"))
 
 from ml_models.mlip import mlip_relax
 
