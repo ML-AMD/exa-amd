@@ -6,7 +6,7 @@ Overview
 .. figure:: images/CeFeIn_prediction.png
    :align: center
 
-   Prediction of new CeFeIn compounds with **exa-AMD** 
+   Prediction of new CeFeIn compounds with **exa-AMD**
 
 ----
 

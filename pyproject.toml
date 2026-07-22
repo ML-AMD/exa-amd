@@ -49,6 +49,14 @@ include = [
     "configs*",
 ]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:ray.*",
+    "ignore::pydantic.PydanticDeprecatedSince20",
+    "ignore::DeprecationWarning:spglib.*",
+    "ignore::UserWarning:pymatgen.*",
+]
+
 [tool.setuptools.package-data]
 "ml_models.cgcnn" = ["form_1st.pth.tar", "atom_init.json"]
 "workflows.vasp_assets" = ["INCAR.en", "INCAR_mag.en", "INCAR.rx"]
@@ -58,7 +66,7 @@ include = [
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "B"] 
+select = ["E", "F", "B"]
 
 [tool.pydocstyle]
 convention = "numpy"

@@ -297,7 +297,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
 
     The JSON file is a Python dictionary mapping from element number to a
     list representing the feature vector of the element.
-    """ 
+    """
 
     def __init__(self, elem_embedding_file):
         """Initialize atom features from a JSON embedding file.
@@ -336,7 +336,7 @@ class CIFData(Dataset):
       for each element.
     - ``ID.cif``: A CIF file that records the crystal structure, where ``ID``
       is the unique ID for the crystal.
-    """ 
+    """
 
     def __init__(self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2,
                  random_seed=123):

@@ -221,9 +221,9 @@ Inside your specified `work_dir`, you should see a subdirectory named after the 
 
    work_dir/
    └── Na-B-H-C
-       ├── new/ 
-       ├── POTCAR 
-       ├── structures/ 
+       ├── new/
+       ├── POTCAR
+       ├── structures/
        └── test_results.csv
 
 b. VASP Directory
