@@ -1,4 +1,3 @@
-import sys
 import pytest
 from tools.logging_config import ExaAmdLogger, amd_logger
 
@@ -7,7 +6,7 @@ def check_output(capsys, logger, log_level, on_stdout: bool):
     """
     helper for 'test_stdout_stderr'
     """
-    log_name = getattr(logger, "logger_name")
+    log_name = logger.logger_name
     msg = f"{log_level} message"
     getattr(logger, log_level)(msg)
     out, err = capsys.readouterr()

@@ -72,12 +72,16 @@ def test_convex_hull_color_ternary(ehull_env, monkeypatch):
     Run and test convex_hull_color()
     """
     from parsl_tasks.convex_hull import plot_convex_hull_ternary
+    from parsl_tasks.ehull import cmd_calculate_ehul
 
     # ensure non-interactive matplotlib
     monkeypatch.setenv("MPLBACKEND", "Agg")
 
     ehull_dir = ehull_env["ehull_dir"]
     config = ehull_env["config"]
+
+    # Produce NaBC.csv independently of test ordering.
+    cmd_calculate_ehul(config, False)
 
     elements_list = config[CK.ELEMENTS].split('-')
     stable_dat = os.path.join(ehull_dir, config[CK.MP_STABLE_OUT])
