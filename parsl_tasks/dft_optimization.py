@@ -1,8 +1,4 @@
-import re
-import subprocess
-from pathlib import Path
-from parsl import python_app, bash_app, join_app
-import importlib.resources as pkg_resources
+from parsl import python_app
 
 from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
@@ -38,12 +34,12 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
     """
     import os
-    import shutil
-    import time
     import re
+    import shutil
     import subprocess
     from importlib import resources as iresources
     from pathlib import Path
+
     from tools.errors import VaspNonReached
 
     def _is_timeout(rc):
@@ -51,20 +47,30 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
     def cleanup():
         cleanup_files = [
-            "DOSCAR", "PCDAT", "REPORT", "XDATCAR", "CHG",
-            "CHGCAR", "EIGENVAL", "PROCAR", "WAVECAR", "vasprun.xml"
+            "DOSCAR",
+            "PCDAT",
+            "REPORT",
+            "XDATCAR",
+            "CHG",
+            "CHGCAR",
+            "EIGENVAL",
+            "PROCAR",
+            "WAVECAR",
+            "vasprun.xml",
         ]
         for fname in cleanup_files:
             try:
                 os.remove(fname)
             except FileNotFoundError:
                 pass
+
     success = False
     timed_out = False
     vasp_non_reached = False
     try:
         exec_cmd_prefix = (
-            "" if config[CK.VASP_NTASKS_PER_RUN] == 1
+            ""
+            if config[CK.VASP_NTASKS_PER_RUN] == 1
             else f"srun -N 1 -n {config[CK.VASP_NTASKS_PER_RUN]} --exact --cpu-bind=cores"
         )
         work_subdir = os.path.join(config[CK.VASP_WORK_DIR], str(id))
@@ -78,7 +84,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         vasp_std_exe = config[CK.VASP_STD_EXE]
         poscar = os.path.join(config[CK.WORK_DIR], "new", f"POSCAR_{id}")
-        with iresources.as_file(iresources.files("workflows.vasp_assets") / "INCAR.rx") as p:
+        with iresources.as_file(
+            iresources.files("workflows.vasp_assets") / "INCAR.rx"
+        ) as p:
             incar_src = str(p)
 
         # POTCAR symlink
@@ -101,9 +109,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         # run relaxation
         with open(output_rx, "w") as out:
             rc = subprocess.run(
-                ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                [
+                    "timeout",
+                    str(config[CK.VASP_TIMEOUT]),
+                    *exec_cmd_prefix.split(),
+                    vasp_std_exe,
+                ],
                 stdout=out,
-                stderr=subprocess.STDOUT
+                stderr=subprocess.STDOUT,
             )
             if rc.returncode != 0:
                 if _is_timeout(rc.returncode):
@@ -114,7 +127,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         #  grep "reached"
         out_text = output_rx.read_text(errors="ignore")
-        reached = ("reached" in out_text.lower())
+        reached = "reached" in out_text.lower()
 
         # grep "{NSW} F="
         re_nsw = re.compile(rf"(?m)^\s*{VASP_NSW}\s+F=")
@@ -129,9 +142,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             shutil.copy("CONTCAR", "POSCAR")
             with open(output_rx, "w") as out:
                 rc = subprocess.run(
-                    ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                    [
+                        "timeout",
+                        str(config[CK.VASP_TIMEOUT]),
+                        *exec_cmd_prefix.split(),
+                        vasp_std_exe,
+                    ],
                     stdout=out,
-                    stderr=subprocess.STDOUT
+                    stderr=subprocess.STDOUT,
                 )
                 if rc.returncode != 0:
                     if _is_timeout(rc.returncode):
@@ -148,7 +166,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             raise VaspNonReached("relaxation did not converge and did not hit NSW")
 
         # energy calculation
-        with iresources.as_file(iresources.files("workflows.vasp_assets") / "INCAR.en") as p:
+        with iresources.as_file(
+            iresources.files("workflows.vasp_assets") / "INCAR.en"
+        ) as p:
             incar_en = str(p)
 
         output_file_en = os.path.join(work_subdir, f"output_{id}.en")
@@ -158,9 +178,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         with open(output_file_en, "w") as out:
             subprocess.run(
-                ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                [
+                    "timeout",
+                    str(config[CK.VASP_TIMEOUT]),
+                    *exec_cmd_prefix.split(),
+                    vasp_std_exe,
+                ],
                 stdout=out,
-                stderr=subprocess.STDOUT
+                stderr=subprocess.STDOUT,
             )
         os.rename("OUTCAR", f"OUTCAR_{id}.en")
         success = True

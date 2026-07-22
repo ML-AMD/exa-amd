@@ -633,10 +633,10 @@ def plot_convex_hull_quaternary(
     str
         The ``output_file`` path (for convenience).
     """
-    import matplotlib.colormaps as mcmaps  # type: ignore[import-not-found]
     import matplotlib.colors as mcolors
     import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib import colormaps as mcmaps  # type: ignore[attr-defined]
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection  # type: ignore[import-untyped]
     from pymatgen.core import Composition, Element
     from scipy.spatial import ConvexHull
@@ -1063,13 +1063,14 @@ def convex_hull_color(config: dict[str, Any]) -> None:
             config[CK.POST_PROCESSING_OUT_DIR], CK.POST_PROCESSING_FINAL_OUT
         )
         threshold = float(config[CK.HULL_ENERGY_THR])
-        if nb_of_elements == 3:
-            plot_convex_hull_ternary(
-                l_elements, stable_dat, full_path_input_csv, threshold, output_file
-            )
-        else:
-            plot_convex_hull_quaternary(
-                l_elements, stable_dat, full_path_input_csv, threshold, output_file
-            )
     except Exception:
         raise
+
+    if nb_of_elements == 3:
+        plot_convex_hull_ternary(
+            l_elements, stable_dat, full_path_input_csv, threshold, output_file
+        )
+    else:
+        plot_convex_hull_quaternary(
+            l_elements, stable_dat, full_path_input_csv, threshold, output_file
+        )

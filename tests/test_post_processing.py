@@ -1,11 +1,13 @@
 # tests/test_post_processing.py
-from tools.config_labels import ConfigKeys as CK
-import sys
 import os
 import re
+import sys
 import tarfile
 from pathlib import Path
+
 import pytest
+
+from tools.config_labels import ConfigKeys as CK
 
 REPO_ROOT = Path(__file__).parent.parent.resolve()
 if str(REPO_ROOT) not in sys.path:
@@ -42,6 +44,7 @@ def test_calculate_ehul_outputs(ehull_env):
     Run and test calculate_ehul()
     """
     from parsl_tasks.ehull import cmd_calculate_ehul
+
     ehull_dir = ehull_env["ehull_dir"]
     config = ehull_env["config"]
 
@@ -59,7 +62,7 @@ def test_calculate_ehul_outputs(ehull_env):
     assert lines, "NaBC.csv is empty"
 
     sel_dir = ehull_dir / "selected"
-    assert sel_dir.exists(), "\"selected/\" directory not created"
+    assert sel_dir.exists(), '"selected/" directory not created'
     assert list(sel_dir.glob("CONTCAR_*")), "No CONTCAR_* copied into selected/"
 
     with open(out_path) as f:
@@ -83,7 +86,7 @@ def test_convex_hull_color_ternary(ehull_env, monkeypatch):
     # Produce NaBC.csv independently of test ordering.
     cmd_calculate_ehul(config, False)
 
-    elements_list = config[CK.ELEMENTS].split('-')
+    elements_list = config[CK.ELEMENTS].split("-")
     stable_dat = os.path.join(ehull_dir, config[CK.MP_STABLE_OUT])
     input_csv = os.path.join(ehull_dir, "NaBC.csv")
     assert Path(input_csv).exists(), "NaBC.csv missing"
@@ -235,3 +238,242 @@ def test_cmd_compile_vasp_hull(compile_vasp_hull_inputs):
     # Output in alphabetical order
     formulas = [ln.split()[0] for ln in lines]
     assert formulas == sorted(formulas)
+
+
+def _write_quaternary_inputs(root: Path, elements):
+    """Create stable .dat and results .csv files for a 4-element system."""
+    a, b, c, d = elements
+    stable = root / "mp_int_stable.dat"
+    # Pure elements + a couple of binaries so ConvexHull has >= 4 points.
+    stable.write_text(
+        "\n".join(
+            [
+                f"{a} -1.0",
+                f"{b} -1.5",
+                f"{c} -2.0",
+                f"{d} -2.5",
+                f"{a}{b} -3.0",
+                f"{c}{d} -4.0",
+            ]
+        )
+        + "\n"
+    )
+
+    csv = root / "results_quaternary.csv"
+    csv.write_text(
+        "\n".join(
+            [
+                "Formula,Total_Energy_per_atom,Ehull",
+                f"{a}2{b}2,-2.0,0.02",
+                f"{a}{b}{c}{d},-3.0,0.5",  # above threshold
+                f"{c}2{d},-3.5,0.05",
+            ]
+        )
+        + "\n"
+    )
+    return str(stable), str(csv)
+
+
+def test_plot_convex_hull_quaternary_creates_plot(tmp_path, monkeypatch):
+    """
+    Run and test plot_convex_hull_quaternary() with valid inputs.
+    """
+    monkeypatch.setenv("MPLBACKEND", "Agg")
+    from parsl_tasks.convex_hull import plot_convex_hull_quaternary
+
+    elements = ["Si", "Ge", "Sn", "Pb"]
+    stable_path, csv_path = _write_quaternary_inputs(tmp_path, elements)
+    output_png = os.path.join(str(tmp_path), "quaternary.png")
+
+    out = plot_convex_hull_quaternary(
+        elements_str=elements,
+        stable_path=stable_path,
+        input_csv_path=csv_path,
+        ehull_threshold=0.10,
+        output_file=output_png,
+    )
+
+    assert out == output_png
+    assert Path(output_png).exists() and Path(output_png).stat().st_size > 0
+
+
+def test_plot_convex_hull_quaternary_no_data(tmp_path, monkeypatch):
+    """
+    plot_convex_hull_quaternary() returns output_file when nothing parses.
+    """
+    monkeypatch.setenv("MPLBACKEND", "Agg")
+    from parsl_tasks.convex_hull import plot_convex_hull_quaternary
+
+    stable = tmp_path / "empty_stable.dat"
+    stable.write_text("")
+    csv = tmp_path / "empty.csv"
+    csv.write_text("Formula,Total_Energy_per_atom,Ehull\n")
+
+    output_png = os.path.join(str(tmp_path), "none.png")
+    out = plot_convex_hull_quaternary(
+        elements_str=["Si", "Ge", "Sn", "Pb"],
+        stable_path=str(stable),
+        input_csv_path=str(csv),
+        ehull_threshold=0.10,
+        output_file=output_png,
+    )
+
+    assert out == output_png
+    assert not Path(output_png).exists()
+
+
+def test_plot_convex_hull_quaternary_few_stable_points(tmp_path, monkeypatch):
+    """
+    Fewer than 4 stable points: still plots calculated results, no hull.
+    """
+    monkeypatch.setenv("MPLBACKEND", "Agg")
+    from parsl_tasks.convex_hull import plot_convex_hull_quaternary
+
+    elements = ["Si", "Ge", "Sn", "Pb"]
+    stable = tmp_path / "few_stable.dat"
+    stable.write_text(f"{elements[0]} -1.0\n{elements[1]} -1.5\n")
+
+    csv = tmp_path / "few.csv"
+    csv.write_text(
+        f"Formula,Total_Energy_per_atom,Ehull\n{elements[0]}2{elements[1]}2,-2.0,0.02\n"
+    )
+
+    output_png = os.path.join(str(tmp_path), "few.png")
+    out = plot_convex_hull_quaternary(
+        elements_str=elements,
+        stable_path=str(stable),
+        input_csv_path=str(csv),
+        ehull_threshold=0.10,
+        output_file=output_png,
+    )
+
+    assert out == output_png
+    assert Path(output_png).exists() and Path(output_png).stat().st_size > 0
+
+
+def test_plot_convex_hull_quaternary_requires_four_elements(tmp_path, monkeypatch):
+    """
+    plot_quaternary_hull raises ValueError when not exactly 4 elements.
+    """
+    monkeypatch.setenv("MPLBACKEND", "Agg")
+    from parsl_tasks.convex_hull import plot_convex_hull_quaternary
+
+    elements = ["Si", "Ge", "Sn"]
+    stable = tmp_path / "s.dat"
+    stable.write_text(f"{elements[0]} -1.0\n{elements[1]} -1.5\n{elements[2]} -2.0\n")
+    csv = tmp_path / "r.csv"
+    csv.write_text(
+        "Formula,Total_Energy_per_atom,Ehull\n"
+        f"{elements[0]}{elements[1]}{elements[2]},-2.0,0.02\n"
+    )
+
+    with pytest.raises(ValueError):
+        plot_convex_hull_quaternary(
+            elements_str=elements,
+            stable_path=str(stable),
+            input_csv_path=str(csv),
+            ehull_threshold=0.10,
+            output_file=os.path.join(str(tmp_path), "bad.png"),
+        )
+
+
+def _run_convex_hull_color(config):
+    """Call the underlying function of the convex_hull_color python_app."""
+    from parsl_tasks import convex_hull
+
+    return convex_hull.convex_hull_color.func(config)
+
+
+def test_convex_hull_color_dispatch_ternary(monkeypatch):
+    """
+    convex_hull_color() dispatches to plot_convex_hull_ternary for 3 elements.
+    """
+    from parsl_tasks import convex_hull
+
+    calls = {}
+
+    def fake_ternary(elements_list, stable_dat, csv, threshold, output_file):
+        calls["ternary"] = (elements_list, threshold)
+        return output_file
+
+    def fake_quaternary(*args, **kwargs):
+        calls["quaternary"] = True
+
+    monkeypatch.setattr(convex_hull, "plot_convex_hull_ternary", fake_ternary)
+    monkeypatch.setattr(convex_hull, "plot_convex_hull_quaternary", fake_quaternary)
+
+    config = {
+        CK.ELEMENTS: "Na-B-C",
+        CK.POST_PROCESSING_OUT_DIR: "/tmp/pp",
+        CK.HULL_ENERGY_THR: "0.1",
+    }
+
+    _run_convex_hull_color(config)
+
+    assert "ternary" in calls
+    assert "quaternary" not in calls
+    assert calls["ternary"][0] == ["Na", "B", "C"]
+    assert calls["ternary"][1] == 0.1
+
+
+def test_convex_hull_color_dispatch_quaternary(monkeypatch):
+    """
+    convex_hull_color() dispatches to plot_convex_hull_quaternary for 4 elements.
+    """
+    from parsl_tasks import convex_hull
+
+    calls = {}
+
+    def fake_ternary(*args, **kwargs):
+        calls["ternary"] = True
+
+    def fake_quaternary(elements_list, stable_dat, csv, threshold, output_file):
+        calls["quaternary"] = (elements_list, csv, threshold)
+        return output_file
+
+    monkeypatch.setattr(convex_hull, "plot_convex_hull_ternary", fake_ternary)
+    monkeypatch.setattr(convex_hull, "plot_convex_hull_quaternary", fake_quaternary)
+
+    config = {
+        CK.ELEMENTS: "Si-Ge-Sn-Pb",
+        CK.POST_PROCESSING_OUT_DIR: "/tmp/pp",
+        CK.HULL_ENERGY_THR: "0.2",
+        CK.MP_STABLE_OUT: "mp_int_stable.dat",
+        CK.POST_PROCESSING_FINAL_OUT: "convex_hull.png",
+    }
+
+    _run_convex_hull_color(config)
+
+    assert "quaternary" in calls
+    assert "ternary" not in calls
+    assert calls["quaternary"][0] == ["Si", "Ge", "Sn", "Pb"]
+    assert calls["quaternary"][1].endswith("SiGeSnPb_quaternary.csv")
+    assert calls["quaternary"][2] == 0.2
+
+
+def test_convex_hull_color_reraises(monkeypatch):
+    """
+    convex_hull_color() invokes the ternary plotting function; errors there
+    propagate out of the dispatch (the try/except is a no-op re-raise).
+    """
+    from parsl_tasks import convex_hull
+
+    called = {"ran": False}
+
+    def boom(*args, **kwargs):
+        called["ran"] = True
+        raise RuntimeError("plot failed")
+
+    monkeypatch.setattr(convex_hull, "plot_convex_hull_ternary", boom)
+
+    config = {
+        CK.ELEMENTS: "Na-B-C",
+        CK.POST_PROCESSING_OUT_DIR: "/tmp/pp",
+        CK.HULL_ENERGY_THR: "0.1",
+        CK.MP_STABLE_OUT: "mp_int_stable.dat",
+        CK.POST_PROCESSING_FINAL_OUT: "convex_hull.png",
+    }
+
+    _run_convex_hull_color(config)
+
+    assert called["ran"], "plot_convex_hull_ternary was never called"
