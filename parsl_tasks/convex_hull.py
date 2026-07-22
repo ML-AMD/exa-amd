@@ -633,11 +633,11 @@ def plot_convex_hull_quaternary(
     str
         The ``output_file`` path (for convenience).
     """
+    import matplotlib.colormaps as mcmaps  # type: ignore[import-not-found]
     import matplotlib.colors as mcolors
-    import matplotlib.colormaps as mcmaps
     import matplotlib.pyplot as plt
     import numpy as np
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection  # type: ignore[import-untyped]
     from pymatgen.core import Composition, Element
     from scipy.spatial import ConvexHull
 
