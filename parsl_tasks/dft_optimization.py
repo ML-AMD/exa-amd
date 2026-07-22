@@ -1,3 +1,19 @@
+"""Parsl tasks for DFT structure optimization using VASP.
+
+This module provides a fused two-stage VASP calculation (relaxation followed
+by an energy calculation) wrapped as a Parsl ``python_app`` so it can be
+scheduled on the VASP executor.
+
+Public API
+----------
+run_vasp_calc
+    Submit a fused VASP calculation for a structure.
+fused_vasp_calc
+    The Parsl ``python_app`` wrapper.
+cmd_fused_vasp_calc
+    The underlying (non-app) implementation.
+"""
+
 from parsl import python_app
 
 from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
@@ -5,33 +21,39 @@ from tools.config_labels import ConfigKeys as CK
 
 
 def cmd_fused_vasp_calc(config, id, walltime=(int)):
-    """
-    Run a two-stage VASP calculation via a Python Parsl task.
+    """Run a two-stage VASP calculation via a Python Parsl task.
 
-    It start by running a relaxation phase trying to find
-    the lowest-energy configuration. If relaxation is successful,
-    it runs the energy calculaction
+    It starts by running a relaxation phase trying to find the lowest-energy
+    configuration. If relaxation is successful, it runs the energy calculation.
 
-    :param dict config:
+    Parameters
+    ----------
+    config : dict
         :class:`~tools.config_manager.ConfigManager` (or dict). Keys used:
+
         - ``vasp_work_dir`` (str): directory for per-structure work subdirs.
-        - ``work_dir`` (str): project root holding inputs (e.g., ``new/``, ``POTCAR``).
-        - ``vasp_std_exe`` (str): path to the VASP executable (e.g., ``vasp_std``).
+        - ``work_dir`` (str): project root holding inputs (e.g., ``new/``,
+          ``POTCAR``).
+        - ``vasp_std_exe`` (str): path to the VASP executable (e.g.,
+          ``vasp_std``).
         - ``vasp_timeout`` (int, s): max walltime per VASP invocation.
         - ``vasp_nsw`` (int): number of ionic steps (NSW) for relaxation.
-
-    :param int id:
+    id : int
         Structure identifier: maps to ``POSCAR_{id}`` and names outputs.
+    walltime : int
+        Per-run timeout in seconds (unused; superseded by
+        ``config[CK.VASP_TIMEOUT]``).
 
-    :param int walltime:
-        Per-run timeout in seconds (unused; superseded by ``config[CK.VASP_TIMEOUT]``).
+    Returns
+    -------
+    None
 
-    :returns: None
-    :rtype: None
-
-    :raises VaspNonReached: if relaxation fails to meet criteria.
-    :raises Exception: on file I/O or subprocess failures.
-
+    Raises
+    ------
+    VaspNonReached
+        If relaxation fails to meet criteria.
+    Exception
+        On file I/O or subprocess failures.
     """
     import os
     import re
@@ -200,8 +222,44 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
 @python_app(executors=[VASP_EXECUTOR_LABEL])
 def fused_vasp_calc(config, id, walltime=(int)):
+    """Parsl app wrapper around :func:`cmd_fused_vasp_calc`.
+
+    Runs on the VASP executor. See :func:`cmd_fused_vasp_calc` for the full
+    description of behaviour and parameters.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration mapping (see :func:`cmd_fused_vasp_calc`).
+    id : int
+        Structure identifier.
+    walltime : int
+        Per-run timeout in seconds.
+
+    Returns
+    -------
+    None
+    """
     cmd_fused_vasp_calc(config, id, walltime)
 
 
 def run_vasp_calc(config, id):
+    """Submit a fused VASP calculation for a single structure.
+
+    Convenience entry point that computes an appropriate ``walltime`` from the
+    configured VASP timeout and submits :func:`fused_vasp_calc` to Parsl.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration mapping. Must provide ``CK.VASP_TIMEOUT`` (int, seconds)
+        along with the keys required by :func:`cmd_fused_vasp_calc`.
+    id : int
+        Structure identifier (maps to ``POSCAR_{id}``).
+
+    Returns
+    -------
+    parsl.dataflow.futures.AppFuture
+        The Parsl future for the submitted app.
+    """
     return fused_vasp_calc(config, id, walltime=2 * config[CK.VASP_TIMEOUT])
