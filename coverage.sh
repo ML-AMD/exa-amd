@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if ! pytest 2>/dev/null; then
+if ! command -v pytest >/dev/null 2>&1; then
     echo "Error: 'pytest' is not installed. Install it with: pip install pytest"
     echo "You also probably do not have pytest-cov, install with pip install pytest-cov"
     exit 1
