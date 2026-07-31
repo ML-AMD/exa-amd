@@ -1,42 +1,59 @@
+"""Parsl task for running MLIP structure relaxation.
+
+Builds and dispatches the shell command that invokes the packaged
+``mlip_relax.py`` script to relax structure files using the bundled MLIP model.
+"""
+
 from __future__ import annotations
+
+import os
+import shlex
+from typing import Sequence, Union
+
 from parsl import bash_app
 
+import ml_models.mlip as mlip_pkg
 from parsl_configs.parsl_executors_labels import MLIP_RELAXATION_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
-import ml_models.mlip as mlip_pkg
+
+PathLike = Union[str, os.PathLike]
 
 
-def cmd_mlip_relaxation(config, file_paths):
-    """
-    Prepare the working environment and build the command to run CGCNN predictions.
+def cmd_mlip_relaxation(
+    config: dict,
+    file_paths: Union[PathLike, Sequence[PathLike]],
+) -> str:
+    """Build the shell command that runs MLIP relaxation on the given files.
 
-    The prediction workload is partitioned into ``n_chunks`` disjoint segments.
-    This task handles the segment identified by ``id``.
+    Changes into the configured working directory, ensures the MLIP log
+    directory exists, and assembles the command used to invoke the packaged
+    ``mlip_relax.py`` script against the bundled model.
 
-    :param dict config:
-        A :class:`~tools.config_manager.ConfigManager` (or dict with the same
+    Parameters
+    ----------
+    config : dict
+        A :class:`~tools.config_manager.ConfigManager` (or a dict with the same
         fields). The following keys are read:
 
-        - ``work_dir`` (str): root working directory for inputs/outputs
-        - ``batch_size`` (int): inference batch size
-        - ``num_workers`` (int): data-loading workers for inference
+        - ``WORK_DIR`` (str): root working directory for inputs/outputs.
 
-        See :class:`~tools.config_manager.ConfigManager` for full field descriptions.
+        See :class:`~tools.config_manager.ConfigManager` for full field
+        descriptions.
+    file_paths : str or os.PathLike or sequence of str or os.PathLike
+        One or more structure files to relax. A single path is normalized to a
+        one-element list.
 
-    :param int n_chunks:
-        Total number of chunks for the workload.
+    Returns
+    -------
+    str
+        The command string invoking ``mlip_relax.py`` with the model path, log
+        directory, and shell-quoted file arguments.
 
-    :param int id:
-        Zero-based index of the partition to execute, where ``0 <= id < n_chunks``.
-
-    :returns: Absolute path to this partition’s predictions CSV.
-    :rtype: str
-
-    :raises ValueError: if ``n_chunks`` is not positive or ``id`` is out of range
-    :raises Exception: on directory navigation or file I/O failures
+    Raises
+    ------
+    OSError
+        If changing directories or creating the log directory fails.
     """
-    import os
-    import shlex
 
     os.chdir(config[CK.WORK_DIR])
 
@@ -52,9 +69,26 @@ def cmd_mlip_relaxation(config, file_paths):
     os.makedirs(energy_log_dir, exist_ok=True)
     files_argv = " ".join(shlex.quote(str(p)) for p in file_paths)
 
-    return (f"python {mlip_relax_script} {model_path} {energy_log_dir} {files_argv}")
+    return f"python {mlip_relax_script} {model_path} {energy_log_dir} {files_argv}"
 
 
 @bash_app(executors=[MLIP_RELAXATION_EXECUTOR_LABEL])
-def mlip_relaxation(config, file_paths):
+def mlip_relaxation(
+    config: dict,
+    file_paths: Union[PathLike, Sequence[PathLike]],
+) -> str:
+    """Parsl bash app wrapper around :func:`cmd_mlip_relaxation`.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration passed through to :func:`cmd_mlip_relaxation`.
+    file_paths : str or os.PathLike or sequence of str or os.PathLike
+        Structure file(s) to relax.
+
+    Returns
+    -------
+    str
+        The command string executed by the Parsl ``bash_app``.
+    """
     return cmd_mlip_relaxation(config, file_paths)
