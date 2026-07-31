@@ -14,10 +14,18 @@ cmd_fused_vasp_calc
     The underlying (non-app) implementation.
 """
 
+import os
+import re
+import shutil
+import subprocess
+from importlib import resources as iresources
+from pathlib import Path
+
 from parsl import python_app
 
 from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
+from tools.errors import VaspNonReached
 
 
 def cmd_fused_vasp_calc(config, id, walltime=(int)):
@@ -55,14 +63,6 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
     Exception
         On file I/O or subprocess failures.
     """
-    import os
-    import re
-    import shutil
-    import subprocess
-    from importlib import resources as iresources
-    from pathlib import Path
-
-    from tools.errors import VaspNonReached
 
     def _is_timeout(rc):
         return rc == 124
