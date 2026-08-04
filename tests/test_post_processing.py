@@ -54,20 +54,20 @@ def ehull_env(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
     return {"ehull_dir": ehull_dir, "config": config}
 
 
-def test_calculate_ehul_outputs(ehull_env: dict[str, Any]) -> None:
-    """Running ``cmd_calculate_ehul`` writes hull, CSV and selected outputs.
+def test_calculate_ehull_outputs(ehull_env: dict[str, Any]) -> None:
+    """Running ``cmd_calculate_ehull`` writes hull, CSV and selected outputs.
 
     Parameters
     ----------
     ehull_env : dict
         Fixture providing the extracted directory and config.
     """
-    from parsl_tasks.ehull import cmd_calculate_ehul
+    from parsl_tasks.ehull import cmd_calculate_ehull
 
     ehull_dir = ehull_env["ehull_dir"]
     config = ehull_env["config"]
 
-    out_path = Path(cmd_calculate_ehul(config, False))
+    out_path = Path(cmd_calculate_ehull(config, False))
 
     assert out_path == ehull_dir / "hull.dat"
 
@@ -102,7 +102,7 @@ def test_convex_hull_color_ternary(
         Used to force a non-interactive matplotlib backend.
     """
     from parsl_tasks.convex_hull import plot_convex_hull_ternary
-    from parsl_tasks.ehull import cmd_calculate_ehul
+    from parsl_tasks.ehull import cmd_calculate_ehull
 
     # ensure non-interactive matplotlib
     monkeypatch.setenv("MPLBACKEND", "Agg")
@@ -111,7 +111,7 @@ def test_convex_hull_color_ternary(
     config = ehull_env["config"]
 
     # Produce NaBC.csv independently of test ordering.
-    cmd_calculate_ehul(config, False)
+    cmd_calculate_ehull(config, False)
 
     elements_list = config[CK.ELEMENTS].split("-")
     stable_dat = os.path.join(ehull_dir, config[CK.MP_STABLE_OUT])
@@ -973,3 +973,178 @@ def test_get_vasp_hull_builds_inputs_and_compiles(
     # Compiled hull copied into the work directory.
     mp_file = os.path.join(hull_config[CK.VASP_WORK_DIR], hull_config[CK.MP_STABLE_OUT])
     assert Path(mp_file).exists()
+
+
+def test_calculate_ehull_gather_energy_branch(
+    ehull_env: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The ``gather_energy=True`` path runs the grep/sed subprocess command.
+
+    Parameters
+    ----------
+    ehull_env : dict
+        Fixture providing the extracted directory and config.
+    monkeypatch : pytest.MonkeyPatch
+        Used to intercept the subprocess call.
+    """
+    from parsl_tasks import ehull as ehull_mod
+    from parsl_tasks.ehull import cmd_calculate_ehull
+
+    ehull_dir = ehull_env["ehull_dir"]
+    config = ehull_env["config"]
+
+    captured: dict[str, Any] = {}
+
+    class _Result:
+        returncode = 0
+
+    def fake_run(cmd: str, shell: bool = False):  # noqa: ANN001
+        captured["cmd"] = cmd
+        captured["shell"] = shell
+        # Recreate a valid energy file so downstream logic still works.
+        src = os.path.join(str(ehull_dir), config[CK.ENERGY_DAT_OUT])
+        with open(src) as f:
+            data = f.read()
+        with open(src, "w") as f:
+            f.write(data)
+        return _Result()
+
+    monkeypatch.setattr(ehull_mod.subprocess, "run", fake_run)
+
+    out_path = Path(cmd_calculate_ehull(config, gather_energy=True))
+
+    assert "grep 'F='" in captured["cmd"]
+    assert captured["shell"] is True
+    assert out_path == ehull_dir / "hull.dat"
+
+
+def test_calculate_ehull_gather_energy_failure_logs_critical(
+    ehull_env: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A non-zero return code from the gather command logs a critical message.
+
+    Parameters
+    ----------
+    ehull_env : dict
+        Fixture providing the extracted directory and config.
+    monkeypatch : pytest.MonkeyPatch
+        Used to intercept the subprocess call and logger.
+    """
+    from parsl_tasks import ehull as ehull_mod
+    from parsl_tasks.ehull import cmd_calculate_ehull
+
+    config = ehull_env["config"]
+
+    class _Result:
+        returncode = 1
+
+    monkeypatch.setattr(ehull_mod.subprocess, "run", lambda cmd, shell=False: _Result())
+
+    critical = mock.MagicMock()
+    monkeypatch.setattr(ehull_mod.amd_logger, "critical", critical)
+
+    cmd_calculate_ehull(config, gather_energy=True)
+
+    assert critical.called
+
+
+def test_calculate_ehull_mp_stable_missing_logs_critical(
+    ehull_env: dict[str, Any], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A missing mp_stable_file (in both locations) logs a critical message.
+
+    Parameters
+    ----------
+    ehull_env : dict
+        Fixture providing the extracted directory and config.
+    monkeypatch : pytest.MonkeyPatch
+        Used to intercept the logger.
+    tmp_path : pathlib.Path
+        Pytest-provided temporary directory.
+    """
+    from parsl_tasks import ehull as ehull_mod
+    from parsl_tasks.ehull import cmd_calculate_ehull
+
+    work = tmp_path / "work"
+    out = tmp_path / "out"
+    work.mkdir()
+    out.mkdir()
+
+    # Provide an empty energy file so read_energies has something to read.
+    (work / "energy.dat").write_text("")
+
+    config = {
+        CK.ELEMENTS: "Na-B-C",
+        CK.VASP_WORK_DIR: str(work),
+        CK.ENERGY_DAT_OUT: "energy.dat",
+        CK.POST_PROCESSING_OUT_DIR: str(out),
+        CK.MP_STABLE_OUT: "does_not_exist.dat",
+    }
+
+    critical = mock.MagicMock()
+    monkeypatch.setattr(ehull_mod.amd_logger, "critical", critical)
+
+    # Source logs a critical message then continues; the subsequent
+    # parse step raises because the file is genuinely absent.
+    with pytest.raises(FileNotFoundError):
+        cmd_calculate_ehull(config, gather_energy=False)
+
+    assert critical.called
+
+
+@pytest.fixture(scope="module")
+def ehull_quaternary_env(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> dict[str, Any]:
+    """Reuse the ternary fixture archive but drive the quaternary branch.
+
+    Parameters
+    ----------
+    tmp_path_factory : pytest.TempPathFactory
+        Factory used to create a module-scoped temporary directory.
+
+    Returns
+    -------
+    dict
+        Mapping with ``ehull_dir`` and a 4-element ``config``.
+    """
+    tmp = tmp_path_factory.mktemp("ehull_quaternary_fixture")
+    tar_path = Path(__file__).parent / "post_processing.tar"
+
+    with tarfile.open(tar_path) as tar:
+        try:
+            tar.extractall(path=tmp, filter="data")
+        except TypeError:
+            tar.extractall(path=tmp)
+
+    ehull_dir = tmp / "post_processing"
+
+    config = {
+        CK.ELEMENTS: "Na-B-C-Fe",
+        CK.VASP_WORK_DIR: str(ehull_dir),
+        CK.ENERGY_DAT_OUT: "energy.dat",
+        CK.POST_PROCESSING_OUT_DIR: str(ehull_dir),
+        CK.MP_STABLE_OUT: "mp_int_stable.dat",
+    }
+    return {"ehull_dir": ehull_dir, "config": config}
+
+
+def test_calculate_ehull_quaternary_branch(
+    ehull_quaternary_env: dict[str, Any],
+) -> None:
+    """The quaternary path returns the hull path (or early-exits gracefully).
+
+    Parameters
+    ----------
+    ehull_quaternary_env : dict
+        Fixture providing the extracted directory and 4-element config.
+    """
+    from parsl_tasks.ehull import cmd_calculate_ehull
+
+    ehull_dir = ehull_quaternary_env["ehull_dir"]
+    config = ehull_quaternary_env["config"]
+
+    out_path = Path(cmd_calculate_ehull(config, gather_energy=False))
+
+    # The quaternary branch always returns the hull.dat path.
+    assert out_path == ehull_dir / "hull.dat"
