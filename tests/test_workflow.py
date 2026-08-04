@@ -1,10 +1,10 @@
-import sys
-import pytest
-import tarfile
 import os
 import shutil
-import random
+import sys
+import tarfile
 from pathlib import Path
+
+import pytest
 
 # Ensure repo root is importable
 REPO_ROOT = Path(__file__).parent.parent.resolve()
@@ -13,9 +13,21 @@ if str(REPO_ROOT) not in sys.path:
 
 
 @pytest.fixture(scope="module")
-def cgcnn_output(tmp_path_factory):
-    """
-    runs the cgcnn prediction and returns paths for follow-up tests.
+def cgcnn_output(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> dict[str, Path]:
+    """Run the CGCNN prediction and return paths for follow-up tests.
+
+    Parameters
+    ----------
+    tmp_path_factory : pytest.TempPathFactory
+        Pytest factory for module-scoped temporary directories.
+
+    Returns
+    -------
+    dict of str to pathlib.Path
+        A mapping with keys ``"csv"`` (predictions CSV path), ``"structures"``
+        (extracted structures directory), and ``"base"`` (working directory).
     """
     tmp_path = tmp_path_factory.mktemp("cgcnn_test")
     archive_path = Path(__file__).parent / "test_structures.tar"
@@ -62,16 +74,21 @@ def cgcnn_output(tmp_path_factory):
     return {
         "csv": cgcnn_output_csv,
         "structures": test_structures_dir,
-        "base": tmp_path
+        "base": tmp_path,
     }
 
 
-def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
+def test_cgcnn_reproducible_predictions(
+    cgcnn_output: dict[str, Path],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """
     Run predict_cgcnn 5 times and check predictions are consistent between test runs.
     """
     import os
     from pathlib import Path
+
     import ml_models.cgcnn as cgcnn_pkg
     from ml_models.cgcnn.predict import predict_cgcnn
 
@@ -114,10 +131,12 @@ def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
     first = outputs[0]
     for j, cur in enumerate(outputs[1:], start=2):
         for k in first:
-            assert abs(first[k] - cur[k]) <= 1e-6, f"Unstable CGCNN prediction for {k} on run {j}"
+            assert abs(first[k] - cur[k]) <= 1e-6, (
+                f"Unstable CGCNN prediction for {k} on run {j}"
+            )
 
 
-def test_select_structure(cgcnn_output):
+def test_select_structure(cgcnn_output: dict[str, Path]) -> None:
     """
     test select structures using the callable (no subprocess, no cms_dir)
     """

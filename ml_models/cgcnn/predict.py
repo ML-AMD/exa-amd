@@ -1,6 +1,18 @@
-# Crystal Graph Convolutional Neural Network (CGCNN) prediction script
-# Refactored to avoid global variables. Provides both a CLI and a callable
-# function `predict_cgcnn` to run inference on CIF files with a pretrained CGCNN.
+"""Crystal Graph Convolutional Neural Network (CGCNN) prediction module.
+
+This module provides inference utilities for a pretrained CGCNN model. It
+exposes a command-line interface as well as a callable :func:`predict_cgcnn`
+function to run predictions on a directory of CIF files.
+
+The public API consists of:
+
+* :func:`predict_cgcnn` -- run inference and write predictions to a CSV file.
+* :class:`Normalizer` -- normalize/denormalize target tensors.
+* :class:`AverageMeter` -- track running averages of metrics.
+* :func:`mae` -- mean absolute error metric.
+* :func:`class_eval` -- classification evaluation metrics.
+* :func:`save_checkpoint` -- persist a model checkpoint to disk.
+"""
 
 import argparse
 import os
@@ -8,12 +20,12 @@ import shutil
 import sys
 import time
 from types import SimpleNamespace
-from typing import Optional, Tuple
+from typing import Any
 
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn import metrics
+from sklearn import metrics  # type: ignore[import-untyped]
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
@@ -29,10 +41,34 @@ def predict_cgcnn(
     disable_cuda: bool = False,
     print_freq: int = 10,
     chunk_id: int = 1,
-    output_csv: Optional[str] = None,
+    output_csv: str | None = None,
 ) -> str:
-    """
-    Callable wrapper that prepares config and runs inference; returns CSV path.
+    """Run CGCNN inference on a directory of CIF files.
+
+    Parameters
+    ----------
+    modelpath : str
+        Path to the trained model checkpoint (``.pth.tar``).
+    cifpath : str
+        Path to the directory containing CIF files.
+    batch_size : int, optional
+        Mini-batch size used by the data loader.
+    workers : int, optional
+        Number of data-loading worker processes.
+    disable_cuda : bool, optional
+        If ``True``, force CPU inference even if CUDA is available.
+    print_freq : int, optional
+        Frequency (in batches) at which progress is printed.
+    chunk_id : int, optional
+        1-based chunk index used to derive the default output filename.
+    output_csv : str or None, optional
+        Optional explicit output CSV path. When ``None``, defaults to
+        ``test_results_{chunk_id}.csv``.
+
+    Returns
+    -------
+    str
+        The absolute path to the written CSV file of predictions.
     """
     if output_csv is None:
         output_csv = f"test_results_{chunk_id}.csv"
@@ -61,7 +97,9 @@ def _load_model_args(modelpath: str) -> SimpleNamespace:
     """Load model hyperparameters from checkpoint; fall back to defaults."""
     if os.path.isfile(modelpath):
         print(f"=> loading model params '{modelpath}'")
-        model_checkpoint = torch.load(modelpath, map_location=lambda storage, loc: storage)
+        model_checkpoint = torch.load(
+            modelpath, map_location=lambda storage, loc: storage
+        )
         # Checkpoint is expected to have an "args" dict-like payload
         model_args = SimpleNamespace(**model_checkpoint["args"])
         print(f"=> loaded model params '{modelpath}'")
@@ -71,7 +109,9 @@ def _load_model_args(modelpath: str) -> SimpleNamespace:
     return model_args
 
 
-def _build_model(dataset: CIFData, model_args: SimpleNamespace, use_cuda: bool) -> Tuple[nn.Module, int, int]:
+def _build_model(
+    dataset: CIFData, model_args: SimpleNamespace, use_cuda: bool
+) -> tuple[nn.Module, int, int]:
     structures, _, _ = dataset[0]
     orig_atom_fea_len = structures[0].shape[-1]
     nbr_fea_len = structures[1].shape[-1]
@@ -89,8 +129,8 @@ def _build_model(dataset: CIFData, model_args: SimpleNamespace, use_cuda: bool) 
     return model, orig_atom_fea_len, nbr_fea_len
 
 
-def _run(args: SimpleNamespace, model_args: SimpleNamespace):
-    """Main evaluation entry. Returns (metric_value, csv_path)."""
+def _run(args: SimpleNamespace, model_args: SimpleNamespace) -> tuple[float, str]:
+    """Run the main evaluation and return the metric value and CSV path."""
     dataset = CIFData(args.cifpath)
     test_loader = DataLoader(
         dataset,
@@ -108,7 +148,9 @@ def _run(args: SimpleNamespace, model_args: SimpleNamespace):
 
     if os.path.isfile(args.modelpath):
         print(f"=> loading model '{args.modelpath}'")
-        checkpoint = torch.load(args.modelpath, map_location=lambda storage, loc: storage)
+        checkpoint = torch.load(
+            args.modelpath, map_location=lambda storage, loc: storage
+        )
         model.load_state_dict(checkpoint["state_dict"])
         normalizer.load_state_dict(checkpoint["normalizer"])
         print(
@@ -118,19 +160,21 @@ def _run(args: SimpleNamespace, model_args: SimpleNamespace):
     else:
         print(f"=> no model found at '{args.modelpath}'")
 
-    metric = _validate(args, model_args, test_loader, model, criterion, normalizer, test=True)
+    metric = _validate(
+        args, model_args, test_loader, model, criterion, normalizer, test=True
+    )
     return metric, args.output_csv
 
 
 def _validate(
     args: SimpleNamespace,
     model_args: SimpleNamespace,
-    val_loader,
-    model,
-    criterion,
-    normalizer,
+    val_loader: DataLoader,
+    model: nn.Module,
+    criterion: nn.Module,
+    normalizer: "Normalizer",
     test: bool = False,
-):
+) -> float:
     """Run evaluation loop; write predictions if test=True. Returns main metric."""
     batch_time = AverageMeter()
     losses = AverageMeter()
@@ -170,7 +214,9 @@ def _validate(
             target_normed = target.view(-1).long()
 
         with torch.no_grad():
-            target_var = target_normed.cuda(non_blocking=True) if args.cuda else target_normed
+            target_var = (
+                target_normed.cuda(non_blocking=True) if args.cuda else target_normed
+            )
 
         output = model(*input_var)
         loss = criterion(output, target_var)
@@ -185,7 +231,9 @@ def _validate(
                 test_preds += test_pred.view(-1).tolist()
                 test_cif_ids += batch_cif_ids
         else:
-            accuracy, precision, recall, fscore, auc_score = class_eval(output.data.cpu(), target)
+            accuracy, precision, recall, fscore, auc_score = class_eval(
+                output.data.cpu(), target
+            )
             losses.update(loss.data.cpu().item(), target.size(0))
             accuracies.update(accuracy, target.size(0))
             precisions.update(precision, target.size(0))
@@ -224,9 +272,12 @@ def _validate(
 
     if test:
         import csv
+
         with open(args.output_csv, "w") as f:
             writer = csv.writer(f)
-            for cif_id, target, pred in zip(test_cif_ids, test_targets, test_preds):
+            for cif_id, target, pred in zip(
+                test_cif_ids, test_targets, test_preds, strict=True
+            ):
                 writer.writerow((cif_id, target, pred))
 
     if model_args.task == "regression":
@@ -240,34 +291,77 @@ def _validate(
 class Normalizer(object):
     """Normalize a Tensor and restore it later."""
 
-    def __init__(self, tensor):
-        """tensor is taken as a sample to calculate the mean and std"""
+    def __init__(self, tensor: torch.Tensor) -> None:
+        """Initialize from a sample tensor to compute mean and std.
+
+        Parameters
+        ----------
+        tensor : torch.Tensor
+            Sample tensor used to compute the mean and standard deviation
+            for normalization.
+        """
         self.mean = torch.mean(tensor)
         self.std = torch.std(tensor)
 
-    def norm(self, tensor):
+    def norm(self, tensor: torch.Tensor) -> torch.Tensor:
+        """Normalize ``tensor`` using the stored mean and std."""
         return (tensor - self.mean) / self.std
 
-    def denorm(self, normed_tensor):
+    def denorm(self, normed_tensor: torch.Tensor) -> torch.Tensor:
+        """Restore ``normed_tensor`` to the original scale."""
         return normed_tensor * self.std + self.mean
 
-    def state_dict(self):
+    def state_dict(self) -> dict[str, torch.Tensor]:
+        """Return the normalizer state as a serializable dict."""
         return {"mean": self.mean, "std": self.std}
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: dict[str, torch.Tensor]) -> None:
+        """Load normalizer state from ``state_dict``."""
         self.mean = state_dict["mean"]
         self.std = state_dict["std"]
 
 
-def mae(prediction, target):
-    """Compute mean absolute error between prediction and target tensors."""
+def mae(prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    """Compute mean absolute error between prediction and target tensors.
+
+    Parameters
+    ----------
+    prediction : torch.Tensor
+        Predicted values.
+    target : torch.Tensor
+        Ground-truth values.
+
+    Returns
+    -------
+    torch.Tensor
+        A scalar tensor containing the mean absolute error.
+    """
     return torch.mean(torch.abs(target - prediction))
 
 
-def class_eval(prediction, target):
-    """Evaluate classification predictions with accuracy, precision, recall, F1, and AUC."""
-    prediction = np.exp(prediction.numpy())
-    target = target.numpy()
+def class_eval(
+    prediction: torch.Tensor, target: torch.Tensor
+) -> tuple[float, float, float, float, float]:
+    """Evaluate classification predictions.
+
+    Parameters
+    ----------
+    prediction : torch.Tensor
+        Log-probability predictions of shape ``(N, 2)``.
+    target : torch.Tensor
+        Ground-truth labels.
+
+    Returns
+    -------
+    tuple of float
+        A tuple ``(accuracy, precision, recall, fscore, auc_score)``.
+
+    Raises
+    ------
+    NotImplementedError
+        If the number of classes is not 2.
+    """
+    prediction = torch.exp(prediction)
     pred_label = np.argmax(prediction, axis=1)
     target_label = np.squeeze(target)
     if prediction.shape[1] == 2:
@@ -288,20 +382,42 @@ class AverageMeter(object):
         self.reset()
 
     def reset(self):
+        """Reset all accumulated statistics to zero."""
         self.val = 0
         self.avg = 0
         self.sum = 0
         self.count = 0
 
-    def update(self, val, n=1):
+    def update(self, val: float | torch.Tensor, n: int = 1) -> None:
+        """Update the meter with a new value.
+
+        Parameters
+        ----------
+        val : float
+            The new value to record.
+        n : int, optional
+            The number of samples the value represents.
+        """
         self.val = val
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
 
 
-def save_checkpoint(state, is_best, filename="checkpoint.pth.tar"):
-    """Save model checkpoint to file."""
+def save_checkpoint(
+    state: dict[str, Any], is_best: bool, filename: str = "checkpoint.pth.tar"
+) -> None:
+    """Save a model checkpoint to disk.
+
+    Parameters
+    ----------
+    state : dict
+        The checkpoint payload to serialize.
+    is_best : bool
+        If ``True``, also copy the checkpoint to ``model_best.pth.tar``.
+    filename : str, optional
+        Destination path for the checkpoint file.
+    """
     torch.save(state, filename)
     if is_best:
         shutil.copyfile(filename, "model_best.pth.tar")
@@ -311,10 +427,21 @@ def _build_argparser():
     parser = argparse.ArgumentParser(description="Crystal gated neural networks")
     parser.add_argument("modelpath", help="path to the trained model.")
     parser.add_argument("cifpath", help="path to the directory of CIF files.")
-    parser.add_argument("-b", "--batch-size", default=256, type=int, metavar="N", help="mini-batch size")
-    parser.add_argument("-j", "--workers", default=0, type=int, metavar="N", help="number of data loading workers")
+    parser.add_argument(
+        "-b", "--batch-size", default=256, type=int, metavar="N", help="mini-batch size"
+    )
+    parser.add_argument(
+        "-j",
+        "--workers",
+        default=0,
+        type=int,
+        metavar="N",
+        help="number of data loading workers",
+    )
     parser.add_argument("--disable-cuda", action="store_true", help="Disable CUDA")
-    parser.add_argument("--print-freq", "-p", default=10, type=int, metavar="N", help="print frequency")
+    parser.add_argument(
+        "--print-freq", "-p", default=10, type=int, metavar="N", help="print frequency"
+    )
     parser.add_argument("--chunk_id", type=int, default=1, help="Chunk index (1-based)")
     parser.add_argument("--output-csv", default=None, help="Optional output CSV path")
     return parser
