@@ -283,7 +283,7 @@ def test_select_structures_for_compositions_dedup(tmp_path: Path) -> None:
     )
     struct_a_dup = struct_a.copy()
     struct_b = Structure(
-        Lattice.cubic(3.0), ["Fe", "Mg"], np.array([[0, 0, 0], [0.25, 0.25, 0.25]])
+        Lattice.cubic(3.0), ["Fe", "Al"], np.array([[0, 0, 0], [0.15, 0.15, 0.15]])
     )
 
     structures = [
@@ -304,7 +304,7 @@ def test_select_structures_for_compositions_dedup(tmp_path: Path) -> None:
 
     assert composition == "FeAl"
     assert len(selected) == 2
-    # Lowest-Ef of the duplicate pair (1_0) plus the distinct structure (1_2)
+    # Lowest-Ef of the duplicate pair (1_1) plus the distinct structure (1_2)
     assert selected_indices == {"1_1", "1_2"}
 
 
