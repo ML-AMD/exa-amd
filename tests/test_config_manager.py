@@ -450,3 +450,130 @@ def test_collect_batch_ids_removes_stale_potcar(tmp_path: Path) -> None:
 
     assert result == [1]
     assert not stale_potcar.exists()
+
+
+def _build_config_manager(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, overrides: Dict[str, Any]
+) -> ConfigManager:
+    """Construct a :class:`ConfigManager` from ``valid_config`` plus overrides.
+
+    Parameters
+    ----------
+    tmp_path : pathlib.Path
+        Directory used for the config file and working directories.
+    monkeypatch : pytest.MonkeyPatch
+        Used to patch ``sys.argv``.
+    overrides : dict
+        Keys to override in the base valid configuration.
+
+    Returns
+    -------
+    ConfigManager
+        A fully initialized configuration manager.
+    """
+    data = valid_config.copy()
+    data.update(overrides)
+    config_file = _write_config(tmp_path, data)
+    monkeypatch.setattr(sys, "argv", ["exa_amd.py", "--config", str(config_file)])
+    return ConfigManager()
+
+
+def _write_element_potcars(pot_dir: Path, elements: list[str]) -> None:
+    """Create per-element ``POTCAR`` files under ``pot_dir``.
+
+    Parameters
+    ----------
+    pot_dir : pathlib.Path
+        Root PAW potentials directory.
+    elements : list[str]
+        Element symbols for which to create ``<el>/POTCAR`` files.
+    """
+    for el in elements:
+        el_dir = pot_dir / el
+        el_dir.mkdir(parents=True)
+        (el_dir / "POTCAR").write_text(f"POTCAR-{el}\n")
+
+
+def test_create_potcar_concatenates_elements(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``_create_potcar`` concatenates per-element POTCARs into one file.
+
+    Parameters
+    ----------
+    tmp_path : pathlib.Path
+        Pytest-provided temporary directory.
+    monkeypatch : pytest.MonkeyPatch
+        Used to patch ``sys.argv``.
+    """
+    elements = ["Ce", "Co", "B"]
+    pot_dir = tmp_path / "pot"
+    _write_element_potcars(pot_dir, elements)
+
+    config = _build_config_manager(
+        tmp_path,
+        monkeypatch,
+        {
+            CK.ELEMENTS: "-".join(elements),
+            CK.POT_DIR: str(pot_dir),
+            CK.WORK_DIR: str(tmp_path / "work"),
+            CK.VASP_WORK_DIR: str(tmp_path / "vasp"),
+        },
+    )
+
+    config._create_potcar()
+
+    out = Path(config[CK.WORK_DIR]) / "POTCAR"
+    assert out.exists(), "Concatenated POTCAR was not created"
+    assert out.read_text() == "POTCAR-Ce\nPOTCAR-Co\nPOTCAR-B\n"
+
+
+def test_setup_vasp_calculations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``setup_vasp_calculations`` records the batch and stages POTCAR.
+
+    Parameters
+    ----------
+    tmp_path : pathlib.Path
+        Pytest-provided temporary directory.
+    monkeypatch : pytest.MonkeyPatch
+        Used to patch ``sys.argv``.
+
+    Notes
+    -----
+    Verifies the scheduled id list is stored under ``CK.VASP_ID_STRUCT_LIST``
+    and a concatenated POTCAR is written to the work directory.
+    """
+    elements = ["Ce", "Co", "B"]
+    pot_dir = tmp_path / "pot"
+    _write_element_potcars(pot_dir, elements)
+
+    config = _build_config_manager(
+        tmp_path,
+        monkeypatch,
+        {
+            CK.ELEMENTS: "-".join(elements),
+            CK.POT_DIR: str(pot_dir),
+            CK.WORK_DIR: str(tmp_path / "work"),
+            CK.VASP_WORK_DIR: str(tmp_path / "vasp"),
+            CK.NUM_STRS: -1,
+        },
+    )
+
+    # Create POSCAR inputs in the select-structures output directory.
+    structure_dir = Path(config[CK.WORK_DIR]) / CK.SELECT_STRUCT_OUTPUT
+    _make_poscar_dir(structure_dir.parent, [1, 2, 3])
+    # _make_poscar_dir creates "<parent>/structures"; align with expected path
+    # if SELECT_STRUCT_OUTPUT differs, create directly instead:
+    if not structure_dir.exists():
+        structure_dir.mkdir(parents=True)
+        for i in [1, 2, 3]:
+            (structure_dir / f"POSCAR_{i}").write_text("POSCAR")
+
+    config.setup_vasp_calculations()
+
+    assert config[CK.VASP_ID_STRUCT_LIST] == [1, 2, 3]
+    out = Path(config[CK.WORK_DIR]) / "POTCAR"
+    assert out.exists(), "Concatenated POTCAR was not created"
+    assert out.read_text() == "POTCAR-Ce\nPOTCAR-Co\nPOTCAR-B\n"
