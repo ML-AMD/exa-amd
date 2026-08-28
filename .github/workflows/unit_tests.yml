@@ -28,6 +28,12 @@ jobs:
           auto-activate-base: false
           use-mamba: true
 
+      - name: Debug setuptools
+        shell: bash -l {0}
+        run: |
+          conda run -n amd_env python -c "import setuptools; print(setuptools.__version__)"
+          conda run -n amd_env python -c "import pkg_resources; print('pkg_resources OK')"
+
       - name: Run pytest
         shell: bash -l {0}
         env:
