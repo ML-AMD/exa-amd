@@ -5,6 +5,7 @@ channels:
     - defaults
 dependencies:
     - python >= 3.10
+    - setuptools
     - numpy
     - scikit-learn >= 1.6.1
     - pytorch >= 2.2.2
