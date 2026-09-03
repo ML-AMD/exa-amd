@@ -1,3 +1,12 @@
+"""Tests for :mod:`ml_models.cgcnn.data`.
+
+These tests cover the CGCNN data utilities: the train/val/test data-loader
+splitter (:func:`get_train_val_test_loader`), the atom feature initializers
+(:class:`AtomInitializer`, :class:`AtomCustomJSONInitializer`), the Gaussian
+distance expansion (:class:`GaussianDistance`), the batch collation helper
+(:func:`collate_pool`), and the :class:`CIFData` dataset.
+"""
+
 import csv
 import json
 import os
@@ -19,24 +28,49 @@ from ml_models.cgcnn.data import (
 
 
 class DummyDataset(Dataset):
-    """Simple dataset for testing purposes."""
+    """Simple dataset for testing purposes.
 
-    def __init__(self, size=100):
+    Parameters
+    ----------
+    size : int, optional
+        Number of samples in the dataset. Default is ``100``.
+    """
+
+    def __init__(self, size: int = 100) -> None:
         self.size = size
         self.data = torch.randn(size, 10)
         self.targets = torch.randn(size, 1)
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return the number of samples.
+
+        Returns
+        -------
+        int
+            The dataset size.
+        """
         return self.size
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return the ``(data, target)`` pair at ``idx``.
+
+        Parameters
+        ----------
+        idx : int
+            Sample index.
+
+        Returns
+        -------
+        tuple of torch.Tensor
+            The feature tensor and target tensor.
+        """
         return self.data[idx], self.targets[idx]
 
 
 class TestGetTrainValTestLoader:
     """Test suite for get_train_val_test_loader function."""
 
-    def test_basic_split_without_test(self):
+    def test_basic_split_without_test(self) -> None:
         """Test basic train/val split without returning test loader."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader = get_train_val_test_loader(
@@ -48,7 +82,7 @@ class TestGetTrainValTestLoader:
         assert len(train_loader.sampler) == 80  # 80% of 100
         assert len(val_loader.sampler) == 10  # 10% of 100
 
-    def test_basic_split_with_test(self):
+    def test_basic_split_with_test(self) -> None:
         """Test train/val/test split with test loader returned."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader, test_loader = get_train_val_test_loader(
@@ -62,7 +96,7 @@ class TestGetTrainValTestLoader:
         assert len(val_loader.sampler) == 10
         assert len(test_loader.sampler) == 10
 
-    def test_explicit_train_ratio(self):
+    def test_explicit_train_ratio(self) -> None:
         """Test with explicitly specified train_ratio."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader = get_train_val_test_loader(
@@ -77,7 +111,7 @@ class TestGetTrainValTestLoader:
         assert len(train_loader.sampler) == 70
         assert len(val_loader.sampler) == 20
 
-    def test_custom_train_size(self):
+    def test_custom_train_size(self) -> None:
         """Test with custom train_size parameter."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader = get_train_val_test_loader(
@@ -91,7 +125,7 @@ class TestGetTrainValTestLoader:
 
         assert len(train_loader.sampler) == 50
 
-    def test_custom_val_size(self):
+    def test_custom_val_size(self) -> None:
         """Test with custom val_size parameter."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader = get_train_val_test_loader(
@@ -105,7 +139,7 @@ class TestGetTrainValTestLoader:
 
         assert len(val_loader.sampler) == 15
 
-    def test_custom_test_size(self):
+    def test_custom_test_size(self) -> None:
         """Test with custom test_size parameter."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader, test_loader = get_train_val_test_loader(
@@ -119,7 +153,7 @@ class TestGetTrainValTestLoader:
 
         assert len(test_loader.sampler) == 20
 
-    def test_all_custom_sizes(self):
+    def test_all_custom_sizes(self) -> None:
         """Test with all custom size parameters."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader, test_loader = get_train_val_test_loader(
@@ -135,7 +169,7 @@ class TestGetTrainValTestLoader:
         assert len(val_loader.sampler) == 20
         assert len(test_loader.sampler) == 20
 
-    def test_batch_size(self):
+    def test_batch_size(self) -> None:
         """Test that batch_size is correctly applied."""
         dataset = DummyDataset(size=100)
         train_loader, _ = get_train_val_test_loader(
@@ -144,7 +178,7 @@ class TestGetTrainValTestLoader:
 
         assert train_loader.batch_size == 32
 
-    def test_num_workers(self):
+    def test_num_workers(self) -> None:
         """Test that num_workers is correctly applied."""
         dataset = DummyDataset(size=100)
         train_loader, _ = get_train_val_test_loader(
@@ -158,7 +192,7 @@ class TestGetTrainValTestLoader:
 
         assert train_loader.num_workers == 2
 
-    def test_pin_memory(self):
+    def test_pin_memory(self) -> None:
         """Test that pin_memory is correctly applied."""
         dataset = DummyDataset(size=100)
         train_loader, _ = get_train_val_test_loader(
@@ -172,10 +206,10 @@ class TestGetTrainValTestLoader:
 
         assert train_loader.pin_memory is True
 
-    def test_custom_collate_fn(self):
+    def test_custom_collate_fn(self) -> None:
         """Test with custom collate function."""
 
-        def custom_collate(batch):
+        def custom_collate(batch: list) -> list:
             return batch
 
         dataset = DummyDataset(size=100)
@@ -190,7 +224,7 @@ class TestGetTrainValTestLoader:
 
         assert train_loader.collate_fn == custom_collate
 
-    def test_ratios_sum_validation(self):
+    def test_ratios_sum_validation(self) -> None:
         """Test that ratios summing to more than 1 raises assertion."""
         dataset = DummyDataset(size=100)
 
@@ -203,7 +237,7 @@ class TestGetTrainValTestLoader:
                 return_test=False,
             )
 
-    def test_train_ratio_none_validation(self):
+    def test_train_ratio_none_validation(self) -> None:
         """Test that val_ratio + test_ratio must be < 1 when train_ratio is None."""
         dataset = DummyDataset(size=100)
 
@@ -216,7 +250,7 @@ class TestGetTrainValTestLoader:
                 return_test=False,
             )
 
-    def test_small_dataset(self):
+    def test_small_dataset(self) -> None:
         """Test with a very small dataset."""
         dataset = DummyDataset(size=10)
         train_loader, val_loader = get_train_val_test_loader(
@@ -226,7 +260,7 @@ class TestGetTrainValTestLoader:
         assert len(train_loader.sampler) == 8
         assert len(val_loader.sampler) == 1
 
-    def test_loader_iteration(self):
+    def test_loader_iteration(self) -> None:
         """Test that loaders can be iterated over."""
         dataset = DummyDataset(size=50)
         train_loader, val_loader = get_train_val_test_loader(
@@ -245,7 +279,7 @@ class TestGetTrainValTestLoader:
         assert data.shape[0] <= 8  # batch_size or less for last batch
         assert target.shape[0] <= 8
 
-    def test_zero_test_ratio(self):
+    def test_zero_test_ratio(self) -> None:
         """Test with test_ratio=0 to cover edge case in val_sampler slicing."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader = get_train_val_test_loader(
@@ -255,7 +289,9 @@ class TestGetTrainValTestLoader:
         assert len(train_loader.sampler) == 80
         assert len(val_loader.sampler) == 20
 
-    def test_train_ratio_none_with_warning(self, capsys):
+    def test_train_ratio_none_with_warning(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         """Test that train_ratio=None prints warning message."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader = get_train_val_test_loader(
@@ -271,7 +307,7 @@ class TestGetTrainValTestLoader:
         assert "[Warning] train_ratio is None" in captured.out
         assert len(train_loader.sampler) == 80
 
-    def test_exact_ratio_sum(self):
+    def test_exact_ratio_sum(self) -> None:
         """Test when train_ratio + val_ratio + test_ratio equals exactly 1."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader, test_loader = get_train_val_test_loader(
@@ -287,7 +323,7 @@ class TestGetTrainValTestLoader:
         assert len(val_loader.sampler) == 20
         assert len(test_loader.sampler) == 10
 
-    def test_return_test_with_zero_test_size(self):
+    def test_return_test_with_zero_test_size(self) -> None:
         """Test return_test=True with test_size=0."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader, test_loader = get_train_val_test_loader(
@@ -303,7 +339,7 @@ class TestGetTrainValTestLoader:
         assert len(val_loader.sampler) == 20
         assert len(test_loader.sampler) == 0
 
-    def test_nonzero_test_with_explicit_sizes(self):
+    def test_nonzero_test_with_explicit_sizes(self) -> None:
         """Test with small nonzero test_size to ensure val_sampler works correctly."""
         dataset = DummyDataset(size=100)
         train_loader, val_loader, test_loader = get_train_val_test_loader(
@@ -323,20 +359,20 @@ class TestGetTrainValTestLoader:
 class TestAtomInitializer:
     """Test suite for AtomInitializer class."""
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test AtomInitializer initialization."""
         atom_types = [1, 6, 8]
         initializer = AtomInitializer(atom_types)
         assert initializer.atom_types == set(atom_types)
         assert initializer._embedding == {}
 
-    def test_get_atom_fea_assertion(self):
+    def test_get_atom_fea_assertion(self) -> None:
         """Test that getting feature for unknown atom raises assertion."""
         initializer = AtomInitializer([1, 6, 8])
         with pytest.raises(AssertionError):
             initializer.get_atom_fea(7)
 
-    def test_state_dict_operations(self):
+    def test_state_dict_operations(self) -> None:
         """Test state_dict and load_state_dict."""
         initializer = AtomInitializer([1, 6, 8])
         state = {1: 0, 6: 1, 8: 2}
@@ -345,7 +381,7 @@ class TestAtomInitializer:
         assert initializer.state_dict() == state
         assert initializer.atom_types == {1, 6, 8}
 
-    def test_decode(self):
+    def test_decode(self) -> None:
         """Test decode method."""
         initializer = AtomInitializer([1, 6, 8])
         state = {1: 0, 6: 1, 8: 2}
@@ -355,7 +391,7 @@ class TestAtomInitializer:
         assert initializer.decode(1) == 6
         assert initializer.decode(2) == 8
 
-    def test_decode_builds_decode_dict(self):
+    def test_decode_builds_decode_dict(self) -> None:
         """Test that decode builds _decodedict on first call."""
         initializer = AtomInitializer([1, 6])
         initializer._embedding = {1: 0, 6: 1}
@@ -371,7 +407,7 @@ class TestAtomInitializer:
 class TestAtomCustomJSONInitializer:
     """Test suite for AtomCustomJSONInitializer class."""
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test AtomCustomJSONInitializer with JSON file."""
         # Create temporary JSON file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -393,18 +429,18 @@ class TestAtomCustomJSONInitializer:
 class TestGaussianDistance:
     """Test suite for GaussianDistance class."""
 
-    def test_initialization(self):
+    def test_initialization(self) -> None:
         """Test GaussianDistance initialization."""
         gd = GaussianDistance(dmin=0, dmax=6, step=0.2)
         assert len(gd.filter) == 31  # (6-0)/0.2 + 1
         assert gd.var == 0.2
 
-    def test_initialization_with_custom_var(self):
+    def test_initialization_with_custom_var(self) -> None:
         """Test GaussianDistance with custom variance."""
         gd = GaussianDistance(dmin=0, dmax=6, step=0.2, var=0.5)
         assert gd.var == 0.5
 
-    def test_initialization_assertions(self):
+    def test_initialization_assertions(self) -> None:
         """Test GaussianDistance initialization assertions."""
         with pytest.raises(AssertionError):
             GaussianDistance(dmin=6, dmax=0, step=0.2)
@@ -412,7 +448,7 @@ class TestGaussianDistance:
         with pytest.raises(AssertionError):
             GaussianDistance(dmin=0, dmax=0.1, step=0.2)
 
-    def test_expand(self):
+    def test_expand(self) -> None:
         """Test Gaussian distance expansion."""
         gd = GaussianDistance(dmin=0, dmax=4, step=1.0)
         distances = np.array([1.0, 2.0, 3.0])
@@ -421,7 +457,7 @@ class TestGaussianDistance:
         assert expanded.shape == (3, 5)  # 3 distances, 5 filter points
         assert expanded.dtype == np.float64
 
-    def test_expand_2d(self):
+    def test_expand_2d(self) -> None:
         """Test Gaussian expansion with 2D array."""
         gd = GaussianDistance(dmin=0, dmax=4, step=1.0)
         distances = np.array([[1.0, 2.0], [3.0, 4.0]])
@@ -433,7 +469,7 @@ class TestGaussianDistance:
 class TestCollatePool:
     """Test suite for collate_pool function."""
 
-    def test_collate_pool(self):
+    def test_collate_pool(self) -> None:
         """Test collate_pool function."""
         # Create mock data
         atom_fea_1 = torch.randn(3, 5)
@@ -464,7 +500,7 @@ class TestCollatePool:
         assert batch_target.shape == (2, 1)
         assert batch_cif_ids == ["cif_1", "cif_2"]
 
-    def test_collate_pool_index_offset(self):
+    def test_collate_pool_index_offset(self) -> None:
         """Test that collate_pool correctly offsets neighbor indices."""
         atom_fea_1 = torch.randn(3, 5)
         nbr_fea_1 = torch.randn(3, 12, 10)
@@ -494,14 +530,14 @@ class TestCollatePool:
 class TestGaussianDistanceExpandValues:
     """Value-level tests for GaussianDistance.expand."""
 
-    def test_expand_peak_at_filter(self):
+    def test_expand_peak_at_filter(self) -> None:
         """Distance equal to a filter point should produce a value of 1.0."""
         gd = GaussianDistance(dmin=0, dmax=4, step=1.0)
         expanded = gd.expand(np.array([0.0]))
         # First filter point is 0.0, so exp(0) == 1.0
         assert np.isclose(expanded[0, 0], 1.0)
 
-    def test_expand_monotonic_decay(self):
+    def test_expand_monotonic_decay(self) -> None:
         """Values should decay away from the matching filter point."""
         gd = GaussianDistance(dmin=0, dmax=4, step=1.0)
         expanded = gd.expand(np.array([0.0]))
@@ -512,8 +548,16 @@ class TestCIFData:
     """Test suite for the CIFData dataset."""
 
     @staticmethod
-    def _write_cif(path, cif_id):
-        """Write a minimal cubic NaCl-like CIF file."""
+    def _write_cif(path: str, cif_id: str) -> None:
+        """Write a minimal cubic NaCl-like CIF file.
+
+        Parameters
+        ----------
+        path : str
+            Directory in which to write the CIF file.
+        cif_id : str
+            Identifier used for both the ``data_`` block and file name.
+        """
         cif = f"""data_{cif_id}
 _cell_length_a 4.0
 _cell_length_b 4.0
@@ -535,36 +579,56 @@ Cl1 Cl 0.5 0.5 0.5
             f.write(cif)
 
     @staticmethod
-    def _write_atom_init(path, numbers, fea_len=4):
+    def _write_atom_init(path: str, numbers: list[int], fea_len: int = 4) -> None:
+        """Write an ``atom_init.json`` embedding file.
+
+        Parameters
+        ----------
+        path : str
+            Directory in which to write the file.
+        numbers : list of int
+            Atomic numbers to include in the embedding.
+        fea_len : int, optional
+            Length of each per-atom feature vector. Default is ``4``.
+        """
         embedding = {str(n): [float(i)] * fea_len for i, n in enumerate(numbers)}
         with open(os.path.join(path, "atom_init.json"), "w") as f:
             json.dump(embedding, f)
 
     @staticmethod
-    def _write_id_prop(path, rows):
+    def _write_id_prop(path: str, rows: list[list[str]]) -> None:
+        """Write an ``id_prop.csv`` manifest.
+
+        Parameters
+        ----------
+        path : str
+            Directory in which to write the file.
+        rows : list of list of str
+            Rows of ``[cif_id, target]`` values to write.
+        """
         with open(os.path.join(path, "id_prop.csv"), "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerows(rows)
 
-    def test_missing_root_dir(self):
+    def test_missing_root_dir(self) -> None:
         """Nonexistent root_dir should raise AssertionError."""
         with pytest.raises(AssertionError):
             CIFData("/nonexistent/path/for/testing")
 
-    def test_missing_id_prop(self):
+    def test_missing_id_prop(self) -> None:
         """Missing id_prop.csv should raise AssertionError."""
         with tempfile.TemporaryDirectory() as tmp:
             with pytest.raises(AssertionError):
                 CIFData(tmp)
 
-    def test_missing_atom_init(self):
+    def test_missing_atom_init(self) -> None:
         """Missing atom_init.json should raise AssertionError."""
         with tempfile.TemporaryDirectory() as tmp:
             self._write_id_prop(tmp, [["mat0", "1.0"]])
             with pytest.raises(AssertionError):
                 CIFData(tmp)
 
-    def test_len(self):
+    def test_len(self) -> None:
         """__len__ should reflect the number of entries in id_prop.csv."""
         with tempfile.TemporaryDirectory() as tmp:
             self._write_id_prop(tmp, [["m0", "1.0"], ["m1", "2.0"]])
@@ -574,7 +638,7 @@ Cl1 Cl 0.5 0.5 0.5
             dataset = CIFData(tmp, max_num_nbr=6, radius=6)
             assert len(dataset) == 2
 
-    def test_getitem_shapes(self):
+    def test_getitem_shapes(self) -> None:
         """__getitem__ should return correctly shaped tensors and cif_id."""
         with tempfile.TemporaryDirectory() as tmp:
             self._write_id_prop(tmp, [["m0", "3.5"]])
@@ -591,7 +655,7 @@ Cl1 Cl 0.5 0.5 0.5
             assert torch.isclose(target, torch.tensor([3.5]))
             assert cif_id == "m0"
 
-    def test_getitem_insufficient_neighbors_warns(self):
+    def test_getitem_insufficient_neighbors_warns(self) -> None:
         """Requesting more neighbors than available should warn and pad."""
         with tempfile.TemporaryDirectory() as tmp:
             self._write_id_prop(tmp, [["m0", "1.0"]])

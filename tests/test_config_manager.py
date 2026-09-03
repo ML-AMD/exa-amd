@@ -1,3 +1,11 @@
+"""Tests for :mod:`tools.config_manager`.
+
+These tests cover configuration loading and validation via
+:class:`~tools.config_manager.ConfigManager`, command-line overriding of JSON
+values, optional-parameter defaults, POTCAR staging, and the batch-id
+collection helper :func:`~tools.config_manager._collect_batch_ids`.
+"""
+
 import json
 import os
 import sys

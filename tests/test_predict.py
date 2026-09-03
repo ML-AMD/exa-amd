@@ -144,7 +144,9 @@ def test_save_checkpoint_writes_file(tmp_path: Path) -> None:
     assert loaded["epoch"] == 1
 
 
-def test_save_checkpoint_best_copies(tmp_path: Path, monkeypatch) -> None:
+def test_save_checkpoint_best_copies(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """When is_best is True, model_best.pth.tar should also be created."""
     monkeypatch.chdir(tmp_path)
     dest = tmp_path / "checkpoint.pth.tar"
@@ -203,6 +205,7 @@ class _StubClassModel(nn.Module):
         self._log_probs = log_probs
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
+        """Return the fixed classification log-probabilities."""
         return self._log_probs
 
 
@@ -214,11 +217,23 @@ class _StubRegModel(nn.Module):
         self._values = values
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
+        """Return the fixed regression values."""
         return self._values
 
 
-def _make_input(batch_size: int):
-    """Build a dummy 4-tuple input compatible with the validation loop."""
+def _make_input(batch_size: int) -> tuple:
+    """Build a dummy 4-tuple input compatible with the validation loop.
+
+    Parameters
+    ----------
+    batch_size : int
+        Number of atoms/rows in the dummy batch.
+
+    Returns
+    -------
+    tuple
+        A ``(atom_fea, nbr_fea, nbr_idx, crystal_atom_idx)`` input tuple.
+    """
     atom_fea = torch.zeros(batch_size, 1)
     nbr_fea = torch.zeros(batch_size, 1, 1)
     nbr_idx = torch.zeros(batch_size, 1, dtype=torch.long)

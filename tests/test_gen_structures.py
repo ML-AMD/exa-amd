@@ -1,3 +1,11 @@
+"""Tests for :mod:`parsl_tasks.gen_structures`.
+
+These tests exercise structure generation via element substitution, the
+disallowed-element skipping logic, per-structure CIF writing, and the
+chunk-level entry point that produces the ``id_prop.csv`` manifest alongside
+the generated CIF files.
+"""
+
 import os
 import sys
 import tarfile

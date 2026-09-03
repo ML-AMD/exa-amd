@@ -1,3 +1,10 @@
+"""Tests for :func:`parsl_tasks.hull.cmd_vasp_hull`.
+
+These tests verify the VASP hull command string: the optional ``srun`` launcher
+prefix based on the configured task count and the placement of the output file
+inside the per-run working subdirectory.
+"""
+
 import sys
 from pathlib import Path
 

@@ -1,3 +1,11 @@
+"""End-to-end workflow tests for the CGCNN prediction and structure selection.
+
+These tests run :func:`ml_models.cgcnn.predict.predict_cgcnn` on a bundled set
+of test structures, verify that predictions are reproducible across repeated
+runs, and exercise :func:`parsl_tasks.select_structures.run_select_structures`
+on the resulting predictions CSV.
+"""
+
 import os
 import shutil
 import sys
@@ -83,8 +91,21 @@ def test_cgcnn_reproducible_predictions(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """
-    Run predict_cgcnn 5 times and check predictions are consistent between test runs.
+    """Predictions are stable across repeated ``predict_cgcnn`` runs.
+
+    Parameters
+    ----------
+    cgcnn_output : dict of str to pathlib.Path
+        Fixture providing the base directory and extracted structures.
+    tmp_path : pathlib.Path
+        Per-test temporary directory.
+    monkeypatch : pytest.MonkeyPatch
+        Available for patching if needed.
+
+    Notes
+    -----
+    Runs :func:`predict_cgcnn` five times and asserts the per-structure
+    predictions agree to within ``1e-6``.
     """
     import os
     from pathlib import Path
@@ -97,7 +118,19 @@ def test_cgcnn_reproducible_predictions(
     model_path = Path(cgcnn_pkg.__file__).parent / "form_1st.pth.tar"
     assert model_path.exists()
 
-    def read_preds(csv_path):
+    def read_preds(csv_path: os.PathLike | str) -> dict[str, float]:
+        """Read a predictions CSV into a ``{cif_id: prediction}`` mapping.
+
+        Parameters
+        ----------
+        csv_path : os.PathLike or str
+            Path to the predictions CSV.
+
+        Returns
+        -------
+        dict of str to float
+            Mapping from CIF id to predicted value.
+        """
         out = {}
         with open(csv_path) as f:
             for ln in f:
@@ -137,8 +170,18 @@ def test_cgcnn_reproducible_predictions(
 
 
 def test_select_structure(cgcnn_output: dict[str, Path]) -> None:
-    """
-    test select structures using the callable (no subprocess, no cms_dir)
+    """Selection runs on the CGCNN predictions and writes POSCAR outputs.
+
+    Parameters
+    ----------
+    cgcnn_output : dict of str to pathlib.Path
+        Fixture providing the predictions CSV and extracted structures.
+
+    Notes
+    -----
+    Calls :func:`run_select_structures` directly (no subprocess) and asserts
+    that the ``new`` directory, ``POSCAR_*`` files, and ``id_prop.csv`` are
+    produced.
     """
     from parsl_tasks.select_structures import run_select_structures
 
