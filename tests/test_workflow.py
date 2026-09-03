@@ -8,16 +8,11 @@ on the resulting predictions CSV.
 
 import os
 import shutil
-import sys
-import tarfile
 from pathlib import Path
 
 import pytest
 
-# Ensure repo root is importable
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+from conftest import REPO_ROOT, extract_tar, pushd
 
 
 @pytest.fixture(scope="module")
@@ -46,11 +41,7 @@ def cgcnn_output(
     cgcnn_output_csv = tmp_path / "test_results_1.csv"
 
     # extract test_structures.tar
-    with tarfile.open(archive_path) as tar:
-        try:
-            tar.extractall(path=tmp_path, filter="data")  # Python 3.12+
-        except TypeError:
-            tar.extractall(path=tmp_path)
+    extract_tar(archive_path, tmp_path)
 
     assert test_structures_dir.exists(), "Extraction failed"
 
@@ -62,9 +53,7 @@ def cgcnn_output(
 
     from ml_models.cgcnn.predict import predict_cgcnn
 
-    cwd = os.getcwd()
-    try:
-        os.chdir(tmp_path)
+    with pushd(tmp_path):
         out_csv = predict_cgcnn(
             modelpath=str(model_path),
             cifpath=str(cif_dir),
@@ -73,8 +62,6 @@ def cgcnn_output(
             chunk_id=1,
             output_csv=None,
         )
-    finally:
-        os.chdir(cwd)
 
     assert Path(out_csv) == cgcnn_output_csv, "Output CSV path mismatch"
     assert cgcnn_output_csv.exists(), "test_results_1.csv not created"
@@ -88,8 +75,6 @@ def cgcnn_output(
 
 def test_cgcnn_reproducible_predictions(
     cgcnn_output: dict[str, Path],
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Predictions are stable across repeated ``predict_cgcnn`` runs.
 
@@ -97,19 +82,12 @@ def test_cgcnn_reproducible_predictions(
     ----------
     cgcnn_output : dict of str to pathlib.Path
         Fixture providing the base directory and extracted structures.
-    tmp_path : pathlib.Path
-        Per-test temporary directory.
-    monkeypatch : pytest.MonkeyPatch
-        Available for patching if needed.
 
     Notes
     -----
     Runs :func:`predict_cgcnn` five times and asserts the per-structure
     predictions agree to within ``1e-6``.
     """
-    import os
-    from pathlib import Path
-
     import ml_models.cgcnn as cgcnn_pkg
     from ml_models.cgcnn.predict import predict_cgcnn
 
@@ -142,9 +120,7 @@ def test_cgcnn_reproducible_predictions(
         return out
 
     runs, outputs = 5, []
-    cwd = os.getcwd()
-    try:
-        os.chdir(base)
+    with pushd(base):
         for i in range(runs):
             out_csv = base / f"repro_{i}.csv"
             _ = predict_cgcnn(
@@ -158,8 +134,6 @@ def test_cgcnn_reproducible_predictions(
             )
             assert out_csv.exists()
             outputs.append(read_preds(out_csv))
-    finally:
-        os.chdir(cwd)
 
     first = outputs[0]
     for j, cur in enumerate(outputs[1:], start=2):

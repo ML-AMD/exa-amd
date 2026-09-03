@@ -1,19 +1,29 @@
-# tests/test_post_processing.py
+"""Tests for :mod:`tools.post_processing` and the convex-hull utilities.
+
+These tests cover e-hull calculation and CSV/plot generation
+(:func:`cmd_calculate_ehull`, :func:`plot_convex_hull_ternary`,
+:func:`plot_convex_hull_quaternary`), the VASP hull compilation
+(:func:`cmd_compile_vasp_hull`, :func:`get_vasp_hull`), Materials Project
+stable-phase retrieval (:func:`get_stable_phases`), and the
+``convex_hull_color`` dispatch based on the number of elements.
+"""
+
 import os
 import re
-import sys
-import tarfile
 from pathlib import Path
 from typing import Any, Literal
 from unittest import mock
 
 import pytest
+from conftest import (
+    FakeFuture,
+    ResourcePathCtx,
+    extract_tar,
+    pushd,
+    write_element_potcars,
+)
 
 from tools.config_labels import ConfigKeys as CK
-
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
 
 
 @pytest.fixture(scope="module")
@@ -34,11 +44,7 @@ def ehull_env(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Any]:
     tmp = tmp_path_factory.mktemp("ehull_fixture")
     tar_path = Path(__file__).parent / "post_processing.tar"
 
-    with tarfile.open(tar_path) as tar:
-        try:
-            tar.extractall(path=tmp, filter="data")  # Python 3.12+
-        except TypeError:
-            tar.extractall(path=tmp)
+    extract_tar(tar_path, tmp)
 
     ehull_dir = tmp / "post_processing"
     assert (ehull_dir / "energy.dat").exists(), "energy.dat missing"
@@ -121,9 +127,7 @@ def test_convex_hull_color_ternary(
     output_png = os.path.join(ehull_dir, "convex_hull.png")
     threshold = 0.10
 
-    cwd = os.getcwd()
-    try:
-        os.chdir(ehull_dir)
+    with pushd(ehull_dir):
         str_out_path = plot_convex_hull_ternary(
             elements_list=elements_list,
             stable_dat=stable_dat,
@@ -131,8 +135,6 @@ def test_convex_hull_color_ternary(
             threshold=threshold,
             output_file=output_png,
         )
-    finally:
-        os.chdir(cwd)
 
     out_path = Path(str_out_path)
     assert out_path == Path(output_png)
@@ -163,11 +165,7 @@ def compile_vasp_hull_inputs(
     tar_path = Path(__file__).parent / "compile_hull_in.tar"
     assert tar_path.exists(), f"Missing {tar_path}"
 
-    with tarfile.open(tar_path) as tar:
-        try:
-            tar.extractall(path=tmp, filter="data")
-        except TypeError:
-            tar.extractall(path=tmp)
+    extract_tar(tar_path, tmp)
 
     root = tmp / "compile_hull_in"
     assert root.exists()
@@ -613,29 +611,6 @@ def test_convex_hull_color_reraises(
     assert called["ran"], "plot_convex_hull_ternary was never called"
 
 
-class _FakeFuture:
-    """Minimal stand-in for a Parsl AppFuture.
-
-    Parameters
-    ----------
-    exc : Exception | None
-        Exception to return from :meth:`exception`; ``None`` for success.
-    """
-
-    def __init__(self, exc: Exception | None = None) -> None:
-        self._exc = exc
-
-    def exception(self) -> Exception | None:
-        """Return the stored exception (or ``None``).
-
-        Returns
-        -------
-        Exception | None
-            The exception associated with this future.
-        """
-        return self._exc
-
-
 class _FakeMPRester:
     """Context-manager double for ``MPRester``.
 
@@ -834,9 +809,7 @@ def hull_config(tmp_path: Path) -> dict[str, Any]:
     work = tmp_path / "work"
     out = tmp_path / "out"
     pot = tmp_path / "pot"
-    for elem in ("Na", "B", "Fe"):
-        (pot / elem).mkdir(parents=True, exist_ok=True)
-        (pot / elem / "POTCAR").write_text(f"POT-{elem}\n")
+    write_element_potcars(pot, ("Na", "B", "Fe"))
     work.mkdir(parents=True, exist_ok=True)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -867,18 +840,8 @@ def _patch_hull_assets(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     incar_mag = tmp_path / "INCAR_mag.en"
     incar_mag.write_text("SYSTEM = placeholder\nISPIN = 2\n")
 
-    class _Ctx:
-        def __init__(self, path: Path) -> None:
-            self._path = path
-
-        def __enter__(self) -> Path:
-            return self._path
-
-        def __exit__(self, *exc: Any) -> Literal[False]:
-            return False
-
-    def fake_path(pkg: str, name: str) -> "_Ctx":
-        return _Ctx(incar_mag if "mag" in name else incar)
+    def fake_path(pkg: str, name: str) -> "ResourcePathCtx":
+        return ResourcePathCtx(incar_mag if "mag" in name else incar)
 
     monkeypatch.setattr(post_processing.pkg_resources, "path", fake_path)
 
@@ -933,10 +896,10 @@ def test_get_vasp_hull_builds_inputs_and_compiles(
     monkeypatch.setattr(
         post_processing,
         "run_single_vasp_hull_calculation",
-        lambda config, calc_dir: _FakeFuture(),
+        lambda config, calc_dir: FakeFuture(),
     )
 
-    compiled = mock.MagicMock(return_value=_FakeFuture())
+    compiled = mock.MagicMock(return_value=FakeFuture())
     monkeypatch.setattr(post_processing, "compile_vasp_hull", compiled)
 
     output_file = os.path.join(
@@ -962,8 +925,8 @@ def test_get_vasp_hull_builds_inputs_and_compiles(
     assert (calc2 / "POSCAR").exists()
 
     # POTCAR is the concatenation of per-element POTCARs.
-    assert (calc1 / "POTCAR").read_text() == "POT-Na\nPOT-B\n"
-    assert (calc2 / "POTCAR").read_text() == "POT-Fe\n"
+    assert (calc1 / "POTCAR").read_text() == "POTCAR-Na\nPOTCAR-B\n"
+    assert (calc2 / "POTCAR").read_text() == "POTCAR-Fe\n"
 
     # Hull compilation invoked with the full structure count.
     compiled.assert_called_once()
@@ -1111,11 +1074,7 @@ def ehull_quaternary_env(
     tmp = tmp_path_factory.mktemp("ehull_quaternary_fixture")
     tar_path = Path(__file__).parent / "post_processing.tar"
 
-    with tarfile.open(tar_path) as tar:
-        try:
-            tar.extractall(path=tmp, filter="data")
-        except TypeError:
-            tar.extractall(path=tmp)
+    extract_tar(tar_path, tmp)
 
     ehull_dir = tmp / "post_processing"
 

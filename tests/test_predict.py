@@ -6,7 +6,6 @@ These tests cover the standalone helpers and classes (``Normalizer``,
 end-to-end workflow tests.
 """
 
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -24,11 +23,6 @@ from ml_models.cgcnn.predict import (
     mae,
     save_checkpoint,
 )
-
-# Ensure repo root is importable
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
 
 
 def test_normalizer_norm_denorm_roundtrip() -> None:
@@ -197,28 +191,25 @@ def test_build_argparser_overrides() -> None:
     assert ns.output_csv == "out.csv"
 
 
-class _StubClassModel(nn.Module):
-    """Model stub returning fixed log-probabilities for classification."""
+class _StubModel(nn.Module):
+    """Model stub returning a fixed output tensor.
 
-    def __init__(self, log_probs: torch.Tensor) -> None:
+    Used for both the classification (fixed log-probabilities) and regression
+    (fixed values) branches of :func:`_validate`.
+
+    Parameters
+    ----------
+    output : torch.Tensor
+        The tensor returned unchanged from :meth:`forward`.
+    """
+
+    def __init__(self, output: torch.Tensor) -> None:
         super().__init__()
-        self._log_probs = log_probs
+        self._output = output
 
     def forward(self, *args, **kwargs) -> torch.Tensor:
-        """Return the fixed classification log-probabilities."""
-        return self._log_probs
-
-
-class _StubRegModel(nn.Module):
-    """Model stub returning fixed values for regression."""
-
-    def __init__(self, values: torch.Tensor) -> None:
-        super().__init__()
-        self._values = values
-
-    def forward(self, *args, **kwargs) -> torch.Tensor:
-        """Return the fixed regression values."""
-        return self._values
+        """Return the fixed output tensor."""
+        return self._output
 
 
 def _make_input(batch_size: int) -> tuple:
@@ -253,7 +244,7 @@ def test_validate_classification_branch(tmp_path: Path) -> None:
     out_csv = tmp_path / "cls_results.csv"
     args = SimpleNamespace(cuda=False, print_freq=1, output_csv=str(out_csv))
     model_args = SimpleNamespace(task="classification")
-    model = _StubClassModel(log_probs)
+    model = _StubModel(log_probs)
 
     auc = _validate(
         args,
@@ -283,7 +274,7 @@ def test_validate_regression_branch(tmp_path: Path) -> None:
     model_args = SimpleNamespace(task="regression")
 
     normalizer = Normalizer(torch.tensor([0.0, 1.0, 2.0, 3.0]))
-    model = _StubRegModel(normalizer.norm(values))
+    model = _StubModel(normalizer.norm(values))
 
     metric = _validate(
         args,

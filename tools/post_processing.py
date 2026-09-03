@@ -12,7 +12,7 @@ import shutil
 from itertools import combinations
 from pathlib import Path
 from shutil import copyfileobj
-from typing import Any, Dict, List
+from typing import Any
 
 from mp_api.client import MPRester  # type: ignore[import-not-found]
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -23,7 +23,7 @@ from tools.config_labels import ConfigKeys as CK
 from tools.logging_config import amd_logger
 
 
-def get_stable_phases(elements: List[str], api_key: str) -> List[Dict[str, Any]]:
+def get_stable_phases(elements: list[str], api_key: str) -> list[dict[str, Any]]:
     """Fetch and categorize stable phases from the Materials Project.
 
     Every non-empty combination of the supplied elements is queried for
@@ -45,7 +45,7 @@ def get_stable_phases(elements: List[str], api_key: str) -> List[Dict[str, Any]]
         ``"elementary"``, ``"binary"`` or ``"ternary"``).
     """
     properties = ["material_id", "formula_pretty", "structure", "elements"]
-    phases: List[Dict[str, Any]] = []
+    phases: list[dict[str, Any]] = []
 
     # Return plain dicts (avoid document models to bypass pydantic/env skew issues)
     with MPRester(api_key, use_document_model=False) as mpr:
@@ -91,7 +91,7 @@ def get_stable_phases(elements: List[str], api_key: str) -> List[Dict[str, Any]]
     return phases
 
 
-def get_vasp_hull(config: Dict[str, Any]) -> None:
+def get_vasp_hull(config: dict[str, Any]) -> None:
     """Construct or update the convex hull for the chemical system.
 
     Structures on or near the hull are considered potentially stable, while

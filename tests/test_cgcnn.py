@@ -111,9 +111,7 @@ def test_cmd_returns_expected_command(
     assert "--chunk_id 0" in cmd
 
 
-def test_cmd_copies_atom_init(
-    config: Config, fake_pkg: Path, work_dir: Path
-) -> None:
+def test_cmd_copies_atom_init(config: Config, fake_pkg: Path, work_dir: Path) -> None:
     """``atom_init.json`` is copied into the per-chunk structures directory.
 
     Parameters

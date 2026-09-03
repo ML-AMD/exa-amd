@@ -1,12 +1,18 @@
-"""Tests for parsl_tasks.dft_optimization."""
+"""Tests for :func:`parsl_tasks.dft_optimization.cmd_fused_vasp_calc`.
 
-import os
+These tests verify the fused VASP relaxation/energy command construction and
+execution: the success path (``DONE`` marker and energy OUTCAR), the NSW-limit
+rerun, non-convergence and timeout error handling, the ``srun`` launcher prefix
+toggling based on the configured task count, and POTCAR symlink staging.
+"""
+
+import importlib.resources as iresources
 import types
 from pathlib import Path
-from typing import Iterator
 from unittest import mock
 
 import pytest
+from conftest import ResourcePathCtx
 
 from parsl_tasks.dft_optimization import cmd_fused_vasp_calc
 from tools.config_labels import ConfigKeys as CK
@@ -97,17 +103,6 @@ def patch_resources(
     _FakeAssets
         The same fake INCAR assets, for convenience.
     """
-    import importlib.resources as iresources
-
-    class _CtxFile:
-        def __init__(self, path):
-            self._path = path
-
-        def __enter__(self):
-            return self._path
-
-        def __exit__(self, *exc):
-            return False
 
     def fake_files(_pkg):
         class _Traversable:
@@ -121,7 +116,7 @@ def patch_resources(
         return _Traversable()
 
     monkeypatch.setattr(iresources, "files", fake_files)
-    monkeypatch.setattr(iresources, "as_file", lambda path: _CtxFile(path))
+    monkeypatch.setattr(iresources, "as_file", lambda path: ResourcePathCtx(path))
     return assets
 
 
@@ -165,26 +160,11 @@ def _run_side_effect(
     return side_effect
 
 
-@pytest.fixture
-def restore_cwd() -> Iterator[None]:
-    """Restore the process working directory after a test.
-
-    Yields
-    ------
-    None
-        Control is yielded to the test; the cwd is restored on teardown.
-    """
-    cwd = os.getcwd()
-    yield
-    os.chdir(cwd)
-
-
 @mock.patch("parsl_tasks.dft_optimization.subprocess.run")
 def test_relaxation_reached_success(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """A run that reaches accuracy writes ``DONE`` and the energy OUTCAR."""
     config = _make_config(tmp_path)
@@ -203,7 +183,6 @@ def test_nsw_hit_triggers_rerun(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """Hitting the NSW step limit triggers a relaxation rerun."""
     config = _make_config(tmp_path)
@@ -221,7 +200,6 @@ def test_non_convergence_raises(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """Failure to reach accuracy raises :class:`VaspNonReached`."""
     config = _make_config(tmp_path)
@@ -239,7 +217,6 @@ def test_timeout_raises(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """A timeout return code raises :class:`VaspNonReached`."""
     config = _make_config(tmp_path)
@@ -257,7 +234,6 @@ def test_no_srun_prefix_single_task(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """A single task per run omits the ``srun`` launcher prefix."""
     config = _make_config(tmp_path, ntasks=1)
@@ -275,7 +251,6 @@ def test_srun_prefix_multiple_tasks(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """Multiple tasks per run add an ``srun`` launcher prefix."""
     config = _make_config(tmp_path, ntasks=4)
@@ -293,7 +268,6 @@ def test_potcar_symlink_created(
     mock_run: mock.MagicMock,
     patch_resources: _FakeAssets,
     tmp_path: Path,
-    restore_cwd: None,
 ) -> None:
     """A POTCAR symlink is created in the per-run work subdirectory."""
     config = _make_config(tmp_path)

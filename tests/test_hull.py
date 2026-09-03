@@ -5,14 +5,9 @@ prefix based on the configured task count and the placement of the output file
 inside the per-run working subdirectory.
 """
 
-import sys
 from pathlib import Path
 
 from tools.config_labels import ConfigKeys as CK
-
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
 
 
 def test_cmd_vasp_hull_single_task_no_srun_prefix() -> None:

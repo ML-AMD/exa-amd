@@ -271,7 +271,7 @@ def test_process_structures_element_fraction(tmp_path: Path) -> None:
     assert kept == ["1_0"]
 
 
-def test_select_structures_for_compositions_dedup(tmp_path: Path) -> None:
+def test_select_structures_for_compositions_dedup() -> None:
     """select_structures_for_compositions dedups and caps per composition.
 
     Two identical structures and one distinct structure share a composition

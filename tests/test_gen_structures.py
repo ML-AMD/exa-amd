@@ -6,16 +6,10 @@ chunk-level entry point that produces the ``id_prop.csv`` manifest alongside
 the generated CIF files.
 """
 
-import os
-import sys
-import tarfile
 from pathlib import Path
 
 import pytest
-
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+from conftest import extract_tar, pushd
 
 
 @pytest.fixture(scope="module")
@@ -37,11 +31,7 @@ def gen_env(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
     tar_path = Path(__file__).parent / "initial_structures_in.tar"
     assert tar_path.exists(), f"Missing {tar_path}"
 
-    with tarfile.open(tar_path) as tar:
-        try:
-            tar.extractall(path=tmp, filter="data")  # Python 3.12+
-        except TypeError:
-            tar.extractall(path=tmp)
+    extract_tar(tar_path, tmp)
 
     input_dir = None
     for cand in [tmp, *tmp.iterdir()]:
@@ -97,7 +87,6 @@ def test_generate_structures(gen_env: dict[str, Path]) -> None:
 
 def test_generate_structures_skips_bad_elements(
     gen_env: dict[str, Path],
-    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Ensure structures with disallowed elements are skipped.
@@ -106,8 +95,6 @@ def test_generate_structures_skips_bad_elements(
     ----------
     gen_env : dict of str to pathlib.Path
         Fixture providing the extracted input directory.
-    tmp_path : pathlib.Path
-        Per-test temporary directory.
     monkeypatch : pytest.MonkeyPatch
         Used to inject a present element into ``badele_vec``.
 
@@ -165,14 +152,10 @@ def test_process_structure(gen_env: dict[str, Path], tmp_path: Path) -> None:
 
     out_dir = tmp_path / "out"
     out_dir.mkdir()
-    cwd = os.getcwd()
-    try:
-        os.chdir(out_dir)
+    with pushd(out_dir):
         count = _process_structure(
             (structure_file, start_index, str(input_dir), elements, chunk_id)
         )
-    finally:
-        os.chdir(cwd)
 
     assert count == expected, f"Expected {expected} structures, got {count}"
 
@@ -189,7 +172,6 @@ def test_process_structure(gen_env: dict[str, Path], tmp_path: Path) -> None:
 
 def test_run_gen_structures(
     gen_env: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Verify the chunk-level entry point end to end.
 
@@ -197,8 +179,6 @@ def test_run_gen_structures(
     ----------
     gen_env : dict of str to pathlib.Path
         Fixture providing the extracted input directory.
-    monkeypatch : pytest.MonkeyPatch
-        Available for patching if needed.
 
     Notes
     -----
@@ -222,18 +202,14 @@ def test_run_gen_structures(
     n_chunks = 1
     chunk_id = 1
 
-    cwd = os.getcwd()
-    try:
-        os.chdir(work_dir)
+    with pushd(work_dir):
         out_csv = run_gen_structures(config, n_chunks=n_chunks, chunk_id=chunk_id)
-    finally:
-        os.chdir(cwd)
 
-    out_csv = Path(out_csv)
-    assert out_csv.exists(), "id_prop.csv was not created"
+    out_csv_path = Path(out_csv)
+    assert out_csv_path.exists(), "id_prop.csv was not created"
 
     # id_prop.csv should contain 30 lines: "<chunk>_<idx>,0.5"
-    lines = [ln.strip() for ln in out_csv.read_text().splitlines() if ln.strip()]
+    lines = [ln.strip() for ln in out_csv_path.read_text().splitlines() if ln.strip()]
     assert len(lines) == 30, f"Expected 30 rows in csv, found {len(lines)}"
     assert all("," in ln for ln in lines), "Malformed csv rows"
 

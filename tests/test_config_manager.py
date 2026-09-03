@@ -10,9 +10,10 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
+from conftest import write_element_potcars
 
 from tools.config_labels import ConfigKeys as CK
 from tools.config_manager import ConfigManager, _collect_batch_ids
@@ -61,6 +62,26 @@ def gen_dummy_value(value: Any, diff: bool = False) -> Any:
         raise ValueError(f"Error: Can not generate a dummy value of type {val_type}")
 
 
+def _write_config(tmp_path: Path, data: dict[str, Any]) -> Path:
+    """Write ``data`` as a JSON config file.
+
+    Parameters
+    ----------
+    tmp_path : pathlib.Path
+        Directory in which to create the file.
+    data : dict
+        Configuration payload to serialize.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the written JSON file.
+    """
+    config_file = tmp_path / "cfg.json"
+    config_file.write_text(json.dumps(data))
+    return config_file
+
+
 required_config_keys = list(ConfigManager.REQUIRED_PARAMS.keys())
 required_dummy_values = [
     gen_dummy_value(val[0]) for val in ConfigManager.REQUIRED_PARAMS.values()
@@ -88,8 +109,7 @@ def test_valid_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch : pytest.MonkeyPatch
         Used to patch ``sys.argv``.
     """
-    config_file = tmp_path / "tmp_config.json"
-    config_file.write_text(json.dumps(complete_config))
+    config_file = _write_config(tmp_path, complete_config)
 
     # Simulate command-line arguments
     cmd_args = ["python exa_amd.py", "--config", str(config_file)]
@@ -124,8 +144,7 @@ def test_missing_required_parameters(
     """
     config_data = valid_config.copy()
     config_data.pop(missing_config_key)
-    config_file = tmp_path / "bad_config.json"
-    config_file.write_text(json.dumps(config_data))
+    config_file = _write_config(tmp_path, config_data)
 
     cmd_args = ["python exa_amd.py", "--config", str(config_file)]
     monkeypatch.setattr(sys, "argv", cmd_args)
@@ -150,8 +169,7 @@ def test_command_line_args_override(
     config_key : str
         The config key being overridden for this parametrization.
     """
-    config_file = tmp_path / "tmp_config.json"
-    config_file.write_text(json.dumps(complete_config))
+    config_file = _write_config(tmp_path, complete_config)
     override_value = gen_dummy_value(complete_config[config_key], diff=True)
 
     cmd_args = [
@@ -176,26 +194,6 @@ def test_command_line_args_override(
     else:
         assert config[config_key] != complete_config[config_key]
         assert config[config_key] == override_value
-
-
-def _write_config(tmp_path: Path, data: Dict[str, Any]) -> Path:
-    """Write ``data`` as a JSON config file.
-
-    Parameters
-    ----------
-    tmp_path : pathlib.Path
-        Directory in which to create the file.
-    data : dict
-        Configuration payload to serialize.
-
-    Returns
-    -------
-    pathlib.Path
-        Path to the written JSON file.
-    """
-    config_file = tmp_path / "cfg.json"
-    config_file.write_text(json.dumps(data))
-    return config_file
 
 
 def test_optional_defaults_applied(
@@ -461,7 +459,7 @@ def test_collect_batch_ids_removes_stale_potcar(tmp_path: Path) -> None:
 
 
 def _build_config_manager(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, overrides: Dict[str, Any]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, overrides: dict[str, Any]
 ) -> ConfigManager:
     """Construct a :class:`ConfigManager` from ``valid_config`` plus overrides.
 
@@ -486,22 +484,6 @@ def _build_config_manager(
     return ConfigManager()
 
 
-def _write_element_potcars(pot_dir: Path, elements: list[str]) -> None:
-    """Create per-element ``POTCAR`` files under ``pot_dir``.
-
-    Parameters
-    ----------
-    pot_dir : pathlib.Path
-        Root PAW potentials directory.
-    elements : list[str]
-        Element symbols for which to create ``<el>/POTCAR`` files.
-    """
-    for el in elements:
-        el_dir = pot_dir / el
-        el_dir.mkdir(parents=True)
-        (el_dir / "POTCAR").write_text(f"POTCAR-{el}\n")
-
-
 def test_create_potcar_concatenates_elements(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -514,9 +496,9 @@ def test_create_potcar_concatenates_elements(
     monkeypatch : pytest.MonkeyPatch
         Used to patch ``sys.argv``.
     """
-    elements = ["Ce", "Co", "B"]
+    elements = ("Ce", "Co", "B")
     pot_dir = tmp_path / "pot"
-    _write_element_potcars(pot_dir, elements)
+    write_element_potcars(pot_dir, elements)
 
     config = _build_config_manager(
         tmp_path,
@@ -553,9 +535,9 @@ def test_setup_vasp_calculations(
     Verifies the scheduled id list is stored under ``CK.VASP_ID_STRUCT_LIST``
     and a concatenated POTCAR is written to the work directory.
     """
-    elements = ["Ce", "Co", "B"]
+    elements = ("Ce", "Co", "B")
     pot_dir = tmp_path / "pot"
-    _write_element_potcars(pot_dir, elements)
+    write_element_potcars(pot_dir, elements)
 
     config = _build_config_manager(
         tmp_path,
@@ -569,15 +551,12 @@ def test_setup_vasp_calculations(
         },
     )
 
-    # Create POSCAR inputs in the select-structures output directory.
+    # Create POSCAR inputs in the select-structures output directory
+    # (``CK.SELECT_STRUCT_OUTPUT`` == "new").
     structure_dir = Path(config[CK.WORK_DIR]) / CK.SELECT_STRUCT_OUTPUT
-    _make_poscar_dir(structure_dir.parent, [1, 2, 3])
-    # _make_poscar_dir creates "<parent>/structures"; align with expected path
-    # if SELECT_STRUCT_OUTPUT differs, create directly instead:
-    if not structure_dir.exists():
-        structure_dir.mkdir(parents=True)
-        for i in [1, 2, 3]:
-            (structure_dir / f"POSCAR_{i}").write_text("POSCAR")
+    structure_dir.mkdir(parents=True, exist_ok=True)
+    for i in [1, 2, 3]:
+        (structure_dir / f"POSCAR_{i}").write_text("POSCAR")
 
     config.setup_vasp_calculations()
 

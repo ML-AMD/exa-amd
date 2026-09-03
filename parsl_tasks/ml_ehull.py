@@ -7,7 +7,7 @@ pool), and writes the sorted ``index,Ehull`` results.
 
 import os
 from multiprocessing import Pool, cpu_count
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from parsl import python_app
 from pymatgen.core import Element
@@ -23,7 +23,7 @@ from tools.config_labels import ConfigKeys as CK
 from tools.logging_config import amd_logger
 
 # Result tuple: (index, d_hull or None, hull_vec or None, formula)
-WrapperResult = Tuple[int, Optional[float], Optional[Any], str]
+WrapperResult = tuple[int, float | None, Any, str]
 
 
 def process_structure_wrapper_ternary(
@@ -31,7 +31,7 @@ def process_structure_wrapper_ternary(
     formula: str,
     energy: float,
     stable_vec: Any,
-    elements: List[str],
+    elements: list[str],
 ) -> WrapperResult:
     """Compute the ternary hull distance for a single structure.
 
@@ -70,7 +70,7 @@ def process_structure_wrapper_quaternary(
     formula: str,
     energy: float,
     stable_vec: Any,
-    elements: List[str],
+    elements: list[str],
 ) -> WrapperResult:
     """Compute the quaternary hull distance for a single structure.
 
@@ -106,7 +106,7 @@ def process_structure_wrapper_quaternary(
         return index, None, None, formula
 
 
-def read_energies(filename: str) -> Tuple[List[float], List[int], List[str]]:
+def read_energies(filename: str) -> tuple[list[float], list[int], list[str]]:
     """Read an energy file with ``index,energy,formula`` lines.
 
     Parameters
@@ -119,9 +119,9 @@ def read_energies(filename: str) -> Tuple[List[float], List[int], List[str]]:
     tuple of (list of float, list of int, list of str)
         ``(energies, indices, formulas)`` in file order.
     """
-    energies: List[float] = []
-    formulas: List[str] = []
-    indices: List[int] = []
+    energies: list[float] = []
+    formulas: list[str] = []
+    indices: list[int] = []
     with open(filename, "r") as f:
         for line in f:
             l_parts = line.split(",")
@@ -137,7 +137,7 @@ def parallel_ternary_ehull(
     stable_file: str,
     output_file: str,
     elements: str,
-    workers: Optional[int] = None,
+    workers: int | None = None,
 ) -> str:
     """Calculate formation energies relative to the ternary convex hull (parallel).
 
@@ -190,10 +190,10 @@ def parallel_ternary_ehull(
     with Pool(processes=workers) as pool:
         results = pool.starmap(process_structure_wrapper_ternary, task_args)
 
-    formation_energies: List[Optional[float]] = []
-    hull_phases: List[Any] = []
-    processed_indices: List[int] = []
-    processed_formulas: List[str] = []
+    formation_energies: list[float | None] = []
+    hull_phases: list[Any] = []
+    processed_indices: list[int] = []
+    processed_formulas: list[str] = []
 
     for idx, d_hull, hull_vec, form in results:
         processed_indices.append(idx)
@@ -243,7 +243,7 @@ def parallel_quaternary_ehull(
     stable_file: str,
     output_file: str,
     elements: str,
-    workers: Optional[int] = None,
+    workers: int | None = None,
 ) -> str:
     """Calculate formation energies relative to the quaternary convex hull (parallel).
 
@@ -297,10 +297,10 @@ def parallel_quaternary_ehull(
     with Pool(processes=workers) as pool:
         results = pool.starmap(process_structure_wrapper_quaternary, task_args)
 
-    formation_energies: List[float] = []
-    hull_phases: List[Any] = []
-    processed_indices: List[int] = []
-    processed_formulas: List[str] = []
+    formation_energies: list[float] = []
+    hull_phases: list[Any] = []
+    processed_indices: list[int] = []
+    processed_formulas: list[str] = []
 
     for idx, d_hull, hull_vec, form in results:
         # Filter out failed calculations

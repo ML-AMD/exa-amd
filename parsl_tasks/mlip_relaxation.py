@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 import shlex
-from typing import Sequence, Union
+from typing import Sequence
 
 from parsl import bash_app
 
@@ -16,12 +16,12 @@ import ml_models.mlip as mlip_pkg
 from parsl_configs.parsl_executors_labels import MLIP_RELAXATION_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
 
-PathLike = Union[str, os.PathLike]
+PathLike = str | os.PathLike
 
 
 def cmd_mlip_relaxation(
     config: dict,
-    file_paths: Union[PathLike, Sequence[PathLike]],
+    file_paths: PathLike | Sequence[PathLike],
 ) -> str:
     """Build the shell command that runs MLIP relaxation on the given files.
 
@@ -54,7 +54,6 @@ def cmd_mlip_relaxation(
     OSError
         If changing directories or creating the log directory fails.
     """
-
     os.chdir(config[CK.WORK_DIR])
 
     # for sanity
@@ -75,7 +74,7 @@ def cmd_mlip_relaxation(
 @bash_app(executors=[MLIP_RELAXATION_EXECUTOR_LABEL])
 def mlip_relaxation(
     config: dict,
-    file_paths: Union[PathLike, Sequence[PathLike]],
+    file_paths: PathLike | Sequence[PathLike],
 ) -> str:
     """Parsl bash app wrapper around :func:`cmd_mlip_relaxation`.
 

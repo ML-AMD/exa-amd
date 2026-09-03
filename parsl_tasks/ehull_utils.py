@@ -9,15 +9,15 @@ where ``x, y, z, w`` are atomic fractions of the system elements.
 """
 
 from itertools import combinations
-from typing import Any, List, Sequence, Tuple, Union
+from typing import Any, Sequence
 
 import numpy as np
 from pymatgen.core import Composition, Element
 
 # A hull/structure vector: [formula, *fractions, energy]
-HullVec = List[Any]
+HullVec = list[Any]
 # Element specification: symbols or pymatgen Element objects.
-ElementSpec = Sequence[Union[str, Element]]
+ElementSpec = Sequence[str | Element]
 
 
 def det_tern(v1: HullVec, v2: HullVec, v3: HullVec) -> float:
@@ -37,7 +37,7 @@ def det_tern(v1: HullVec, v2: HullVec, v3: HullVec) -> float:
     return float(np.linalg.det(m))
 
 
-def dhull_ternary(struc: HullVec, hull: Sequence[HullVec]) -> Tuple[float, List[str]]:
+def dhull_ternary(struc: HullVec, hull: Sequence[HullVec]) -> tuple[float, list[str]]:
     """Compute a structure's energy above the ternary convex hull.
 
     Searches all triangular facets of the hull, solving barycentric
@@ -87,7 +87,7 @@ def judge_stable_ternary(
     system_symbols: ElementSpec,
     comp_struc: str,
     predict_Eper: float,
-) -> Tuple[float, List[str]]:
+) -> tuple[float, list[str]]:
     """Evaluate a ternary structure against the stable-phase hull.
 
     Parameters
@@ -118,7 +118,7 @@ def judge_stable_ternary(
 
 def dhull_quaternary(
     struc: HullVec, hull: Sequence[HullVec]
-) -> Tuple[float, List[str]]:
+) -> tuple[float, list[str]]:
     """Compute a structure's energy above the quaternary convex hull.
 
     Iterates over all 4-vertex simplices of the hull, solving the barycentric
@@ -206,7 +206,7 @@ def judge_stable_quaternary(
     system_elements: ElementSpec,
     comp_struc: str,
     predict_Eper: float,
-) -> Tuple[float, List[str]]:
+) -> tuple[float, list[str]]:
     """Evaluate a quaternary structure against the stable-phase hull.
 
     Parameters
@@ -249,7 +249,7 @@ def judge_stable_quaternary(
 
 def parse_stable_phases_ternary(
     filename: str, elements: ElementSpec
-) -> Tuple[List[HullVec], List[HullVec]]:
+) -> tuple[list[HullVec], list[HullVec]]:
     """Parse the stable phases file and create ternary hull vectors.
 
     Parameters
@@ -296,7 +296,7 @@ def parse_stable_phases_ternary(
 
 def parse_stable_phases_quaternary(
     filename: str, elements: ElementSpec
-) -> Tuple[List[HullVec], List[HullVec]]:
+) -> tuple[list[HullVec], list[HullVec]]:
     """Parse the stable phases file and create quaternary hull vectors.
 
     Parameters

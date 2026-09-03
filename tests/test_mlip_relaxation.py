@@ -1,14 +1,17 @@
-"""Tests for parsl_tasks.mlip_relaxation."""
+"""Tests for :func:`parsl_tasks.mlip_relaxation.cmd_mlip_relaxation`.
+
+These tests verify the MLIP relaxation command construction: targeting the
+packaged relaxation script and model, single- and multi-path argument
+normalisation and shell-quoting, the working-directory change, and creation of
+the MLIP log directory.
+"""
 
 from __future__ import annotations
 
 import os
 import shlex
 from pathlib import Path
-from typing import Iterator
 from unittest import mock
-
-import pytest
 
 from parsl_tasks.mlip_relaxation import cmd_mlip_relaxation
 from tools.config_labels import ConfigKeys as CK
@@ -35,21 +38,7 @@ def _make_config(tmp_path: Path) -> dict:
     }
 
 
-@pytest.fixture
-def restore_cwd() -> Iterator[None]:
-    """Restore the process working directory after a test.
-
-    Yields
-    ------
-    None
-        Control is yielded to the test; the original cwd is restored on teardown.
-    """
-    cwd = os.getcwd()
-    yield
-    os.chdir(cwd)
-
-
-def test_returns_command_string(tmp_path: Path, restore_cwd: None) -> None:
+def test_returns_command_string(tmp_path: Path) -> None:
     """The command targets the packaged script and model."""
     config = _make_config(tmp_path)
 
@@ -60,7 +49,7 @@ def test_returns_command_string(tmp_path: Path, restore_cwd: None) -> None:
     assert "uma-s-1p1.pt" in cmd
 
 
-def test_single_path_is_normalized(tmp_path: Path, restore_cwd: None) -> None:
+def test_single_path_is_normalized(tmp_path: Path) -> None:
     """A single path argument is accepted and appears in the command."""
     config = _make_config(tmp_path)
 
@@ -69,9 +58,7 @@ def test_single_path_is_normalized(tmp_path: Path, restore_cwd: None) -> None:
     assert cmd.endswith("single.cif")
 
 
-def test_multiple_paths_are_joined_and_quoted(
-    tmp_path: Path, restore_cwd: None
-) -> None:
+def test_multiple_paths_are_joined_and_quoted(tmp_path: Path) -> None:
     """Multiple paths are shell-quoted and joined into the command."""
     config = _make_config(tmp_path)
     paths = ["with space.cif", "plain.cif"]
@@ -92,7 +79,7 @@ def test_changes_to_work_dir(mock_chdir: mock.MagicMock, tmp_path: Path) -> None
     mock_chdir.assert_called_once_with(config[CK.WORK_DIR])
 
 
-def test_creates_log_dir(tmp_path: Path, restore_cwd: None) -> None:
+def test_creates_log_dir(tmp_path: Path) -> None:
     """The MLIP log directory is created under the working directory."""
     config = _make_config(tmp_path)
 

@@ -3,8 +3,7 @@
 These tests cover worker initialization (model loading and CUDA setup), the
 single-structure relaxation-and-logging routine (success, missing-file and
 optimization-error paths), the command-line ``main`` entry point, and the
-module-level global state.
-"""
+module-level global state."""
 
 import os
 import sys
@@ -117,7 +116,7 @@ def sample_cif_file(tmp_path: Path) -> str:
 
 
 class TestWorkerInitializer:
-    """Tests for worker_initializer function."""
+    """Tests for :func:`worker_initializer`."""
 
     @patch(f"{MODULE}.FAIRChemCalculator")
     @patch(f"{MODULE}.pretrained_mlip")
@@ -128,7 +127,7 @@ class TestWorkerInitializer:
         mock_calc_class: MagicMock,
         mock_predictor: MagicMock,
     ) -> None:
-        """Test successful worker initialization."""
+        """Successful initialization loads the model and sets globals."""
         mock_mlip.load_predict_unit.return_value = mock_predictor
         mock_calc_instance = MagicMock()
         mock_calc_class.return_value = mock_calc_instance
@@ -154,7 +153,7 @@ class TestWorkerInitializer:
         mock_calc_class: MagicMock,
         mock_predictor: MagicMock,
     ) -> None:
-        """Test worker initialization without GPU environment variable."""
+        """Initialization proceeds without a recognised GPU env variable."""
         mock_mlip.load_predict_unit.return_value = mock_predictor
         mock_calc_class.return_value = MagicMock()
 
@@ -168,7 +167,7 @@ class TestWorkerInitializer:
     def test_worker_initializer_model_load_error(
         self, mock_print: MagicMock, mock_mlip: MagicMock
     ) -> None:
-        """Test worker initialization with model loading error."""
+        """A model-loading error causes a ``SystemExit`` with code 1."""
         mock_mlip.load_predict_unit.side_effect = Exception("CUDA out of memory")
 
         with pytest.raises(SystemExit) as exc_info:
@@ -178,7 +177,7 @@ class TestWorkerInitializer:
 
 
 class TestRelaxAndLog:
-    """Tests for relax_and_log function."""
+    """Tests for :func:`relax_and_log`."""
 
     @patch(f"{MODULE}.write")
     @patch(f"{MODULE}.read")
@@ -195,7 +194,7 @@ class TestRelaxAndLog:
         mock_atoms: MagicMock,
         mock_calculator: MagicMock,
     ) -> None:
-        """Test successful relaxation and logging."""
+        """A successful relaxation writes outputs and an energy log."""
         # Setup mocks
         mlip_relax.global_calc = mock_calculator
         mock_read.return_value = mock_atoms
@@ -231,7 +230,7 @@ class TestRelaxAndLog:
     def test_relax_and_log_file_not_found(
         self, mock_read: MagicMock, temp_energy_log_dir: str
     ) -> None:
-        """Test relaxation with missing input file."""
+        """A missing input file yields an error message, not a raise."""
         mlip_relax.global_calc = MagicMock()
         mock_read.side_effect = FileNotFoundError("File not found")
 
@@ -253,7 +252,7 @@ class TestRelaxAndLog:
         mock_atoms: MagicMock,
         mock_calculator: MagicMock,
     ) -> None:
-        """Test relaxation with optimization error."""
+        """An optimization error is logged and reported in the message."""
         mlip_relax.global_calc = mock_calculator
         mock_read.return_value = mock_atoms
         mock_opt = MagicMock()
@@ -285,7 +284,7 @@ class TestRelaxAndLog:
         mock_calculator: MagicMock,
         tmp_path: Path,
     ) -> None:
-        """Test relaxation with filename without numeric index."""
+        """A filename without a numeric index falls back to the base name."""
         mlip_relax.global_calc = mock_calculator
         mock_read.return_value = mock_atoms
         mock_fire.return_value = MagicMock()
@@ -303,7 +302,7 @@ class TestRelaxAndLog:
 
 
 class TestMain:
-    """Tests for main function."""
+    """Tests for the :func:`main` entry point."""
 
     @patch(f"{MODULE}.relax_and_log")
     @patch(f"{MODULE}.worker_initializer")
@@ -316,7 +315,7 @@ class TestMain:
         sample_cif_file: str,
         temp_energy_log_dir: str,
     ) -> None:
-        """Test successful main execution."""
+        """A successful ``main`` initializes then relaxes the input file."""
         test_args = [
             "mlip_relax.py",
             "/path/to/model.pt",
@@ -343,7 +342,7 @@ class TestMain:
         tmp_path: Path,
         temp_energy_log_dir: str,
     ) -> None:
-        """Test main with multiple input files."""
+        """``main`` relaxes every input file provided on the command line."""
         file1 = tmp_path / "struct1.cif"
         file2 = tmp_path / "struct2.cif"
         file1.write_text("content1")
@@ -367,7 +366,7 @@ class TestMain:
 
     @patch("builtins.print")
     def test_main_insufficient_arguments(self, mock_print: MagicMock) -> None:
-        """Test main with insufficient arguments."""
+        """Too few arguments print usage and exit with code 1."""
         test_args = ["mlip_relax.py", "/path/to/model.pt"]
 
         with patch.object(sys, "argv", test_args):
@@ -382,7 +381,7 @@ class TestMain:
 
     @patch("builtins.print")
     def test_main_no_arguments(self, mock_print: MagicMock) -> None:
-        """Test main with no arguments."""
+        """No arguments exit with code 1."""
         test_args = ["mlip_relax.py"]
 
         with patch.object(sys, "argv", test_args):
@@ -393,10 +392,10 @@ class TestMain:
 
 
 class TestGlobalVariables:
-    """Tests for global variable behavior."""
+    """Tests for module-level global state."""
 
     def test_global_variables_initial_state(self) -> None:
-        """Test that global variables start as None."""
+        """The module globals start as ``None`` (via the reset fixture)."""
         assert mlip_relax.global_predictor is None
         assert mlip_relax.global_calc is None
         assert mlip_relax.global_model_path is None

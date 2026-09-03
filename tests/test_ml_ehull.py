@@ -1,4 +1,10 @@
-"""Tests for parsl_tasks.ml_ehull."""
+"""Tests for :mod:`parsl_tasks.ml_ehull`.
+
+These tests cover the energy-file reader (:func:`read_energies`), the ternary
+and quaternary per-structure judging wrappers, the parallel ternary/quaternary
+e-hull routines (sorting, output formatting, failure skipping and sentinel
+filtering), and the element-count based dispatch in ``ehull_ml_parallel``.
+"""
 
 from __future__ import annotations
 
@@ -19,6 +25,14 @@ from tools.config_labels import ConfigKeys as CK
 
 
 class _FakeElement:
+    """Minimal :class:`pymatgen.core.Element` double exposing ``symbol``.
+
+    Parameters
+    ----------
+    symbol : str
+        Chemical element symbol (e.g. ``"Al"``).
+    """
+
     def __init__(self, symbol: str) -> None:
         self.symbol = symbol
 
