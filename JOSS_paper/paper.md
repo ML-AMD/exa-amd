@@ -12,13 +12,13 @@ authors:
     affiliation: 2
   - name: Zhuo Ye
     affiliation: 2
-  - name: Feng Zhang 
+  - name: Feng Zhang
     affiliation: 2
   - name: Yongxin Yao
     affiliation: 2
   - name: Ying Wai Li
     affiliation: 1
-  - name: Cai-Zhuang Wang 
+  - name: Cai-Zhuang Wang
     affiliation: 2
 
 affiliations:
@@ -37,7 +37,7 @@ exa-AMD is a Python-based application designed to accelerate the discovery and d
 - **Scalability:** exa-AMD scales efficiently from a single workstation to many supercomputer nodes. It demonstrated near-linear speedup on up to 1024 GPUs and 4,096 CPUs through Parsl's dynamic task distribution, as detailed in our benchmarking study [@xiaa2025exaamd].
 - **Elasticity:** computing resources can be added or released at run time, allowing the workflow to exploit shared supercomputers efficiently and assign dynamically specialized accelerators (e.g., GPUs) to different tasks.
 - **Resumability\*:** The workflow is divided into fine-grained tasks, allowing exa-AMD to track completed steps so that subsequent runs can resume from where it left off. [^resumability]
-- **Configurability:** exa-AMD exposes high-level configuration parameters to allow the users to balance performance and accuracy for their scientific objectives. In particular, a JSON configuration file expose parameters for: ML model selection, energy thresholds, DFT convergence criteria, structural similarity cutoffs, and computing resource allocation. 
+- **Configurability:** exa-AMD exposes high-level configuration parameters to allow the users to balance performance and accuracy for their scientific objectives. In particular, a JSON configuration file expose parameters for: ML model selection, energy thresholds, DFT convergence criteria, structural similarity cutoffs, and computing resource allocation.
 
 exa-AMD is specifically designed for crystalline inorganic materials discovery, including metals, intermetallics, ceramics, and semiconductors operating under periodic boundary conditions. In contrast to frameworks such as AiiDA [@PIZZI2016218] and atomate2 [@ganose2025atomate2], exa-AMD is an out of the box AI driven discovery workflow for scalable identification of new materials. Its modular design allows users to extend or replace components (e.g., machine learning models, data sources, or post-processing utilities), but its core goal is to deliver a pre-configured and scalable research pipeline optimized for materials discovery of multinary systems rather than serving as an materials modeling automation framework.
 

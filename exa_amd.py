@@ -4,7 +4,7 @@ from tools.config_manager import ConfigManager
 from tools.logging_config import amd_logger
 from parsl_configs.parsl_config_registry import get_parsl_config
 from tools.config_labels import ConfigKeys as CK
-from workflows.registry import get_workflow, available_workflows
+from workflows.registry import get_workflow
 
 
 def main():

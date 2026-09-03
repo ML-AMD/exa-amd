@@ -1,21 +1,36 @@
-import sys
-import pytest
-import tarfile
+"""End-to-end workflow tests for the CGCNN prediction and structure selection.
+
+These tests run :func:`ml_models.cgcnn.predict.predict_cgcnn` on a bundled set
+of test structures, verify that predictions are reproducible across repeated
+runs, and exercise :func:`parsl_tasks.select_structures.run_select_structures`
+on the resulting predictions CSV.
+"""
+
 import os
 import shutil
-import random
 from pathlib import Path
 
-# Ensure repo root is importable
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+import pytest
+
+from conftest import REPO_ROOT, extract_tar, pushd
 
 
 @pytest.fixture(scope="module")
-def cgcnn_output(tmp_path_factory):
-    """
-    runs the cgcnn prediction and returns paths for follow-up tests.
+def cgcnn_output(
+    tmp_path_factory: pytest.TempPathFactory,
+) -> dict[str, Path]:
+    """Run the CGCNN prediction and return paths for follow-up tests.
+
+    Parameters
+    ----------
+    tmp_path_factory : pytest.TempPathFactory
+        Pytest factory for module-scoped temporary directories.
+
+    Returns
+    -------
+    dict of str to pathlib.Path
+        A mapping with keys ``"csv"`` (predictions CSV path), ``"structures"``
+        (extracted structures directory), and ``"base"`` (working directory).
     """
     tmp_path = tmp_path_factory.mktemp("cgcnn_test")
     archive_path = Path(__file__).parent / "test_structures.tar"
@@ -26,11 +41,7 @@ def cgcnn_output(tmp_path_factory):
     cgcnn_output_csv = tmp_path / "test_results_1.csv"
 
     # extract test_structures.tar
-    with tarfile.open(archive_path) as tar:
-        try:
-            tar.extractall(path=tmp_path, filter="data")  # Python 3.12+
-        except TypeError:
-            tar.extractall(path=tmp_path)
+    extract_tar(archive_path, tmp_path)
 
     assert test_structures_dir.exists(), "Extraction failed"
 
@@ -42,9 +53,7 @@ def cgcnn_output(tmp_path_factory):
 
     from ml_models.cgcnn.predict import predict_cgcnn
 
-    cwd = os.getcwd()
-    try:
-        os.chdir(tmp_path)
+    with pushd(tmp_path):
         out_csv = predict_cgcnn(
             modelpath=str(model_path),
             cifpath=str(cif_dir),
@@ -52,9 +61,8 @@ def cgcnn_output(tmp_path_factory):
             workers=0,
             chunk_id=1,
             output_csv=None,
+            disable_cuda=True,
         )
-    finally:
-        os.chdir(cwd)
 
     assert Path(out_csv) == cgcnn_output_csv, "Output CSV path mismatch"
     assert cgcnn_output_csv.exists(), "test_results_1.csv not created"
@@ -62,16 +70,25 @@ def cgcnn_output(tmp_path_factory):
     return {
         "csv": cgcnn_output_csv,
         "structures": test_structures_dir,
-        "base": tmp_path
+        "base": tmp_path,
     }
 
 
-def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
+def test_cgcnn_reproducible_predictions(
+    cgcnn_output: dict[str, Path],
+) -> None:
+    """Predictions are stable across repeated ``predict_cgcnn`` runs.
+
+    Parameters
+    ----------
+    cgcnn_output : dict of str to pathlib.Path
+        Fixture providing the base directory and extracted structures.
+
+    Notes
+    -----
+    Runs :func:`predict_cgcnn` five times and asserts the per-structure
+    predictions agree to within ``1e-6``.
     """
-    Run predict_cgcnn 5 times and check predictions are consistent between test runs.
-    """
-    import os
-    from pathlib import Path
     import ml_models.cgcnn as cgcnn_pkg
     from ml_models.cgcnn.predict import predict_cgcnn
 
@@ -80,7 +97,19 @@ def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
     model_path = Path(cgcnn_pkg.__file__).parent / "form_1st.pth.tar"
     assert model_path.exists()
 
-    def read_preds(csv_path):
+    def read_preds(csv_path: os.PathLike | str) -> dict[str, float]:
+        """Read a predictions CSV into a ``{cif_id: prediction}`` mapping.
+
+        Parameters
+        ----------
+        csv_path : os.PathLike or str
+            Path to the predictions CSV.
+
+        Returns
+        -------
+        dict of str to float
+            Mapping from CIF id to predicted value.
+        """
         out = {}
         with open(csv_path) as f:
             for ln in f:
@@ -92,9 +121,7 @@ def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
         return out
 
     runs, outputs = 5, []
-    cwd = os.getcwd()
-    try:
-        os.chdir(base)
+    with pushd(base):
         for i in range(runs):
             out_csv = base / f"repro_{i}.csv"
             _ = predict_cgcnn(
@@ -108,18 +135,28 @@ def test_cgcnn_reproducible_predictions(cgcnn_output, tmp_path, monkeypatch):
             )
             assert out_csv.exists()
             outputs.append(read_preds(out_csv))
-    finally:
-        os.chdir(cwd)
 
     first = outputs[0]
     for j, cur in enumerate(outputs[1:], start=2):
         for k in first:
-            assert abs(first[k] - cur[k]) <= 1e-6, f"Unstable CGCNN prediction for {k} on run {j}"
+            assert abs(first[k] - cur[k]) <= 1e-6, (
+                f"Unstable CGCNN prediction for {k} on run {j}"
+            )
 
 
-def test_select_structure(cgcnn_output):
-    """
-    test select structures using the callable (no subprocess, no cms_dir)
+def test_select_structure(cgcnn_output: dict[str, Path]) -> None:
+    """Selection runs on the CGCNN predictions and writes POSCAR outputs.
+
+    Parameters
+    ----------
+    cgcnn_output : dict of str to pathlib.Path
+        Fixture providing the predictions CSV and extracted structures.
+
+    Notes
+    -----
+    Calls :func:`run_select_structures` directly (no subprocess) and asserts
+    that the ``new`` directory, ``POSCAR_*`` files, and ``id_prop.csv`` are
+    produced.
     """
     from parsl_tasks.select_structures import run_select_structures
 

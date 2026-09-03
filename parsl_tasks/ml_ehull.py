@@ -1,51 +1,130 @@
+"""Parsl tasks for ML-predicted energy-above-hull (Ehull) calculations.
+
+Reads ML-predicted total energies, computes each structure's energy above the
+convex hull for ternary and quaternary systems (in parallel via a process
+pool), and writes the sorted ``index,Ehull`` results.
+"""
+
 import os
 from multiprocessing import Pool, cpu_count
-from pymatgen.core import Composition, Element
+from typing import Any
+
 from parsl import python_app
+from pymatgen.core import Element
 
-from tools.logging_config import amd_logger
 from parsl_configs.parsl_executors_labels import EHULL_ML_PARALLEL_EXECUTOR_LABEL
-from tools.config_labels import ConfigKeys as CK
 from parsl_tasks.ehull_utils import (
-    judge_stable_ternary,
-    parse_stable_phases_ternary,
     judge_stable_quaternary,
+    judge_stable_ternary,
     parse_stable_phases_quaternary,
+    parse_stable_phases_ternary,
 )
+from tools.config_labels import ConfigKeys as CK
+from tools.logging_config import amd_logger
+
+# Result tuple: (index, d_hull or None, hull_vec or None, formula)
+WrapperResult = tuple[int, float | None, Any, str]
 
 
-def process_structure_wrapper_ternary(index, formula, energy, stable_vec, elements):
-    """
-    Wrapper function to be called by the worker pool.
-    Returns the index, the result, and the formula.
+def process_structure_wrapper_ternary(
+    index: int,
+    formula: str,
+    energy: float,
+    stable_vec: Any,
+    elements: list[str],
+) -> WrapperResult:
+    """Compute the ternary hull distance for a single structure.
+
+    Intended to be called by a worker pool. Any exception is swallowed and
+    reported as a ``None`` result so the pool can continue.
+
+    Parameters
+    ----------
+    index : int
+        Structure index used to correlate the result with the input.
+    formula : str
+        Chemical formula of the structure.
+    energy : float
+        Total energy of the structure.
+    stable_vec : Any
+        Stable-phase data as returned by :func:`parse_stable_phases_ternary`.
+    elements : list of str
+        Element symbols defining the ternary system.
+
+    Returns
+    -------
+    tuple of (int, float or None, Any or None, str)
+        ``(index, d_hull, hull_vec, formula)``. On failure ``d_hull`` and
+        ``hull_vec`` are ``None``.
     """
     try:
         d_hull, hull_vec = judge_stable_ternary(stable_vec, elements, formula, energy)
         return index, d_hull, hull_vec, formula
-    except Exception as e:
+    except Exception as _:
         # Return None for energy if calculation fails
         return index, None, None, formula
 
 
-def process_structure_wrapper_quaternary(index, formula, energy, stable_vec, elements):
-    """
-    Wrapper function to be called by the worker pool.
+def process_structure_wrapper_quaternary(
+    index: int,
+    formula: str,
+    energy: float,
+    stable_vec: Any,
+    elements: list[str],
+) -> WrapperResult:
+    """Compute the quaternary hull distance for a single structure.
+
+    Intended to be called by a worker pool. Any exception is swallowed and
+    reported as a ``None`` result so the pool can continue.
+
+    Parameters
+    ----------
+    index : int
+        Structure index used to correlate the result with the input.
+    formula : str
+        Chemical formula of the structure.
+    energy : float
+        Total energy of the structure.
+    stable_vec : Any
+        Stable-phase data as returned by :func:`parse_stable_phases_quaternary`.
+    elements : list of str
+        Element symbols defining the quaternary system.
+
+    Returns
+    -------
+    tuple of (int, float or None, Any or None, str)
+        ``(index, d_hull, hull_vec, formula)``. On failure ``d_hull`` and
+        ``hull_vec`` are ``None``.
     """
     try:
-        d_hull, hull_vec = judge_stable_quaternary(stable_vec, elements, formula, energy)
+        d_hull, hull_vec = judge_stable_quaternary(
+            stable_vec, elements, formula, energy
+        )
         return index, d_hull, hull_vec, formula
-    except Exception as e:
+    except Exception as _:
         # Return None for energy if calculation fails
         return index, None, None, formula
 
 
-def read_energies(filename):
-    energies = []
-    formulas = []
-    indices = []
-    with open(filename, 'r') as f:
+def read_energies(filename: str) -> tuple[list[float], list[int], list[str]]:
+    """Read an energy file with ``index,energy,formula`` lines.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the input file (e.g. ``ener_ml.dat``).
+
+    Returns
+    -------
+    tuple of (list of float, list of int, list of str)
+        ``(energies, indices, formulas)`` in file order.
+    """
+    energies: list[float] = []
+    formulas: list[str] = []
+    indices: list[int] = []
+    with open(filename, "r") as f:
         for line in f:
-            l_parts = line.split(',')
+            l_parts = line.split(",")
             index = int(l_parts[0])
             indices.append(index)
             energies.append(float(l_parts[1]))
@@ -53,13 +132,14 @@ def read_energies(filename):
     return energies, indices, formulas
 
 
-def parallel_ternary_ehull(input_file,
-                           stable_file,
-                           output_file,
-                           elements,
-                           workers=None):
-    """
-    Calculate formation energies relative to the ternary convex hull (parallel).
+def parallel_ternary_ehull(
+    input_file: str,
+    stable_file: str,
+    output_file: str,
+    elements: str,
+    workers: int | None = None,
+) -> str:
+    """Calculate formation energies relative to the ternary convex hull (parallel).
 
     Parameters
     ----------
@@ -69,8 +149,8 @@ def parallel_ternary_ehull(input_file,
         Stable phases file with lines: formula energy. (e.g., mp_int_stable.dat)
     output_file : str
         Output file written as: index,Ehull. (e.g., hull_ml.dat)
-    elements : str or list, optional
-        Element specification (e.g. "A-B-C"). If None, inferred from current directory.
+    elements : str
+        Element specification (e.g. ``"A-B-C"``).
     workers : int, optional
         Number of worker processes to use. Defaults to all available CPUs.
 
@@ -82,11 +162,11 @@ def parallel_ternary_ehull(input_file,
     if workers is None or workers < 1:
         workers = cpu_count()
 
-    elements = [Element(ele) for ele in elements.split('-')]
-    eles = [ele.symbol for ele in elements]
+    element_objs = [Element(ele) for ele in elements.split("-")]
+    eles = [ele.symbol for ele in element_objs]
 
     # Read stable phases
-    stable_vec, ternary_vec = parse_stable_phases_ternary(stable_file, elements)
+    stable_vec, ternary_vec = parse_stable_phases_ternary(stable_file, element_objs)
     if not stable_vec:
         amd_logger.critical(f"Error: No stable phases found containing elements {eles}")
 
@@ -95,22 +175,25 @@ def parallel_ternary_ehull(input_file,
 
     # Read Input Structures
     total_energies, indices, formulas = read_energies(input_file)
-    amd_logger.debug(f"\nStarting parallel calculation on {len(indices)} structures using {workers} workers...")
+    amd_logger.debug(
+        f"\nStarting parallel calculation on {len(indices)} "
+        f"structures using {workers} workers..."
+    )
 
     # Prepare arguments for each task
     task_args = [
         (idx, form, en, stable_vec, eles)
-        for idx, form, en in zip(indices, formulas, total_energies)
+        for idx, form, en in zip(indices, formulas, total_energies, strict=True)
     ]
 
     # Create a Pool and run tasks
     with Pool(processes=workers) as pool:
         results = pool.starmap(process_structure_wrapper_ternary, task_args)
 
-    formation_energies = []
-    hull_phases = []
-    processed_indices = []
-    processed_formulas = []
+    formation_energies: list[float | None] = []
+    hull_phases: list[Any] = []
+    processed_indices: list[int] = []
+    processed_formulas: list[str] = []
 
     for idx, d_hull, hull_vec, form in results:
         processed_indices.append(idx)
@@ -125,7 +208,13 @@ def parallel_ternary_ehull(input_file,
     # Filter out None values before sorting to avoid crashes
     valid_data = [
         (e, f, i, h)
-        for e, f, i, h in zip(formation_energies, processed_formulas, processed_indices, hull_phases)
+        for e, f, i, h in zip(
+            formation_energies,
+            processed_formulas,
+            processed_indices,
+            hull_phases,
+            strict=True,
+        )
         if e is not None
     ]
 
@@ -136,48 +225,82 @@ def parallel_ternary_ehull(input_file,
     valid_data.sort(key=lambda x: x[0])
 
     # Unpack sorted data for writing
-    sorted_energies, sorted_formulas, sorted_indices, sorted_phases = zip(*valid_data)
+    sorted_energies, sorted_formulas, sorted_indices, sorted_phases = zip(
+        *valid_data, strict=True
+    )
 
     # Write output
-    with open(output_file, 'w+') as f:
-        for idx, energy, phases, formula in zip(sorted_indices, sorted_energies, sorted_phases, sorted_formulas):
-            f.write(f'{idx},{energy:.6f}\n')
+    with open(output_file, "w+") as f:
+        for idx, energy, _, _ in zip(
+            sorted_indices, sorted_energies, sorted_phases, sorted_formulas, strict=True
+        ):
+            f.write(f"{idx},{energy:.6f}\n")
     return output_file
 
 
-def parallel_quaternary_ehull(input_file,
-                              stable_file,
-                              output_file,
-                              elements,
-                              workers=None):
+def parallel_quaternary_ehull(
+    input_file: str,
+    stable_file: str,
+    output_file: str,
+    elements: str,
+    workers: int | None = None,
+) -> str:
+    """Calculate formation energies relative to the quaternary convex hull (parallel).
+
+    Parameters
+    ----------
+    input_file : str
+        Input energy file with lines: index,energy,formula. (e.g., ener_ml.dat)
+    stable_file : str
+        Stable phases file with lines: formula energy. (e.g., mp_int_stable.dat)
+    output_file : str
+        Output file written as: index,Ehull. (e.g., hull_ml.dat)
+    elements : str
+        Element specification with exactly four elements (e.g. ``"A-B-C-D"``).
+    workers : int, optional
+        Number of worker processes to use. Defaults to all available CPUs.
+
+    Returns
+    -------
+    str
+        Path to the output file.
+    """
     if workers is None or workers < 1:
         workers = cpu_count()
 
-    elements = [Element(ele) for ele in elements.split('-')]
-    eles = [ele.symbol for ele in elements]
+    element_objs = [Element(ele) for ele in elements.split("-")]
+    eles = [ele.symbol for ele in element_objs]
 
     if len(eles) != 4:
-        amd_logger.critical(f"Error: Detected {len(eles)} elements ({eles}). This function is for Quaternary (4) systems only.")
+        amd_logger.critical(
+            f"Error: Detected {len(eles)} elements ({eles}). "
+            "This function is for Quaternary (4) systems only."
+        )
 
-    stable_vec, _ = parse_stable_phases_quaternary(stable_file, elements)
+    stable_vec, _ = parse_stable_phases_quaternary(stable_file, element_objs)
     if not stable_vec:
-        amd_logger.critical(f"Error: No stable phases found for system {'-'.join(eles)}")
+        amd_logger.critical(
+            f"Error: No stable phases found for system {'-'.join(eles)}"
+        )
 
     total_energies, indices, formulas = read_energies(input_file)
-    amd_logger.debug(f"\nStarting parallel calculation on {len(indices)} structures using {workers} workers...")
+    amd_logger.debug(
+        f"\nStarting parallel calculation on {len(indices)} "
+        f"structures using {workers} workers..."
+    )
 
     task_args = [
         (idx, form, en, stable_vec, eles)
-        for idx, form, en in zip(indices, formulas, total_energies)
+        for idx, form, en in zip(indices, formulas, total_energies, strict=True)
     ]
 
     with Pool(processes=workers) as pool:
         results = pool.starmap(process_structure_wrapper_quaternary, task_args)
 
-    formation_energies = []
-    hull_phases = []
-    processed_indices = []
-    processed_formulas = []
+    formation_energies: list[float] = []
+    hull_phases: list[Any] = []
+    processed_indices: list[int] = []
+    processed_formulas: list[str] = []
 
     for idx, d_hull, hull_vec, form in results:
         # Filter out failed calculations
@@ -189,30 +312,63 @@ def parallel_quaternary_ehull(input_file,
         elif d_hull is None:
             amd_logger.warning(f"Warning: Calculation failed for structure {idx}")
 
-    valid_data = list(zip(formation_energies, processed_formulas, processed_indices, hull_phases))
+    valid_data = list(
+        zip(
+            formation_energies,
+            processed_formulas,
+            processed_indices,
+            hull_phases,
+            strict=True,
+        )
+    )
 
     if not valid_data:
         amd_logger.critical("No valid calculations found.")
 
     valid_data.sort(key=lambda x: x[0])
 
-    sorted_energies, sorted_formulas, sorted_indices, sorted_phases = zip(*valid_data)
+    sorted_energies, sorted_formulas, sorted_indices, sorted_phases = zip(
+        *valid_data, strict=True
+    )
 
-    with open(output_file, 'w+') as f:
-        for idx, energy, phases, formula in zip(sorted_indices, sorted_energies, sorted_phases, sorted_formulas):
-            f.write(f'{idx},{energy:.6f}\n')
+    with open(output_file, "w+") as f:
+        for idx, energy, _, _ in zip(
+            sorted_indices, sorted_energies, sorted_phases, sorted_formulas, strict=True
+        ):
+            f.write(f"{idx},{energy:.6f}\n")
 
     return output_file
 
 
 @python_app(executors=[EHULL_ML_PARALLEL_EXECUTOR_LABEL])
-def ehull_ml_parallel(config):
+def ehull_ml_parallel(config: dict) -> str:
+    """Parsl app dispatching Ehull calculation by system size.
+
+    Selects the ternary or quaternary routine based on the number of elements
+    in ``config[ELEMENTS]``.
+
+    Parameters
+    ----------
+    config : dict
+        A :class:`~tools.config_manager.ConfigManager` (or dict with the same
+        fields). The following keys are read:
+
+        - ``WORK_DIR`` (str): working directory holding the ML energy file and
+          receiving the output hull file.
+        - ``VASP_WORK_DIR`` (str): directory holding the stable-phases file.
+        - ``ELEMENTS`` (str): element specification (e.g. ``"A-B-C"``).
+
+    Returns
+    -------
+    str
+        Path to the written output hull file.
+    """
     ener_ml_file = os.path.join(config[CK.WORK_DIR], CK.MLIP_ENER_ML_FILE)
     mp_file = os.path.join(config[CK.VASP_WORK_DIR], CK.MP_STABLE_OUT)
     output_file = os.path.join(config[CK.WORK_DIR], CK.MLIP_HULL_ML_FILE)
     elements = config[CK.ELEMENTS]
 
-    n = len(elements.split('-'))
+    n = len(elements.split("-"))
     if n == 3:
         return parallel_ternary_ehull(ener_ml_file, mp_file, output_file, elements)
     if n == 4:
@@ -220,3 +376,4 @@ def ehull_ml_parallel(config):
         return parallel_quaternary_ehull(ener_ml_file, mp_file, output_file, elements)
 
     amd_logger.critical(f"Unsupported number of elements ({n}) for system='{elements}'")
+    raise ValueError(f"Unsupported number of elements ({n}) for system='{elements}'")

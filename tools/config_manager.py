@@ -1,18 +1,79 @@
+"""Configuration management for the exa-AMD workflow.
+
+Loads settings from a JSON config file, optionally overrides them with
+command-line arguments, validates required parameters, applies defaults for
+optional ones, and prepares working directories and VASP batch scheduling.
+"""
+
 import argparse
 import json
 import os
-import sys
 import re
-import subprocess
+import sys
 from pathlib import Path
-from shutil import copyfileobj
+from typing import Any
 
-from tools.logging_config import amd_logger
 from tools.config_labels import ConfigKeys as CK
+from tools.logging_config import amd_logger
 
 
-def _collect_batch_ids(vasp_work_dir: str, structure_dir: str, nstructures: int) -> list[int]:
-    """Helper: Find what should be the next VASP calculations"""
+def _str2bool(value: str) -> bool:
+    """Parse a CLI string into a boolean.
+
+    ``argparse`` with ``type=bool`` calls ``bool(value)``, which treats any
+    non-empty string (including ``"False"``) as ``True``. This converter maps
+    common truthy/falsy spellings to the correct boolean instead.
+
+    Parameters
+    ----------
+    value : str
+        The raw command-line argument value.
+
+    Returns
+    -------
+    bool
+        The parsed boolean value.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If ``value`` is not a recognised boolean spelling.
+    """
+    if isinstance(value, bool):
+        return value
+    normalized = value.strip().lower()
+    if normalized in ("true", "t", "yes", "y", "1"):
+        return True
+    if normalized in ("false", "f", "no", "n", "0"):
+        return False
+    raise argparse.ArgumentTypeError(f"Expected a boolean value, got '{value}'.")
+
+
+def _collect_batch_ids(
+    vasp_work_dir: str, structure_dir: str, nstructures: int
+) -> list[int]:
+    """Determine which structure ids should be run next by VASP.
+
+    Scans ``structure_dir`` for ``POSCAR_<id>`` files and ``vasp_work_dir`` for
+    existing numbered run directories, distinguishing finished runs (those with
+    a ``DONE`` marker) from unfinished ones. Stale POTCAR files in unfinished
+    directories are removed to ensure a clean rerun.
+
+    Parameters
+    ----------
+    vasp_work_dir : str
+        Directory containing numbered VASP run subdirectories.
+    structure_dir : str
+        Directory containing the ``POSCAR_<id>`` input files.
+    nstructures : int
+        Maximum number of structures to schedule; ``-1`` selects all
+        remaining (unfinished plus new) ids.
+
+    Returns
+    -------
+    list[int]
+        Structure ids to run next, unfinished ids first, then new ids.
+    """
     poscar_ids = set()
     for name in os.listdir(structure_dir):
         m = re.match(r"POSCAR_(\d+)$", name)
@@ -20,8 +81,6 @@ def _collect_batch_ids(vasp_work_dir: str, structure_dir: str, nstructures: int)
             poscar_ids.add(int(m.group(1)))
     if not poscar_ids:
         return []
-
-    max_possible_id = max(poscar_ids)
 
     # existing run directories and which are unfinished
     existing_ids = []
@@ -60,69 +119,162 @@ def _collect_batch_ids(vasp_work_dir: str, structure_dir: str, nstructures: int)
 
 
 class ConfigManager:
-    """
-    Manages configuration settings loaded from the JSON config file and optionally overridden
-    by command-line arguments.
+    """Load, merge, validate and expose the exa-AMD run configuration.
 
-    This class ensures that required parameters are present and valid, while applying
-    defaults for optional settings.
+    Configuration is read from a JSON file (via ``--config``) and may be
+    overridden by matching command-line arguments. Required parameters are
+    validated for presence, optional parameters are filled with defaults, and
+    element-scoped work directories are created. The resulting configuration is
+    accessible both as a dict (via :meth:`get_json_config`) and through
+    dictionary-style indexing (``config[key]``).
 
+    Attributes
+    ----------
+    REQUIRED_PARAMS : dict[str, tuple[type, str]]
+        Mapping of required config keys to ``(type, help_text)``. Each must be
+        present in the JSON file or supplied on the command line.
+    OPTIONAL_PARAMS : dict[str, tuple[Any, str]]
+        Mapping of optional config keys to ``(default_value, help_text)``.
+        Absent keys are assigned their default.
+    CONFIG_HELP_MSG : str
+        Help text for the ``--config`` argument.
+    HELP_DESCRIPTION : str
+        Top-level description shown in the argument parser help.
+    config : dict[str, Any]
+        The merged configuration after loading, override and default
+        application.
+    config_path : str | None
+        Path to the JSON configuration file provided on the command line.
     """
-    #    CK.WORKFLOW_NAME: (str, f"Workflow to be run from the available list: {available_workflows()}(required)"),
 
     # required arguments: must exist in JSON config or be provided as cmd line
     REQUIRED_PARAMS = {
-        CK.WORKFLOW_NAME: (str, f"Workflow to be run (required)"),
+        CK.WORKFLOW_NAME: (str, "Workflow to be run (required)"),
         CK.VASP_STD_EXE: (str, "VASP executable (required)."),
-        CK.WORK_DIR: (str, "Path to a work directory used for generating and selecting all the structures (required)."),
-        CK.VASP_WORK_DIR: (str, "Path to a work directory for VASP-specific operations (required)."),
-        CK.POT_DIR: (str, "Path to the PAW potentials directory containing kinetic energy densities for meta-GGA calculations (required)."),
-        CK.OUTPUT_FILE: (str, "Output file name for storing the result of the VASP calculations (required)."),
+        CK.WORK_DIR: (
+            str,
+            "Path to a work directory used for generating and selecting "
+            "all the structures (required).",
+        ),
+        CK.VASP_WORK_DIR: (
+            str,
+            "Path to a work directory for VASP-specific operations (required).",
+        ),
+        CK.POT_DIR: (
+            str,
+            "Path to the PAW potentials directory containing kinetic energy "
+            "densities for meta-GGA calculations (required).",
+        ),
+        CK.OUTPUT_FILE: (
+            str,
+            "Output file name for storing the result of the VASP "
+            "calculations (required).",
+        ),
         CK.ELEMENTS: (str, "Elements, e.g. 'Ce-Co-B' (required)."),
-        CK.PARSL_CONFIG: (
-            str, "Parsl config name, previously registered (required)."),
+        CK.PARSL_CONFIG: (str, "Parsl config name, previously registered (required)."),
         CK.INITIAL_STRS: (
-            str, "Path to the directory that containts the initial crystal structures (required)."),
-        CK.PARSL_CONFIGS_DIR: (str, "Path to the directory that contains the Parsl configurations (required)."),
+            str,
+            "Path to the directory that containts the initial crystal "
+            "structures (required).",
+        ),
+        CK.PARSL_CONFIGS_DIR: (
+            str,
+            "Path to the directory that contains the Parsl configurations (required).",
+        ),
     }
 
     # optional arguments: if absent, assign defaults.
-    OPTIONAL_PARAMS = {
-        CK.EF_THR: (-0.2, "A formation energy threshold used for selecting the structures, after the CGCNN prediction."),
-        CK.NUM_WORKERS: (128, "Number of threads used for generating, predicting and selecting the structures."),
+    OPTIONAL_PARAMS: dict[str, tuple[Any, str]] = {
+        CK.EF_THR: (
+            -0.2,
+            "A formation energy threshold used for selecting the "
+            "structures, after the CGCNN prediction.",
+        ),
+        CK.NUM_WORKERS: (
+            128,
+            "Number of threads used for generating, predicting and "
+            "selecting the structures.",
+        ),
         CK.BATCH_SIZE: (256, "Batch size for CGCNN."),
         CK.VASP_NNODES: (1, "Number of nodes used for VASP calculations."),
-        CK.VASP_NTASKS_PER_RUN: (1, "Number of MPI processes per VASP calculation (useful for CPU-only Parsl configurations)."),
-        CK.NUM_STRS: (-1, "Number of structures to be processed with VASP. (-1 means all)."),
+        CK.VASP_NTASKS_PER_RUN: (
+            1,
+            "Number of MPI processes per VASP calculation (useful for "
+            "CPU-only Parsl configurations).",
+        ),
+        CK.NUM_STRS: (
+            -1,
+            "Number of structures to be processed with VASP. (-1 means all).",
+        ),
         CK.VASP_TIMEOUT: (1800, "Max walltime in seconds for a VASP calculation."),
-        CK.VASP_NSW: (100, "VASP NSW: gives the number of steps in all molecular dynamics runs."),
-        CK.CPU_ACCOUNT: ("", "The cpu account name on the current machine (forwarded to the workload manager)."),
-        CK.GPU_ACCOUNT: ("", "The gpu account name on the current machine (forwarded to the workload manager)."),
-        CK.OUTPUT_LEVEL: ("INFO", "Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL"),
-        CK.POST_PROCESSING_OUT_DIR: ("", "A full path to a directory that will contain all the post-processing results. If not set, the post-processing step will be skipped."),
-        CK.MPRester_API_KEY: ("", f"An API key for accessing the MP data (https://docs.materialsproject.org). Required if --{CK.POST_PROCESSING_OUT_DIR} is set. "),
+        CK.VASP_NSW: (
+            100,
+            "VASP NSW: gives the number of steps in all molecular dynamics runs.",
+        ),
+        CK.CPU_ACCOUNT: (
+            "",
+            "The cpu account name on the current machine "
+            "(forwarded to the workload manager).",
+        ),
+        CK.GPU_ACCOUNT: (
+            "",
+            "The gpu account name on the current machine "
+            "(forwarded to the workload manager).",
+        ),
+        CK.OUTPUT_LEVEL: (
+            "INFO",
+            "Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL",
+        ),
+        CK.POST_PROCESSING_OUT_DIR: (
+            "",
+            "A full path to a directory that will contain all the "
+            "post-processing results. If not set, the post-processing "
+            "step will be skipped.",
+        ),
+        CK.MPRester_API_KEY: (
+            "",
+            "An API key for accessing the MP data "
+            "(https://docs.materialsproject.org). "
+            f"Required if --{CK.POST_PROCESSING_OUT_DIR} is set. ",
+        ),
         CK.HULL_ENERGY_THR: (
-            0.1, "Maximum Ehull (eV/atom) to display for metastable phases"),
-        CK.GEN_STRUCTURES_NNODES: (1, "Number of nodes used for the pre-processing phases"),
+            0.1,
+            "Maximum Ehull (eV/atom) to display for metastable phases",
+        ),
+        CK.GEN_STRUCTURES_NNODES: (
+            1,
+            "Number of nodes used for the pre-processing phases",
+        ),
         CK.MLIP_RELAX_NNODES: (1, "Number of nodes used for the MLIP relaxation step"),
-        CK.GPUS_PER_NODE: (4, "Number of GPUs per node")
+        CK.GPUS_PER_NODE: (4, "Number of GPUs per node"),
     }
 
     CONFIG_HELP_MSG = "Path to the JSON configuration file (required)."
     HELP_DESCRIPTION = "Override JSON config fields with command line arguments."
 
-    def __init__(self):
-        """
-        Load the json config and apply the cmd line arguments.
-        Check if all the required arguments were provided.
-        """
+    def __init__(self) -> None:
+        """Load JSON config, merge CLI overrides, and validate the result.
 
-        import workflows
+        Reads the ``--config`` JSON file, overlays any command-line argument
+        overrides, ensures all required parameters are present, fills in
+        defaults for optional parameters, and creates the element-scoped work
+        directories.
+
+        Raises
+        ------
+        ValueError
+            If a required parameter is missing, or if a post-processing output
+            directory is set without a Materials Project API key.
+        SystemExit
+            If no config path is given, the file is missing, or the JSON is
+            malformed.
+        """
         from workflows.registry import available_workflows
+
         avail_workflows = available_workflows()
         self.REQUIRED_PARAMS[CK.WORKFLOW_NAME] = (
             str,
-            f"Workflow to be run (required). Available workflows: {avail_workflows}."
+            f"Workflow to be run (required). Available workflows: {avail_workflows}.",
         )
 
         self._early_help()
@@ -130,10 +282,7 @@ class ConfigManager:
         # Preliminary parser for -config (read only the JSON path)
         config_parser = argparse.ArgumentParser(add_help=False)
         config_parser.add_argument(
-            f"--{CK.CONFIG_FILE}",
-            type=str,
-            default=None,
-            help=self.CONFIG_HELP_MSG
+            f"--{CK.CONFIG_FILE}", type=str, default=None, help=self.CONFIG_HELP_MSG
         )
         config_args, remaining_args = config_parser.parse_known_args()
         self.config_path = config_args.config
@@ -141,7 +290,9 @@ class ConfigManager:
         # Load JSON config
         if self.config_path is None:
             config_parser.error(
-                "Please provide a json configuration file (e.g., --config my_config.json)")
+                "Please provide a json configuration file "
+                "(e.g., --config my_config.json)"
+            )
         else:
             if not os.path.exists(self.config_path):
                 print(f"Config file {self.config_path} not found. Aborting.")
@@ -154,8 +305,7 @@ class ConfigManager:
                 sys.exit(1)
 
         parser = argparse.ArgumentParser(
-            parents=[config_parser],
-            description=self.HELP_DESCRIPTION
+            parents=[config_parser], description=self.HELP_DESCRIPTION
         )
 
         # Loop over REQUIRED_PARAMS
@@ -164,7 +314,7 @@ class ConfigManager:
                 f"--{key}",
                 type=arg_type,
                 default=None,  # We'll check existence later
-                help=help_text
+                help=help_text,
             )
 
         # Loop over OPTIONAL_PARAMS
@@ -174,7 +324,7 @@ class ConfigManager:
                 f"--{key}",
                 default=None,  # We'll assign defaults ourselves if needed
                 type=arg_type,
-                help=f"{help_text} (default='{default_val}')."
+                help=f"{help_text} (default='{default_val}').",
             )
 
         args = parser.parse_args(remaining_args)
@@ -197,43 +347,52 @@ class ConfigManager:
             if key not in self.config:
                 self.config[key] = default_val
 
-        if self.config[CK.POST_PROCESSING_OUT_DIR] and not self.config[CK.MPRester_API_KEY]:
-            raise ValueError(f"Error: Missing required argument '{self.config[MPRester_API_KEY]}'.")
+        if (
+            self.config[CK.POST_PROCESSING_OUT_DIR]
+            and not self.config[CK.MPRester_API_KEY]
+        ):
+            raise ValueError(
+                f"Error: Missing required argument '{CK.MPRester_API_KEY}'."
+            )
 
         # Create/Update directories
-        work_dir = os.path.join(
-            self.config[CK.WORK_DIR], self.config[CK.ELEMENTS])
+        work_dir = os.path.join(self.config[CK.WORK_DIR], self.config[CK.ELEMENTS])
         if not os.path.exists(work_dir):
             os.makedirs(work_dir)
 
         vasp_work_dir = os.path.join(
-            self.config[CK.VASP_WORK_DIR], self.config[CK.ELEMENTS])
+            self.config[CK.VASP_WORK_DIR], self.config[CK.ELEMENTS]
+        )
         if not os.path.exists(vasp_work_dir):
             os.makedirs(vasp_work_dir)
 
         self.config[CK.WORK_DIR] = work_dir
         self.config[CK.VASP_WORK_DIR] = vasp_work_dir
 
-    def _early_help(self):
+    def _early_help(self) -> None:
+        """Print full help and exit early when ``-h``/``--help`` is present.
+
+        Builds a parser exposing every required and optional parameter so the
+        user sees complete usage before any config loading occurs.
+
+        Returns
+        -------
+        None
+        """
         if "-h" in sys.argv or "--help" in sys.argv:
-            parser = argparse.ArgumentParser(
-                description=self.HELP_DESCRIPTION
-            )
+            parser = argparse.ArgumentParser(description=self.HELP_DESCRIPTION)
 
             parser.add_argument(
-                f"--{CK.CONFIG_FILE}",
-                type=str,
-                default=None,
-                help=self.CONFIG_HELP_MSG
+                f"--{CK.CONFIG_FILE}", type=str, default=None, help=self.CONFIG_HELP_MSG
             )
 
             # Loop over REQUIRED_PARAMS
             for key, (arg_type, help_text) in self.REQUIRED_PARAMS.items():
                 parser.add_argument(
                     f"--{key}",
-                    type=arg_type,
+                    type=_str2bool if arg_type is bool else arg_type,
                     default=None,  # We'll check existence later
-                    help=help_text
+                    help=help_text,
                 )
 
             # Loop over OPTIONAL_PARAMS
@@ -242,13 +401,23 @@ class ConfigManager:
                 parser.add_argument(
                     f"--{key}",
                     default=None,  # We'll assign defaults ourselves if needed
-                    type=arg_type,
-                    help=f"{help_text} (default='{default_val}')."
+                    type=_str2bool if arg_type is bool else arg_type,
+                    help=f"{help_text} (default='{default_val}').",
                 )
             parser.parse_args()
 
-    def setup_vasp_calculations(self):
-        """calculate which VASP structures should be run"""
+    def setup_vasp_calculations(self) -> None:
+        """Determine and record which VASP structures to run, and stage POTCAR.
+
+        Computes the batch of structure ids via :func:`_collect_batch_ids`,
+        stores it under ``CK.VASP_ID_STRUCT_LIST``, concatenates per-element
+        POTCAR files into a single POTCAR in the work directory, and logs the
+        scheduled id ranges.
+
+        Returns
+        -------
+        None
+        """
         work_dir = self.config[CK.WORK_DIR]
         vasp_work_dir = self.config[CK.VASP_WORK_DIR]
         structure_dir = os.path.join(work_dir, CK.SELECT_STRUCT_OUTPUT)
@@ -260,7 +429,7 @@ class ConfigManager:
         self.config[CK.VASP_ID_STRUCT_LIST] = id_list
 
         # POTCAR creation
-        elements = self.config[CK.ELEMENTS].split('-')
+        elements = self.config[CK.ELEMENTS].split("-")
         nb_of_elements = len(elements)
         if nb_of_elements < 3 or nb_of_elements > 4:
             amd_logger.critical("exa-AMD only supports ternary and quaternary systems")
@@ -269,6 +438,7 @@ class ConfigManager:
         out_path = Path(work_dir) / "POTCAR"
         potcar_paths = [Path(POTDIR) / el / "POTCAR" for el in elements]
         from shutil import copyfileobj
+
         with out_path.open("wb") as out:
             for p in potcar_paths:
                 with p.open("rb") as inp:
@@ -288,8 +458,18 @@ class ConfigManager:
         else:
             amd_logger.info("VASP structures: NONE")
 
-    def _create_potcar(self):
+    def _create_potcar(self) -> None:
+        """Concatenate per-element POTCAR files into a single POTCAR.
+
+        Reads the element POTCARs from ``CK.POT_DIR`` for the three elements in
+        ``CK.ELEMENTS`` and writes their concatenation into the work directory.
+
+        Returns
+        -------
+        None
+        """
         POTDIR = self.config[CK.POT_DIR]
+        work_dir = self.config[CK.WORK_DIR]
         ele1, ele2, ele3 = self.config[CK.ELEMENTS].split("-")
         potcar_paths = [f"{POTDIR}/{el}/POTCAR" for el in (ele1, ele2, ele3)]
 
@@ -298,10 +478,27 @@ class ConfigManager:
                 with open(path, "rb") as infile:
                     outfile.write(infile.read())
 
-    def get_json_config(self):
-        """Return the JSON configuration."""
+    def get_json_config(self) -> dict[str, Any]:
+        """Return the merged configuration mapping.
+
+        Returns
+        -------
+        dict
+            The configuration after JSON loading, CLI overrides and defaults.
+        """
         return self.config
 
-    def __getitem__(self, key):
-        """Allow dictionary-like access to configuration items."""
+    def __getitem__(self, key: str) -> Any:
+        """Return a configuration value by key.
+
+        Parameters
+        ----------
+        key : str
+            Configuration key (typically a ``ConfigKeys`` member).
+
+        Returns
+        -------
+        Any
+            The stored value for ``key``.
+        """
         return self.config[key]

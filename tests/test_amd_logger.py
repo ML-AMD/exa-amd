@@ -1,13 +1,40 @@
-import sys
+"""Tests for the :class:`~tools.logging_config.ExaAmdLogger` utility.
+
+These tests verify stream routing (stdout vs. stderr) per log level, the
+critical-level exit behaviour, level-based filtering, and the defaults of the
+module-level ``amd_logger`` instance.
+"""
+
 import pytest
+
 from tools.logging_config import ExaAmdLogger, amd_logger
 
 
-def check_output(capsys, logger, log_level, on_stdout: bool):
+def check_output(
+    capsys: pytest.CaptureFixture[str],
+    logger: ExaAmdLogger,
+    log_level: str,
+    on_stdout: bool,
+) -> None:
+    """Emit a message and assert it lands on the expected stream.
+
+    Parameters
+    ----------
+    capsys : pytest.CaptureFixture[str]
+        Fixture capturing ``stdout`` and ``stderr``.
+    logger : ExaAmdLogger
+        Logger instance under test.
+    log_level : str
+        Lowercase level name and logger method to invoke (e.g. ``"info"``).
+    on_stdout : bool
+        When ``True`` the message is expected on ``stdout``; otherwise on
+        ``stderr``. The complementary stream must be empty.
+
+    Returns
+    -------
+    None
     """
-    helper for 'test_stdout_stderr'
-    """
-    log_name = getattr(logger, "logger_name")
+    log_name = logger.logger_name
     msg = f"{log_level} message"
     getattr(logger, log_level)(msg)
     out, err = capsys.readouterr()
@@ -18,9 +45,17 @@ def check_output(capsys, logger, log_level, on_stdout: bool):
     assert "" == empty
 
 
-def test_stdout_stderr(capsys):
-    """
-    test that the log messages are correctly printed on stdout and stderr
+def test_stdout_stderr(capsys: pytest.CaptureFixture[str]) -> None:
+    """Log messages are routed to the correct stream per level.
+
+    Parameters
+    ----------
+    capsys : pytest.CaptureFixture[str]
+        Fixture capturing ``stdout`` and ``stderr``.
+
+    Returns
+    -------
+    None
     """
     log_name = "test_debug_info"
     logger = ExaAmdLogger(level_name="DEBUG", logger_name=log_name)
@@ -30,9 +65,17 @@ def test_stdout_stderr(capsys):
     check_output(capsys, logger, "error", on_stdout=False)
 
 
-def test_critical(capsys):
-    """
-    test that we exit after a critical message
+def test_critical(capsys: pytest.CaptureFixture[str]) -> None:
+    """A critical message is written to stderr and exits with code 1.
+
+    Parameters
+    ----------
+    capsys : pytest.CaptureFixture[str]
+        Fixture capturing ``stdout`` and ``stderr``.
+
+    Returns
+    -------
+    None
     """
     log_name = "test_critical_exit"
     logger = ExaAmdLogger(level_name="DEBUG", logger_name=log_name)
@@ -45,28 +88,53 @@ def test_critical(capsys):
     assert "" == out
 
 
-@pytest.mark.parametrize("configured_log_level, lower_level", [
-    ("INFO", "debug"),
-    ("WARNING", "info"),
-    ("ERROR", "warning"),
-    ("CRITICAL", "error"),
-])
-def test_filtering_below_level(configured_log_level, lower_level, capsys):
+@pytest.mark.parametrize(
+    "configured_log_level, lower_level",
+    [
+        ("INFO", "debug"),
+        ("WARNING", "info"),
+        ("ERROR", "warning"),
+        ("CRITICAL", "error"),
+    ],
+)
+def test_filtering_below_level(
+    configured_log_level: str,
+    lower_level: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Messages below the configured level produce no output.
+
+    Parameters
+    ----------
+    configured_log_level : str
+        Level the logger is configured with.
+    lower_level : str
+        Method whose severity is strictly below ``configured_log_level``.
+    capsys : pytest.CaptureFixture[str]
+        Fixture capturing ``stdout`` and ``stderr``.
+
+    Returns
+    -------
+    None
     """
-    verify that the log levels are respected
-    """
-    logger = ExaAmdLogger(
-        level_name=configured_log_level,
-        logger_name="filter_test")
+    logger = ExaAmdLogger(level_name=configured_log_level, logger_name="filter_test")
     msg = "should_not_trigger_an_output"
     getattr(logger, lower_level)(msg)
     out, err = capsys.readouterr()
     assert msg not in (out + err)
 
 
-def test_global_logger(capsys):
-    """
-    check the defaults of the global logger
+def test_global_logger(capsys: pytest.CaptureFixture[str]) -> None:
+    """The module-level ``amd_logger`` uses INFO-level defaults.
+
+    Parameters
+    ----------
+    capsys : pytest.CaptureFixture[str]
+        Fixture capturing ``stdout`` and ``stderr``.
+
+    Returns
+    -------
+    None
     """
     # should generate an output
     check_output(capsys, amd_logger, "info", on_stdout=True)

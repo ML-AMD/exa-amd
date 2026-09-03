@@ -1,5 +1,5 @@
 # exa-AMD: Exascale Accelerated Materials Discovery
-exa-AMD is a Python framework designed to accelerate the discovery and design of functional materials. The framework uses [Parsl](https://parsl-project.org) to build customizable and automated workflows that connect AI/ML tools, material databases, quantum mechanical calculations, and state-of-the-art computational methods for novel structure prediction. 
+exa-AMD is a Python framework designed to accelerate the discovery and design of functional materials. The framework uses [Parsl](https://parsl-project.org) to build customizable and automated workflows that connect AI/ML tools, material databases, quantum mechanical calculations, and state-of-the-art computational methods for novel structure prediction.
 
 exa-AMD is designed to accommodate different workflow styles on high performance computers. It can scale up on supercomputers to use a large number of nodes equipped with accelerators, such as the Nvidia and AMD GPUs. It can also run at a small scale dynamically, coordinating with the queueing system (e.g. Slurm) to automate compute tasks and job submissions. exa-AMD comes with a global registry to support flexible job execution patterns. Users can choose a pre-defined Parsl configuration provided; it is also possible to create a customized Parsl configuration for different computing systems and workflow needs.
 
@@ -12,17 +12,21 @@ exa-AMD is designed to accommodate different workflow styles on high performance
 ## Prerequisites
 This package requires:
 - python >= 3.10
-- numpy < 2.0
-- scikit-learn >= 1.6.1
-- pytorch >= 2.2.2
-- torchvision >= 0.17.2
-- pymatgen >= 2025.3.10
+- emmet-core
+- fairchem-core
+- matplotlib
+- mp-api
+- numpy
 - parsl >= 2025.3.24
+- pymatgen >= 2025.3.10
 - pytest >= 8.3.5
+- python-ternary >= 1.0.8
+- pytorch >= 2.2.2
+- scikit-learn >= 1.6.1
+- scipy
 - sphinx >= 7.1.2
 - sphinx_rtd_theme >= 3.0.2
-- mp-api >= 0.45.7
-- python-ternary >= 1.0.8
+- torchvision >= 0.17.2
 
 Additionally:
 - Ensure you have a working [VASP](https://www.vasp.at) installation.
@@ -30,7 +34,7 @@ Additionally:
 - Create a json file that specifies the running configurations for exa-AMD. See for example [configs/chicoma.json](configs/chicoma.json). The configuration file specifies general settings for running exa-AMD, CGCNN, VASP, and the Parsl configuration.
 
 
-### External packages 
+### External packages
 This package contains a modified version of Crystal Graph Convolutional Neural Networks (CGCNN) placed under the `cms_dir` directory. The original [CGCNN](https://github.com/txie-93/cgcnn) source code was developed by [Tian Xie](https://txie.me/) et al., distributed under the MIT License.
 
 ### Workflow-dependent requirements
@@ -72,7 +76,7 @@ In the current implementation, *CIF* files are used as the default input format 
 We currently support the automated workflows on NERSC's Perlmutter and LANL's Chicoma computers. If you would like to run on a different computing system, you must add your own Parsl configuration following these steps:
 
 1. Create a new file in your configs directory (e.g., `parsl_configs/`), similar to the one in [parsl_configs/chicoma.py](parsl_configs/chicoma.py)
-2. Add a configuration class with a unique name `<my_parsl_config_name>` 
+2. Add a configuration class with a unique name `<my_parsl_config_name>`
 3. Modify Parsl's execution settings. More details can be found in [Parsl's official documentation](https://parsl.readthedocs.io/en/latest/)
 4. Register your configuration class by calling `register_parsl_config()` inside that file
 5. Modify your json configuration file accordingly by setting `parsl_config` to `<my_parsl_config_name>` and `parsl_configs_dir` to the absolute path of your configs directory (e.g., `<abs_path_to>/parsl_configs`)
@@ -116,9 +120,9 @@ Prediction of new CeFeIn compounds using this framework by the development team.
 If you use exa-AMD, please cite the following papers:
 
 - [JOSS](https://joss.theoj.org/papers/10.21105/joss.08879)
-- [arXiv:2510.01170](https://arxiv.org/abs/2510.01170)  
+- [arXiv:2510.01170](https://arxiv.org/abs/2510.01170)
 
-If you configure exa-AMD to make use of CGCNN for structure screening, please also cite the original CGCNN paper:  
+If you configure exa-AMD to make use of CGCNN for structure screening, please also cite the original CGCNN paper:
 [https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301)
 
 ## Contribute

@@ -1,10 +1,7 @@
 import os
-import time
 import pandas as pd
 import glob
-import parsl
 import math
-import sys
 
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -13,11 +10,10 @@ from tools.errors import VaspNonReached
 from parsl.app.errors import AppTimeout
 from parsl.app.errors import BashExitFailure
 from tools.logging_config import amd_logger
-from tools.config_manager import ConfigManager
 from tools.config_labels import ConfigKeys as CK
 from parsl_configs.parsl_executors_labels import *
 
-from parsl_tasks.ehull import calculate_ehul
+from parsl_tasks.ehull import calculate_ehull
 from parsl_tasks.convex_hull import convex_hull_color
 from parsl_tasks.ml_ehull import ehull_ml_parallel
 from tools.post_processing import get_vasp_hull
@@ -351,7 +347,7 @@ class EhullMLParallel(Step):
     def run(self) -> None:
         if self.not_finished():
             self._ehull_ml_parallel()
-        amd_logger.info(f"ehull_ml_parallel done")
+        amd_logger.info("ehull_ml_parallel done")
 
 
 class PostProcessingStep(Step):
@@ -360,7 +356,7 @@ class PostProcessingStep(Step):
 
     Requires a 3- or 4-element system. Runs
     :func:`tools.post_processing.get_vasp_hull`,
-    :func:`parsl_tasks.ehull.calculate_ehul` and
+    :func:`parsl_tasks.ehull.calculate_ehull` and
     :func:`parsl_tasks.convex_hull.convex_hull_color`.
     """
 
@@ -376,7 +372,7 @@ class PostProcessingStep(Step):
 
             if nb_of_elements < 3 or nb_of_elements > 4:
                 amd_logger.critical(
-                    f"The post-processing is only supported with 3 or 4 elements")
+                    "The post-processing is only supported with 3 or 4 elements")
 
             os.makedirs(self.config[CK.POST_PROCESSING_OUT_DIR], exist_ok=True)
 
@@ -384,9 +380,9 @@ class PostProcessingStep(Step):
             if self.get_hull:
                 get_vasp_hull(self.config)
 
-            err = calculate_ehul(self.config).exception()
+            err = calculate_ehull(self.config).exception()
             if err:
-                amd_logger.critical(f"calculate_ehul {err}")
+                amd_logger.critical(f"calculate_ehull {err}")
 
             err = convex_hull_color(self.config).exception()
             if err:

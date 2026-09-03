@@ -1,25 +1,37 @@
-import os
-import tarfile
-from pathlib import Path
-import sys
-import pytest
+"""Tests for :mod:`parsl_tasks.gen_structures`.
 
-REPO_ROOT = Path(__file__).parent.parent.resolve()
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+These tests exercise structure generation via element substitution, the
+disallowed-element skipping logic, per-structure CIF writing, and the
+chunk-level entry point that produces the ``id_prop.csv`` manifest alongside
+the generated CIF files.
+"""
+
+from pathlib import Path
+
+import pytest
+from conftest import extract_tar, pushd
 
 
 @pytest.fixture(scope="module")
-def gen_env(tmp_path_factory):
+def gen_env(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
+    """Extract the test archive and locate the CIF input directory.
+
+    Parameters
+    ----------
+    tmp_path_factory : pytest.TempPathFactory
+        Factory used to create the module-scoped temporary directory.
+
+    Returns
+    -------
+    dict of str to pathlib.Path
+        Mapping with keys ``"tmp"`` (the extraction root) and ``"input_dir"``
+        (the directory containing the CIF file).
+    """
     tmp = tmp_path_factory.mktemp("gen_structures")
     tar_path = Path(__file__).parent / "initial_structures_in.tar"
     assert tar_path.exists(), f"Missing {tar_path}"
 
-    with tarfile.open(tar_path) as tar:
-        try:
-            tar.extractall(path=tmp, filter="data")  # Python 3.12+
-        except TypeError:
-            tar.extractall(path=tmp)
+    extract_tar(tar_path, tmp)
 
     input_dir = None
     for cand in [tmp, *tmp.iterdir()]:
@@ -35,9 +47,147 @@ def gen_env(tmp_path_factory):
     return {"tmp": tmp, "input_dir": input_dir}
 
 
-def test_run_gen_structures(gen_env, monkeypatch):
-    from tools.config_labels import ConfigKeys as CK
+def test_generate_structures(gen_env: dict[str, Path]) -> None:
+    """Verify structure count and element substitution.
+
+    Parameters
+    ----------
+    gen_env : dict of str to pathlib.Path
+        Fixture providing the extracted input directory.
+
+    Notes
+    -----
+    Asserts the number of generated structures equals
+    ``len(permutations(elements)) * len(LATTICE_SCALES)`` and that each
+    structure only contains the substituted elements.
+    """
+    from parsl_tasks.gen_structures import LATTICE_SCALES, _generate_structures
+
+    input_dir = gen_env["input_dir"]
+    cif_files = [p for p in input_dir.iterdir() if p.suffix == ".cif"]
+    structure_file = cif_files[0].name
+    elements = ["Na", "B", "C"]
+
+    from itertools import permutations
+
+    expected = len(list(permutations(elements))) * len(LATTICE_SCALES)
+
+    structures = _generate_structures(structure_file, elements, str(input_dir))
+
+    assert len(structures) == expected, (
+        f"Expected {expected} structures, got {len(structures)}"
+    )
+
+    # each generated structure only contains substituted elements
+    allowed = set(elements)
+    for s in structures:
+        symbols = {el.symbol for el in s.composition}
+        assert symbols.issubset(allowed), f"Unexpected elements {symbols - allowed}"
+
+
+def test_generate_structures_skips_bad_elements(
+    gen_env: dict[str, Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Ensure structures with disallowed elements are skipped.
+
+    Parameters
+    ----------
+    gen_env : dict of str to pathlib.Path
+        Fixture providing the extracted input directory.
+    monkeypatch : pytest.MonkeyPatch
+        Used to inject a present element into ``badele_vec``.
+
+    Notes
+    -----
+    Patches :data:`~parsl_tasks.gen_structures.badele_vec` so one of the
+    structure's elements is disallowed and asserts an empty result.
+    """
+    import parsl_tasks.gen_structures as gs
+    from parsl_tasks.gen_structures import _generate_structures
+
+    input_dir = gen_env["input_dir"]
+    cif_files = [p for p in input_dir.iterdir() if p.suffix == ".cif"]
+    structure_file = cif_files[0].name
+
+    # Force one of the present elements to be treated as disallowed
+    from pymatgen.core import Structure
+
+    original = Structure.from_file(str(cif_files[0]))
+    present = [el.symbol for el in original.composition]
+
+    monkeypatch.setattr(gs, "badele_vec", gs.badele_vec + present[:1])
+
+    structures = _generate_structures(structure_file, ["Na", "B", "C"], str(input_dir))
+    assert structures == [], "Structures with disallowed elements must be skipped"
+
+
+def test_process_structure(gen_env: dict[str, Path], tmp_path: Path) -> None:
+    """Verify CIF files are written with the expected names and count.
+
+    Parameters
+    ----------
+    gen_env : dict of str to pathlib.Path
+        Fixture providing the extracted input directory.
+    tmp_path : pathlib.Path
+        Per-test temporary directory used as the CIF output location.
+
+    Notes
+    -----
+    Asserts the returned count, the number of written CIF files, and that the
+    generated file names match ``<chunk_id>_<index>.cif``.
+    """
+    from itertools import permutations
+
+    from parsl_tasks.gen_structures import LATTICE_SCALES, _process_structure
+
+    input_dir = gen_env["input_dir"]
+    cif_files = [p for p in input_dir.iterdir() if p.suffix == ".cif"]
+    structure_file = cif_files[0].name
+    elements = ["Na", "B", "C"]
+    chunk_id = 1
+    start_index = 1
+
+    expected = len(list(permutations(elements))) * len(LATTICE_SCALES)
+
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    with pushd(out_dir):
+        count = _process_structure(
+            (structure_file, start_index, str(input_dir), elements, chunk_id)
+        )
+
+    assert count == expected, f"Expected {expected} structures, got {count}"
+
+    written = sorted(out_dir.glob(f"{chunk_id}_*.cif"))
+    assert len(written) == expected, (
+        f"Expected {expected} CIF files, found {len(written)}"
+    )
+
+    expected_names = {
+        f"{chunk_id}_{i}.cif" for i in range(start_index, start_index + expected)
+    }
+    assert {p.name for p in written} == expected_names
+
+
+def test_run_gen_structures(
+    gen_env: dict[str, Path],
+) -> None:
+    """Verify the chunk-level entry point end to end.
+
+    Parameters
+    ----------
+    gen_env : dict of str to pathlib.Path
+        Fixture providing the extracted input directory.
+
+    Notes
+    -----
+    Runs :func:`~parsl_tasks.gen_structures.run_gen_structures` for a single
+    chunk and asserts that ``id_prop.csv`` and the generated CIF files agree in
+    both count (30 rows) and identifiers.
+    """
     from parsl_tasks.gen_structures import run_gen_structures
+    from tools.config_labels import ConfigKeys as CK
 
     work_dir = gen_env["tmp"] / "work"
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -52,18 +202,14 @@ def test_run_gen_structures(gen_env, monkeypatch):
     n_chunks = 1
     chunk_id = 1
 
-    cwd = os.getcwd()
-    try:
-        os.chdir(work_dir)
+    with pushd(work_dir):
         out_csv = run_gen_structures(config, n_chunks=n_chunks, chunk_id=chunk_id)
-    finally:
-        os.chdir(cwd)
 
-    out_csv = Path(out_csv)
-    assert out_csv.exists(), "id_prop.csv was not created"
+    out_csv_path = Path(out_csv)
+    assert out_csv_path.exists(), "id_prop.csv was not created"
 
     # id_prop.csv should contain 30 lines: "<chunk>_<idx>,0.5"
-    lines = [ln.strip() for ln in out_csv.read_text().splitlines() if ln.strip()]
+    lines = [ln.strip() for ln in out_csv_path.read_text().splitlines() if ln.strip()]
     assert len(lines) == 30, f"Expected 30 rows in csv, found {len(lines)}"
     assert all("," in ln for ln in lines), "Malformed csv rows"
 

@@ -1,70 +1,98 @@
+"""Parsl tasks for DFT structure optimization using VASP.
+
+This module provides a fused two-stage VASP calculation (relaxation followed
+by an energy calculation) wrapped as a Parsl ``python_app`` so it can be
+scheduled on the VASP executor.
+
+Public API
+----------
+run_vasp_calc
+    Submit a fused VASP calculation for a structure.
+fused_vasp_calc
+    The Parsl ``python_app`` wrapper.
+cmd_fused_vasp_calc
+    The underlying (non-app) implementation.
+"""
+
+import os
 import re
+import shutil
 import subprocess
+from importlib import resources as iresources
 from pathlib import Path
-from parsl import python_app, bash_app, join_app
-import importlib.resources as pkg_resources
+
+from parsl import python_app
 
 from parsl_configs.parsl_executors_labels import VASP_EXECUTOR_LABEL
 from tools.config_labels import ConfigKeys as CK
+from tools.errors import VaspNonReached
 
 
 def cmd_fused_vasp_calc(config, id, walltime=(int)):
-    """
-    Run a two-stage VASP calculation via a Python Parsl task.
+    """Run a two-stage VASP calculation via a Python Parsl task.
 
-    It start by running a relaxation phase trying to find
-    the lowest-energy configuration. If relaxation is successful,
-    it runs the energy calculaction
+    It starts by running a relaxation phase trying to find the lowest-energy
+    configuration. If relaxation is successful, it runs the energy calculation.
 
-    :param dict config:
+    Parameters
+    ----------
+    config : dict
         :class:`~tools.config_manager.ConfigManager` (or dict). Keys used:
+
         - ``vasp_work_dir`` (str): directory for per-structure work subdirs.
-        - ``work_dir`` (str): project root holding inputs (e.g., ``new/``, ``POTCAR``).
-        - ``vasp_std_exe`` (str): path to the VASP executable (e.g., ``vasp_std``).
+        - ``work_dir`` (str): project root holding inputs (e.g., ``new/``,
+          ``POTCAR``).
+        - ``vasp_std_exe`` (str): path to the VASP executable (e.g.,
+          ``vasp_std``).
         - ``vasp_timeout`` (int, s): max walltime per VASP invocation.
         - ``vasp_nsw`` (int): number of ionic steps (NSW) for relaxation.
-
-    :param int id:
+    id : int
         Structure identifier: maps to ``POSCAR_{id}`` and names outputs.
+    walltime : int
+        Per-run timeout in seconds (unused; superseded by
+        ``config[CK.VASP_TIMEOUT]``).
 
-    :param int walltime:
-        Per-run timeout in seconds (unused; superseded by ``config[CK.VASP_TIMEOUT]``).
+    Returns
+    -------
+    None
 
-    :returns: None
-    :rtype: None
-
-    :raises VaspNonReached: if relaxation fails to meet criteria.
-    :raises Exception: on file I/O or subprocess failures.
-
+    Raises
+    ------
+    VaspNonReached
+        If relaxation fails to meet criteria.
+    Exception
+        On file I/O or subprocess failures.
     """
-    import os
-    import shutil
-    import time
-    import re
-    import subprocess
-    from importlib import resources as iresources
-    from pathlib import Path
-    from tools.errors import VaspNonReached
 
     def _is_timeout(rc):
         return rc == 124
 
     def cleanup():
         cleanup_files = [
-            "DOSCAR", "PCDAT", "REPORT", "XDATCAR", "CHG",
-            "CHGCAR", "EIGENVAL", "PROCAR", "WAVECAR", "vasprun.xml"
+            "DOSCAR",
+            "PCDAT",
+            "REPORT",
+            "XDATCAR",
+            "CHG",
+            "CHGCAR",
+            "EIGENVAL",
+            "PROCAR",
+            "WAVECAR",
+            "vasprun.xml",
         ]
         for fname in cleanup_files:
             try:
                 os.remove(fname)
             except FileNotFoundError:
                 pass
+
     success = False
     timed_out = False
     vasp_non_reached = False
     try:
         exec_cmd_prefix = (
-            "" if config[CK.VASP_NTASKS_PER_RUN] == 1
+            ""
+            if config[CK.VASP_NTASKS_PER_RUN] == 1
             else f"srun -N 1 -n {config[CK.VASP_NTASKS_PER_RUN]} --exact --cpu-bind=cores"
         )
         work_subdir = os.path.join(config[CK.VASP_WORK_DIR], str(id))
@@ -78,7 +106,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         vasp_std_exe = config[CK.VASP_STD_EXE]
         poscar = os.path.join(config[CK.WORK_DIR], "new", f"POSCAR_{id}")
-        with iresources.as_file(iresources.files("workflows.vasp_assets") / "INCAR.rx") as p:
+        with iresources.as_file(
+            iresources.files("workflows.vasp_assets") / "INCAR.rx"
+        ) as p:
             incar_src = str(p)
 
         # POTCAR symlink
@@ -101,9 +131,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
         # run relaxation
         with open(output_rx, "w") as out:
             rc = subprocess.run(
-                ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                [
+                    "timeout",
+                    str(config[CK.VASP_TIMEOUT]),
+                    *exec_cmd_prefix.split(),
+                    vasp_std_exe,
+                ],
                 stdout=out,
-                stderr=subprocess.STDOUT
+                stderr=subprocess.STDOUT,
             )
             if rc.returncode != 0:
                 if _is_timeout(rc.returncode):
@@ -114,7 +149,7 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         #  grep "reached"
         out_text = output_rx.read_text(errors="ignore")
-        reached = ("reached" in out_text.lower())
+        reached = "reached" in out_text.lower()
 
         # grep "{NSW} F="
         re_nsw = re.compile(rf"(?m)^\s*{VASP_NSW}\s+F=")
@@ -129,9 +164,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             shutil.copy("CONTCAR", "POSCAR")
             with open(output_rx, "w") as out:
                 rc = subprocess.run(
-                    ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                    [
+                        "timeout",
+                        str(config[CK.VASP_TIMEOUT]),
+                        *exec_cmd_prefix.split(),
+                        vasp_std_exe,
+                    ],
                     stdout=out,
-                    stderr=subprocess.STDOUT
+                    stderr=subprocess.STDOUT,
                 )
                 if rc.returncode != 0:
                     if _is_timeout(rc.returncode):
@@ -148,7 +188,9 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
             raise VaspNonReached("relaxation did not converge and did not hit NSW")
 
         # energy calculation
-        with iresources.as_file(iresources.files("workflows.vasp_assets") / "INCAR.en") as p:
+        with iresources.as_file(
+            iresources.files("workflows.vasp_assets") / "INCAR.en"
+        ) as p:
             incar_en = str(p)
 
         output_file_en = os.path.join(work_subdir, f"output_{id}.en")
@@ -158,9 +200,14 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
         with open(output_file_en, "w") as out:
             subprocess.run(
-                ["timeout", str(config[CK.VASP_TIMEOUT]), *exec_cmd_prefix.split(), vasp_std_exe],
+                [
+                    "timeout",
+                    str(config[CK.VASP_TIMEOUT]),
+                    *exec_cmd_prefix.split(),
+                    vasp_std_exe,
+                ],
                 stdout=out,
-                stderr=subprocess.STDOUT
+                stderr=subprocess.STDOUT,
             )
         os.rename("OUTCAR", f"OUTCAR_{id}.en")
         success = True
@@ -175,8 +222,44 @@ def cmd_fused_vasp_calc(config, id, walltime=(int)):
 
 @python_app(executors=[VASP_EXECUTOR_LABEL])
 def fused_vasp_calc(config, id, walltime=(int)):
+    """Parsl app wrapper around :func:`cmd_fused_vasp_calc`.
+
+    Runs on the VASP executor. See :func:`cmd_fused_vasp_calc` for the full
+    description of behaviour and parameters.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration mapping (see :func:`cmd_fused_vasp_calc`).
+    id : int
+        Structure identifier.
+    walltime : int
+        Per-run timeout in seconds.
+
+    Returns
+    -------
+    None
+    """
     cmd_fused_vasp_calc(config, id, walltime)
 
 
 def run_vasp_calc(config, id):
+    """Submit a fused VASP calculation for a single structure.
+
+    Convenience entry point that computes an appropriate ``walltime`` from the
+    configured VASP timeout and submits :func:`fused_vasp_calc` to Parsl.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration mapping. Must provide ``CK.VASP_TIMEOUT`` (int, seconds)
+        along with the keys required by :func:`cmd_fused_vasp_calc`.
+    id : int
+        Structure identifier (maps to ``POSCAR_{id}``).
+
+    Returns
+    -------
+    parsl.dataflow.futures.AppFuture
+        The Parsl future for the submitted app.
+    """
     return fused_vasp_calc(config, id, walltime=2 * config[CK.VASP_TIMEOUT])

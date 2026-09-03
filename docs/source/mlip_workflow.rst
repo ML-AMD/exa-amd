@@ -6,16 +6,16 @@ Module 2: MLIP Relaxation and Hull Sorting
 
 The ``mlip`` workflow is Module 2 in *exa-AMD*. It extends the original
 CGCNN-to-DFT workflow by introducing two machine-learning interatomic potential
-(MLIP)-based stages before VASP validation: structural relaxation using a MLIP, 
-followed by hull-energy-based structural ranking. This workflow is designed to 
-reserve expensive DFT calculations for candidate structures that have already 
+(MLIP)-based stages before VASP validation: structural relaxation using a MLIP,
+followed by hull-energy-based structural ranking. This workflow is designed to
+reserve expensive DFT calculations for candidate structures that have already
 been geometrically relaxed and ranked relative to the current convex hull.
 
-This feature was added to the original exa-AMD workflow in response to the 
-Y-Mn-B development case, where a large pool of generated candidate structures 
-required a more selective bridge between fast formation-energy screening and 
-first-principles validation. In this workflow, CGCNN first reduces the generated 
-structure set. MLIP relaxation then refines the selected structures, and 
+This feature was added to the original exa-AMD workflow in response to the
+Y-Mn-B development case, where a large pool of generated candidate structures
+required a more selective bridge between fast formation-energy screening and
+first-principles validation. In this workflow, CGCNN first reduces the generated
+structure set. MLIP relaxation then refines the selected structures, and
 hull-energy sorting prioritizes low-energy candidates for DFT calculations.
 
 When to use this workflow
@@ -75,8 +75,8 @@ checkpoint expected at ``ml_models/mlip/uma-s-1p1.pt`` in a source checkout. The
 relaxation helper uses ASE with a FIRE optimizer and writes one relaxed
 structure and one energy record per candidate.
 
-The model checkpoint is managed with Git Large File Storage (LFS). Before 
-cloning or running this workflow, initialize LFS and make sure the checkpoint is 
+The model checkpoint is managed with Git Large File Storage (LFS). Before
+cloning or running this workflow, initialize LFS and make sure the checkpoint is
 present:
 
 .. code-block:: bash

@@ -1,8 +1,8 @@
-from typing import Dict, Type
+from typing import Type
 from .core import Workflow
 from tools.logging_config import amd_logger
 
-_REGISTRY: Dict[str, Type[Workflow]] = {}
+_REGISTRY: dict[str, Type[Workflow]] = {}
 
 
 def register_workflow(name: str):
