@@ -9,7 +9,7 @@ distance expansion (:class:`GaussianDistance`), the batch collation helper
 
 import csv
 import json
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -412,7 +412,7 @@ class TestAtomInitializer:
 class TestAtomCustomJSONInitializer:
     """Tests for :class:`AtomCustomJSONInitializer`."""
 
-    def test_initialization(self, tmp_path) -> None:
+    def test_initialization(self, tmp_path: Path) -> None:
         """Initialisation loads per-atom features from a JSON file.
 
         Parameters
@@ -581,8 +581,7 @@ _atom_site_fract_z
 Na1 Na 0.0 0.0 0.0
 Cl1 Cl 0.5 0.5 0.5
 """
-        with open(os.path.join(path, f"{cif_id}.cif"), "w") as f:
-            f.write(cif)
+        (Path(path) / f"{cif_id}.cif").write_text(cif)
 
     @staticmethod
     def _write_atom_init(path: str, numbers: list[int], fea_len: int = 4) -> None:
@@ -598,8 +597,7 @@ Cl1 Cl 0.5 0.5 0.5
             Length of each per-atom feature vector. Default is ``4``.
         """
         embedding = {str(n): [float(i)] * fea_len for i, n in enumerate(numbers)}
-        with open(os.path.join(path, "atom_init.json"), "w") as f:
-            json.dump(embedding, f)
+        (Path(path) / "atom_init.json").write_text(json.dumps(embedding))
 
     @staticmethod
     def _write_id_prop(path: str, rows: list[list[str]]) -> None:
@@ -612,7 +610,7 @@ Cl1 Cl 0.5 0.5 0.5
         rows : list of list of str
             Rows of ``[cif_id, target]`` values to write.
         """
-        with open(os.path.join(path, "id_prop.csv"), "w", newline="") as f:
+        with open(Path(path) / "id_prop.csv", "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerows(rows)
 
@@ -621,18 +619,18 @@ Cl1 Cl 0.5 0.5 0.5
         with pytest.raises(AssertionError):
             CIFData("/nonexistent/path/for/testing")
 
-    def test_missing_id_prop(self, tmp_path) -> None:
+    def test_missing_id_prop(self, tmp_path: Path) -> None:
         """Missing id_prop.csv should raise AssertionError."""
         with pytest.raises(AssertionError):
             CIFData(str(tmp_path))
 
-    def test_missing_atom_init(self, tmp_path) -> None:
+    def test_missing_atom_init(self, tmp_path: Path) -> None:
         """Missing atom_init.json should raise AssertionError."""
         self._write_id_prop(str(tmp_path), [["mat0", "1.0"]])
         with pytest.raises(AssertionError):
             CIFData(str(tmp_path))
 
-    def test_len(self, tmp_path) -> None:
+    def test_len(self, tmp_path: Path) -> None:
         """__len__ should reflect the number of entries in id_prop.csv."""
         tmp = str(tmp_path)
         self._write_id_prop(tmp, [["m0", "1.0"], ["m1", "2.0"]])
@@ -642,7 +640,7 @@ Cl1 Cl 0.5 0.5 0.5
         dataset = CIFData(tmp, max_num_nbr=6, radius=6)
         assert len(dataset) == 2
 
-    def test_getitem_shapes(self, tmp_path) -> None:
+    def test_getitem_shapes(self, tmp_path: Path) -> None:
         """__getitem__ should return correctly shaped tensors and cif_id."""
         tmp = str(tmp_path)
         self._write_id_prop(tmp, [["m0", "3.5"]])
@@ -659,7 +657,7 @@ Cl1 Cl 0.5 0.5 0.5
         assert torch.isclose(target, torch.tensor([3.5]))
         assert cif_id == "m0"
 
-    def test_getitem_insufficient_neighbors_warns(self, tmp_path) -> None:
+    def test_getitem_insufficient_neighbors_warns(self, tmp_path: Path) -> None:
         """Requesting more neighbors than available should warn and pad."""
         tmp = str(tmp_path)
         self._write_id_prop(tmp, [["m0", "1.0"]])

@@ -17,6 +17,38 @@ from tools.config_labels import ConfigKeys as CK
 from tools.logging_config import amd_logger
 
 
+def _str2bool(value: str) -> bool:
+    """Parse a CLI string into a boolean.
+
+    ``argparse`` with ``type=bool`` calls ``bool(value)``, which treats any
+    non-empty string (including ``"False"``) as ``True``. This converter maps
+    common truthy/falsy spellings to the correct boolean instead.
+
+    Parameters
+    ----------
+    value : str
+        The raw command-line argument value.
+
+    Returns
+    -------
+    bool
+        The parsed boolean value.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If ``value`` is not a recognised boolean spelling.
+    """
+    if isinstance(value, bool):
+        return value
+    normalized = value.strip().lower()
+    if normalized in ("true", "t", "yes", "y", "1"):
+        return True
+    if normalized in ("false", "f", "no", "n", "0"):
+        return False
+    raise argparse.ArgumentTypeError(f"Expected a boolean value, got '{value}'.")
+
+
 def _collect_batch_ids(
     vasp_work_dir: str, structure_dir: str, nstructures: int
 ) -> list[int]:
@@ -358,7 +390,7 @@ class ConfigManager:
             for key, (arg_type, help_text) in self.REQUIRED_PARAMS.items():
                 parser.add_argument(
                     f"--{key}",
-                    type=arg_type,
+                    type=_str2bool if arg_type is bool else arg_type,
                     default=None,  # We'll check existence later
                     help=help_text,
                 )
@@ -369,7 +401,7 @@ class ConfigManager:
                 parser.add_argument(
                     f"--{key}",
                     default=None,  # We'll assign defaults ourselves if needed
-                    type=arg_type,
+                    type=_str2bool if arg_type is bool else arg_type,
                     help=f"{help_text} (default='{default_val}').",
                 )
             parser.parse_args()

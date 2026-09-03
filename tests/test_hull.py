@@ -7,6 +7,7 @@ inside the per-run working subdirectory.
 
 from pathlib import Path
 
+from parsl_tasks.hull import cmd_vasp_hull
 from tools.config_labels import ConfigKeys as CK
 
 
@@ -16,8 +17,6 @@ def test_cmd_vasp_hull_single_task_no_srun_prefix() -> None:
     Verifies that ``cmd_vasp_hull`` builds a plain command without an
     ``srun`` launcher when ``VASP_NTASKS_PER_RUN`` equals one.
     """
-    from parsl_tasks.hull import cmd_vasp_hull
-
     config = {
         CK.VASP_NTASKS_PER_RUN: 1,
         CK.VASP_STD_EXE: "/path/to/vasp_std",
@@ -38,8 +37,6 @@ def test_cmd_vasp_hull_multi_task_uses_srun_prefix() -> None:
     Verifies that ``cmd_vasp_hull`` prepends the expected ``srun`` launcher
     with the correct task count when ``VASP_NTASKS_PER_RUN`` exceeds one.
     """
-    from parsl_tasks.hull import cmd_vasp_hull
-
     config = {
         CK.VASP_NTASKS_PER_RUN: 4,
         CK.VASP_STD_EXE: "/path/to/vasp_std",
@@ -62,8 +59,6 @@ def test_cmd_vasp_hull_output_path_joined(tmp_path: Path) -> None:
     tmp_path : pathlib.Path
         Pytest-provided temporary directory used as the work subdirectory.
     """
-    from parsl_tasks.hull import cmd_vasp_hull
-
     config = {
         CK.VASP_NTASKS_PER_RUN: 1,
         CK.VASP_STD_EXE: "vasp_std",

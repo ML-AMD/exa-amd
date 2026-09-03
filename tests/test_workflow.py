@@ -61,6 +61,7 @@ def cgcnn_output(
             workers=0,
             chunk_id=1,
             output_csv=None,
+            disable_cuda=True,
         )
 
     assert Path(out_csv) == cgcnn_output_csv, "Output CSV path mismatch"

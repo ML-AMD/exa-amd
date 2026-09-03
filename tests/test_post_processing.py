@@ -614,23 +614,38 @@ def test_convex_hull_color_reraises(
 class _FakeMPRester:
     """Context-manager double for ``MPRester``.
 
-    Parameters
-    ----------
-    docs : list[dict]
-        Documents returned by every ``summary.search`` call.
+    Documents are bound per instance (via the class attribute set by
+    :func:`_make_fake_mprester`) rather than through shared mutable state, so
+    tests remain isolated from one another.
     """
+
+    docs: list[dict[str, Any]] = []
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.summary = mock.MagicMock()
-        self.summary.search.return_value = list(_FakeMPRester.docs)
-
-    docs: list[dict[str, Any]] = []
+        self.summary.search.return_value = list(type(self).docs)
 
     def __enter__(self) -> "_FakeMPRester":
         return self
 
     def __exit__(self, *exc: Any) -> Literal[False]:
         return False
+
+
+def _make_fake_mprester(docs: list[dict[str, Any]]) -> type[_FakeMPRester]:
+    """Build an ``MPRester`` double bound to ``docs``.
+
+    Parameters
+    ----------
+    docs : list[dict]
+        Documents returned by every ``summary.search`` call.
+
+    Returns
+    -------
+    type[_FakeMPRester]
+        A subclass whose instances return ``docs`` from ``summary.search``.
+    """
+    return type("_BoundFakeMPRester", (_FakeMPRester,), {"docs": list(docs)})
 
 
 def test_get_stable_phases_categorizes_by_element_count(
@@ -659,8 +674,7 @@ def test_get_stable_phases_categorizes_by_element_count(
             "elements": ["Na", "B", "C"],
         },
     ]
-    _FakeMPRester.docs = docs
-    monkeypatch.setattr(post_processing, "MPRester", _FakeMPRester)
+    monkeypatch.setattr(post_processing, "MPRester", _make_fake_mprester(docs))
 
     phases = post_processing.get_stable_phases(["Na", "B", "C"], "KEY")
 
@@ -676,7 +690,7 @@ def test_get_stable_phases_skips_docs_without_elements(
     """Documents lacking an ``elements`` field are ignored."""
     from tools import post_processing
 
-    _FakeMPRester.docs = [
+    docs = [
         {
             "material_id": "mp-x",
             "formula_pretty": "?",
@@ -684,7 +698,7 @@ def test_get_stable_phases_skips_docs_without_elements(
             "elements": [],
         },
     ]
-    monkeypatch.setattr(post_processing, "MPRester", _FakeMPRester)
+    monkeypatch.setattr(post_processing, "MPRester", _make_fake_mprester(docs))
 
     phases = post_processing.get_stable_phases(["Na"], "KEY")
 

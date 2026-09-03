@@ -130,16 +130,14 @@ def extract_tar(archive_path: str | os.PathLike, dest: str | os.PathLike) -> Non
             tar.extractall(path=dest)
 
 
-def write_element_potcars(
-    pot_dir: Path, elements: tuple[str, ...], prefix: str = "POTCAR"
-) -> None:
+def write_element_potcars(pot_dir: Path, elements: tuple[str, ...]) -> None:
     """Create per-element ``POTCAR`` files under ``pot_dir``.
 
     Parameters
     ----------
     pot_dir : pathlib.Path
         Root PAW potentials directory.
-    elements : list[str]
+    elements : tuple[str, ...]
         Element symbols for which to create ``<el>/POTCAR`` files.
     """
     for elem in elements:

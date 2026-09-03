@@ -48,7 +48,9 @@ def test_parse_skips_foreign_and_malformed(tmp_path: Path) -> None:
     stable_vec, quaternary_vec = parse_stable_phases_quaternary(str(f), _elements())
 
     formulas = {row[0] for row in stable_vec}
-    assert "AlFeCoNiO4" not in formulas
+    # Only the two in-system lines survive; the foreign-element and
+    # bad-energy/blank lines are skipped.
+    assert formulas == {"AlFeCoO4", "AlFe"}
     assert "AlFeCoNiO" not in formulas
     # only the record with all four fractions > 0 is a true quaternary
     assert [row[0] for row in quaternary_vec] == ["AlFeCoO4"]
@@ -78,19 +80,36 @@ def test_judge_requires_four_elements() -> None:
         judge_stable_quaternary([], ["Al", "Fe", "Co"], "AlFeCo", -1.0)
 
 
-def test_judge_composition_error_when_fractions_missing() -> None:
-    """A formula missing one of the four elements returns the error sentinel."""
-    # formula omits O, so fractions over [Al, Fe, Co, O] sum to 1 across
-    # only three elements -> w == 0, but total still sums to 1, so this
-    # instead exercises the path where a system element is absent.
+def test_judge_absent_system_element_delegates_to_dhull() -> None:
+    """A formula missing one system element (fraction 0) still delegates to dhull.
+
+    ``AlFeCo`` omits O, so its fractions over ``[Al, Fe, Co, O]`` are
+    ``1/3, 1/3, 1/3, 0`` which still sum to 1. The composition check therefore
+    passes and the call delegates to :func:`dhull_quaternary`; with an empty
+    hull no simplex is found, yielding the -100 / ``["Error"] * 4`` sentinel.
+    """
     d_hull, hull_vec = judge_stable_quaternary(
         [], ["Al", "Fe", "Co", "O"], "AlFeCo", -1.0
     )
 
-    # AlFeCo has no O -> fractions still sum to 1, delegates to dhull with
-    # empty hull -> no simplex found.
     assert d_hull == -100
     assert hull_vec == ["Error"] * 4
+
+
+def test_judge_composition_error_when_fractions_missing() -> None:
+    """A foreign element makes the system fractions sum to < 1 -> error sentinel.
+
+    ``AlFeCoNi`` contains Ni, which is not one of ``[Al, Fe, Co, O]``. The four
+    system fractions are ``1/4, 1/4, 1/4, 0`` and sum to 0.75, so the
+    composition guard returns the ``(-100, ["Composition Error"] * 4)``
+    sentinel before any hull evaluation.
+    """
+    d_hull, hull_vec = judge_stable_quaternary(
+        [], ["Al", "Fe", "Co", "O"], "AlFeCoNi", -1.0
+    )
+
+    assert d_hull == -100
+    assert hull_vec == ["Composition Error"] * 4
 
 
 def test_judge_empty_hull_returns_sentinel() -> None:
